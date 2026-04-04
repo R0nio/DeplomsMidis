@@ -1,0 +1,3 @@
+<template>
+Иконка логотипа
+</template>
