@@ -12,12 +12,12 @@ import CardCategories from "@/Components/Main/CardCategories.vue";
 
 
 // Images
-import slider1 from "../../images/pictures/slider1.svg"
-import slider2 from "../../images/pictures/slider2.svg"
-import slider3 from "../../images/pictures/slider3.png"
-import slider4 from "../../images/pictures/slider4.png"
-import slider5 from "../../images/pictures/slider5.png"
-import slider6 from "../../images/pictures/slider6.png"
+import slider1 from "/resources/images/pictures/slider1.png"
+import slider2 from "/resources/images/pictures/slider2.png"
+import slider3 from "/resources/images/pictures/slider3.png"
+import slider4 from "/resources/images/pictures/slider4.png"
+import slider5 from "/resources/images/pictures/slider5.png"
+import slider6 from "/resources/images/pictures/slider6.png"
 import CardMain from "@/Components/Main/CardMain.vue";
 import ContactsInfo from "@/Components/Main/ContactsInfo.vue";
 import Vk from "../../images/VK com.png";

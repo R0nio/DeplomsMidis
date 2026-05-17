@@ -63,7 +63,7 @@ const projectdata = [
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Проекты
+                Админ панель
             </h2>
         </template>
 
@@ -137,7 +137,9 @@ const projectdata = [
                 <div v-if="switcherViewCard">
                     <div :class="`w-full flex flex-col my-5 gap-4 ${projectdata.length >= 12 ? 'overflow-y-scroll h-[80vh]' : 'h-auto overflow-hidden'}`">
                         <div v-for="project in projectdata" :key="project.name" class="px-8">
-                            <CardProjectList :projectData="project"></CardProjectList>
+                            <div>
+                                <CardProjectList :projectData="project"></CardProjectList>
+                            </div>
                         </div>
                     </div>
                 </div>

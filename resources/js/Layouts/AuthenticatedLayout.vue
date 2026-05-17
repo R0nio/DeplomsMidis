@@ -101,7 +101,7 @@ const showingNavigationDropdown = ref(false);
                                                 
                                                     <div>
                                                         <div v-if="$page.props.auth.user.role === 'Investor'">Инвестор</div>
-                                                        <div v-if="$page.props.auth.user.role === 'Organisator'">организатор</div>
+                                                        <div v-if="$page.props.auth.user.role === 'Organisator'">Организатор</div>
                                                     </div>
                                                 
                                                 </div>

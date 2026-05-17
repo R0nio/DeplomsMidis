@@ -39,6 +39,10 @@ Route::get('/mapProject', function(){
 return Inertia::render('MapProject');
 })->name('mapProject');
 
+Route::get('/AdminPanel', function(){
+return Inertia::render('AdminPanel');
+})->name('adminPanel');
+
 Route::get('/contact', function(){
 return Inertia::render('Contact');
 })->name('contact');

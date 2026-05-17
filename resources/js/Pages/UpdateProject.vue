@@ -88,7 +88,7 @@ const mainColor = "#8EB6FF";
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold text-gray-800">
-                Создание проекта
+                Редактирование проекта
             </h2>
         </template>
         
