@@ -36,6 +36,7 @@ const submit = () => {
 
         <form @submit.prevent="submit" class="flex flex-col gap-2">
             <h1 class="mx-auto text-black text-2xl">Регистрация</h1>
+            <!-- имя -->
             <div>
                 <InputLabel for="name" value="Имя" />
 
@@ -52,7 +53,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.name" />
             </div>
 
-            <div class="mt-4">
+            <!-- Фамилия -->
+            <div class="mt-2">
                 <InputLabel for="middlename" value="Фамилия" />
 
                 <TextInput
@@ -68,7 +70,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.middlename" />
             </div>
 
-            <div class="mt-4">
+            <!-- Отчество -->
+            <div class="mt-2">
                 <InputLabel for="lastname" value="Отчество" />
 
                 <TextInput
@@ -83,7 +86,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.lastname" />
             </div>
 
-            <div class="mt-4">
+            <!-- Логин -->
+            <div class="mt-2">
                 <InputLabel for="login" value="Логин" />
 
                 <TextInput
@@ -92,13 +96,14 @@ const submit = () => {
                     class="mt-1 block w-full"
                     v-model="form.login"
                     required
-                    autocomplete="username"
+                    autocomplete="login"
                 />
 
                 <InputError class="mt-2" :message="form.errors.login" />
             </div>
 
-            <div class="mt-4">
+            <!-- Почта -->
+            <div class="mt-2">
                 <InputLabel for="email" value="Почта" />
 
                 <TextInput
@@ -113,7 +118,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.email" />
             </div>
 
-            <div class="mt-4">
+            <!-- Телефон -->
+            <div class="mt-2">
                 <InputLabel for="number" value="Телефон" />
 
                 <MaskInput 
@@ -127,7 +133,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.number" />
             </div>
 
-            <div class="mt-4">
+            <!-- Роль -->
+            <div class="mt-2">
                 <InputLabel for="role" value="Ваша роль" />
 
                 <Select
@@ -142,7 +149,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.role" />
             </div>
 
-            <div class="mt-4">
+            <!-- Пароль -->
+            <div class="mt-2">
                 <InputLabel for="password" value="Пароль" />
 
                 <TextInput
@@ -157,7 +165,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="mt-4">
+            <!-- Подтверждение пароля -->
+            <div class="mt-2">
                 <InputLabel
                     for="password_confirmation"
                     value="Подтвердите пароль"
@@ -178,18 +187,19 @@ const submit = () => {
                 />
             </div>
 
+            
             <div class="mt-4 flex items-center justify-end flex-col">
                 <div class="mt-2 block w-full mb-4">
                     <label class="flex items-center">
                         <Checkbox name="acceptPersonalDate" v-model:checked="form.acceptPersonalDate" required/>
-                        <span class="ms-2 text-sm text-gray-600 focus:outline-none focus:text-blue-2"
+                        <span class="ms-2 text-sm text-gray-800 focus:outline-none focus:text-blue-2"
                             >Согласие на обработку персональных данных</span
                         >
                     </label>
                 </div>
                 <Link
                     :href="route('login')"
-                    class="mb-2 rounded-xl w-full text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:text-blue-200"
+                    class="mb-2 rounded-xl w-full text-sm text-gray-800 underline hover:text-gray-300 focus:outline-none focus:text-blue-200"
                 >
                     Уже зарегистрированы?
                 </Link>

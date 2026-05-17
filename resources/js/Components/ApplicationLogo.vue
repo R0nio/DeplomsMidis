@@ -1,3 +1,6 @@
+<script>
+import logo from "../../images/LogoInvestProject.png";
+</script>
 <template>
-Иконка логотипа
+    <img :src="logo" alt="">
 </template>

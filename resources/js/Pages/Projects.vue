@@ -17,8 +17,7 @@ const sumfrom = ref('')
 const sumbefore = ref('')
     
 
-const mainColor = "#C9D8EF";
-const footerColor = "#A9BCDB";
+const mainColor = "#8EB6FF";
 
 const switcherViewCard = ref(true);
 
@@ -62,9 +61,6 @@ const projectdata =[
     {name: "Камаз", summInvest: 2000000, timeRelise: "20.05.2030", typeBuild: "Государство", indystri:"Недвижемость", link:"mapProject", status: "В процессе"},
     {name: "Камаз", summInvest: 2000000, timeRelise: "20.05.2030", typeBuild: "Государство", indystri:"Недвижемость", link:"mapProject", status: "В процессе"},
     {name: "Камаз", summInvest: 2000000, timeRelise: "20.05.2030", typeBuild: "Государство", indystri:"Недвижемость", link:"mapProject", status: "В процессе"},
-    {name: "Камаз", summInvest: 2000000, timeRelise: "20.05.2030", typeBuild: "Государство", indystri:"Недвижемость", link:"mapProject", status: "В процессе"},
-    {name: "Камаз", summInvest: 2000000, timeRelise: "20.05.2030", typeBuild: "Государство", indystri:"Недвижемость", link:"mapProject", status: "В процессе"},
-    {name: "Камаз", summInvest: 2000000, timeRelise: "20.05.2030", typeBuild: "Государство", indystri:"Недвижемость", link:"mapProject", status: "В процессе"},
 ];
 
 
@@ -81,7 +77,7 @@ const projectdata =[
         </template>
 
         <div :class="`mx-auto py-6 px-4 sm:px-10 lg:px-16 bg-[${mainColor}] bg-[#C9D8EF]`">
-            <div class="w-full border-2 rounded-xl border-black h-auto p-3">
+            <div class="w-full  border-2 rounded-xl border-black h-full p-3">
                 <!-- search -->
                  <div class="flex items-center mb-3">
                     <p class="w-[300px] p-3 text-lg">Поиск по названию проекта</p>
@@ -122,7 +118,8 @@ const projectdata =[
                     <fwb-button color="light" >Очистить Х</fwb-button>
                  </div>
             </div>
-            <div :class="`w-full border-2 rounded-xl border-black flex flex-col mt-3`">
+            <!-- Проекты -->
+            <div :class="`w-full border-2 rounded-xl border-black h-max flex flex-col mt-3`">
                 <div class="flex w-full justify-end items-center">
                     <div class="flex bg-white gap-4 p-4 rounded-xl">
                         <div :class="`rounded-xl cursor-pointer ${switcherViewCard ? 'opacity-50 pointer-events-none' : ' '}`" @click="switcherViewCard = true">
@@ -141,7 +138,7 @@ const projectdata =[
                     </div>
                 </div>
                 <div v-else>
-                    <div :class="`w-full grid grid-cols-2 my-5 gap-4 ${projectdata.length >= 4 ? 'overflow-y-scroll h-[80vh]' : 'h-auto overflow-hidden'} `">
+                    <div :class="`w-full grid grid-cols-3 my-5 gap-4 ${projectdata.length >= 4 ? 'overflow-y-scroll h-[80vh]' : 'h-auto overflow-hidden'} `">
                         <div v-for="project in projectdata" class="px-8">
                             <CardBox :project="project"></CardBox>
                         </div>

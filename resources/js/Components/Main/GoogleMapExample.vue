@@ -47,15 +47,14 @@ const closeMarker = () =>{
   selectProject.value = null;
 }
 
-const mainColor = "#C9D8EF";
-const footerColor = "#A9BCDB";
+const mainColor = "#8EB6FF";
 </script>
 
 <template>
-    <div :class="`mx-auto py-6 px-4 sm:px-10 lg:px-16 bg-[${mainColor}] bg-[#C9D8EF]`">
+    <div  :style="{backgroundColor: mainColor}" class="mx-auto py-6 px-4 sm:px-10 lg:px-16 ">
       <GoogleMap
         :api-key="api"
-        class="w-full h-[1000px] "
+        class="w-full h-[1000px] rounded-xl"
         :center="center"
         :zoom="15"
         @click="closeMarker"

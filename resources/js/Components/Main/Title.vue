@@ -6,6 +6,6 @@ defineProps({
 
 <template>
     <div>
-        <p class="text-7xl">{{ value }}</p>
+        <p class="text-3xl text-white border-b-2 pb-3 pl-2">{{ value }}</p>
     </div>
 </template>

@@ -4,8 +4,7 @@ import { Head} from "@inertiajs/vue3";
 import GoogleMapExample from "@/Components/Main/GoogleMapExample.vue";
 
 
-const mainColor = "#C9D8EF";
-const footerColor = "#A9BCDB";
+const mainColor = "#8EB6FF";
 
 
 
@@ -20,7 +19,7 @@ const footerColor = "#A9BCDB";
         Карта проектов
       </h2>
     </template>
-    <div :class="`mx-auto py-6 px-4 sm:px-10 lg:px-16 bg-[${mainColor}] bg-[#C9D8EF]`">
+    <div :style="{backgroundColor: mainColor}" class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
       <GoogleMapExample></GoogleMapExample>
     </div>
   </AuthenticatedLayout>

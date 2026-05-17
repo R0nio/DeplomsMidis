@@ -1,4 +1,6 @@
 <script setup>
+import slider3 from "../../../images/pictures/slider6.png"
+
 defineProps({
     project:{
         type: Object,
@@ -8,9 +10,12 @@ defineProps({
 </script>
 
 <template>
-    <div class="w-full h-[550px] flex flex-col  justify-between bg-blue-300 rounded-xl">
-        <div class="w-full flex ">
-            <div class="font-normal text-xs p-2.5 bg-white text-black mr-auto rounded-xl flex items-center h-min">
+    <div class="w-full max-xl:h-max h-[500px] pb-20 flex flex-col justify-between bg-blue-300 rounded-xl relative">
+        <a href="" class="w-full h-full">
+            <img :src="slider3" alt="" class="rounded-xl">
+        </a>
+        <div class="w-full flex absolute">
+            <div class="font-normal text-3xl p-2.5 bg-[#7390C5] text-white mr-auto rounded-xl flex items-center h-min border-b-2 border-r-2 border-white">
                 <!-- Статус {{ project.status }}-->
                 В процессе
             </div>
@@ -18,7 +23,7 @@ defineProps({
                 <img src="../../../images/Email.png" alt="star">
             </div>
         </div>
-        <div class="bg-[#E8E8E8] w-full px-6 py-5 grid grid-cols-2 grid-rows-2 rounded-xl">
+        <div class="bg-[#267FBE] w-full text-white px-6 py-5 grid xl:grid-cols-2 grid-cols-1 xl:text-xl text-base rounded-xl absolute bottom-0 border-t-2 border-white ">
             <!-- Название {{ project.name }}-->
             <p>Название: </p>
 

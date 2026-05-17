@@ -18,21 +18,22 @@ defineProps({
     },
 });
 
+const mainColor = "#8EB6FF";
 </script>
+
 
 <template>
     <Head title="Profile" />
 
     <AuthenticatedLayout>
-        <template #header class="bg-[#BDCCE4]">
-            <h2
-                class="text-3xl font-semibold leading-tight text-gray-800 bg-[#BDCCE4]"
+        <template #header :style="{backgroundColor: mainColor}">
+            <h2 :style="{backgroundColor: mainColor}" class="text-3xl font-semibold leading-tight text-gray-800"
             >
                 Личный кабинет
             </h2>
         </template>
 
-        <div :class="`relative z-0 mx-auto py-6 px-4 sm:px-10 h-screen lg:px-16 bg-[#BDCCE4] `">
+        <div :style="{backgroundColor: mainColor}" class="relative h-max z-0 mx-auto py-6 px-4 sm:px-10 lg:px-16">
             <InfoProfile :user="user"></InfoProfile>
         </div>
         

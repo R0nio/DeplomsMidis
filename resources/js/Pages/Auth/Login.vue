@@ -50,13 +50,13 @@ const submit = () => {
                     v-model="form.login"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="login"
                 />
 
                 <InputError class="mt-2" :message="form.errors.login" />
             </div>
 
-            <div class="mt-2">
+            <div class="">
                 <InputLabel for="password" value="Пароль" />
 
                 <TextInput
@@ -75,7 +75,7 @@ const submit = () => {
                 <Link
                     v-if="canResetPassword"
                     :href="route('register')"
-                    class="mb-2 rounded-xl w-full text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:text-blue-200"
+                    class="mb-2 rounded-xl w-full text-sm text-gray-800 underline hover:text-gray-300 focus:outline-none focus:text-blue-200"
                 >
                     Регистрация
                 </Link>
