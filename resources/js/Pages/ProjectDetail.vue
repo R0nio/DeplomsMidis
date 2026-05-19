@@ -5,6 +5,8 @@ import { Head } from "@inertiajs/vue3";
 import { GoogleMap, Marker, InfoWindow } from "vue3-google-map";
 import SliderInDetailPage from "@/Components/Main/SliderInDetailPage.vue";
 import BarChart from "@/Components/Main/BarChart.vue";
+import { ref } from 'vue';
+import axios from 'axios';
 
 // Images
 import slider1 from "../../images/pictures/slider1.svg"
@@ -53,27 +55,34 @@ const infoProject = {
 В плановый срок был построен   дилерский центр с   ремонтной   зоной   на   24   поста   для   автомобилей   и полуприцепов с экспресс-линией проверки основных систем автомобиля. Для центра было создано 90 новых рабочих мест.  В общей сложности инициатор вложил 1 млрд рублей (с НДС) собственных и заемных средств. `
 };
 
-// Функционал избранного
-const isFavorite = ref(false);
+const props = defineProps({
+    project: {
+        type: Object,
+        required: true
+    },
+    isFavorited: {
+        type: Boolean,
+        default: false
+    }
+});
 
-const toggleFavorite = () => {
-    isFavorite.value = !isFavorite.value;
-    
-    // Сохранение в localStorage
-    const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
-    
-    if (isFavorite.value) {
-        if (!favorites.includes(infoProject.id)) {
-            favorites.push(infoProject.id);
+// Состояние избранного
+const isFavorite = ref(props.isFavorited);
+
+// Переключение избранного
+const toggleFavorite = async () => {
+    try {
+        const response = await axios.post(route('favorites.toggle', props.project.id));
+        
+        if (response.data.success) {
+            isFavorite.value = response.data.isFavorited;
         }
-    } else {
-        const index = favorites.indexOf(infoProject.id);
-        if (index > -1) {
-            favorites.splice(index, 1);
+    } catch (error) {
+        console.error('Ошибка при добавлении в избранное:', error);
+        if (error.response?.status === 401) {
+            alert('Необходимо авторизоваться');
         }
     }
-    
-    localStorage.setItem('favorites', JSON.stringify(favorites));
 };
 
 // Проверка при загрузке
@@ -145,17 +154,16 @@ const closeMarker = () =>{
                 </div>
 
                 <!-- Информация о проекте -->
-                <div class="flex flex-col w-full xl:w-4/12 px-4 sm:px-6 xl:ml-8 xl:border-l-2 border-white mt-6 xl:mt-0">
+                <div class="flex flex-col w-full xl:w-4/12 max-xl:mt-32 max-xl:border-t-2 max-xl:pt-4 px-4 sm:px-6 xl:ml-8 xl:border-l-2 border-white mt-6 xl:mt-0">
                     <!-- Заголовок с избранным -->
                     <div class="flex items-start justify-between w-full gap-4 mb-6">
                         <h1 class="font-bold text-2xl sm:text-3xl flex-1">
                             {{ infoProject.name }}
                         </h1>
                         
-                        <!-- Кнопка избранного -->
                         <button 
                             @click="toggleFavorite"
-                            class="flex-shrink-0 cursor-pointer"
+                            class="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform"
                         >
                             <img 
                                 :src="isFavorite ? FavoriteActiveIcon : FavoriteIcon" 

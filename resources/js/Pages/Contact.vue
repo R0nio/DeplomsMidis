@@ -22,7 +22,7 @@ const socials = [
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <h2 class="text-3xl font-semibold leading-tight text-gray-800">
                 Контакты
             </h2>
             <ContactsInfo class="mb-[120px]" :phonesdata="phonesInfo" :emails="emails" :socials="socials"></ContactsInfo>

@@ -2,7 +2,7 @@
 import { usePage } from '@inertiajs/vue3';
 
 defineProps({
-    projectData: {
+    projectsList: {
         type: Object,
         required: true,
     }
@@ -19,13 +19,13 @@ const userRole = computed(() => page.props.auth.user?.role);
 
 <template>
     <div :style="{backgroundColor: cardColor}" class="flex flex-wrap p-3 justify-between w-full text-base lg:text-xl text-white rounded-xl items-center gap-3">
-        <p class="min-w-[100px]">{{ projectData.name }}</p>
-        <p class="min-w-[120px]">{{ projectData.summInvest }}</p>
-        <p class="min-w-[120px]">{{ projectData.timeRelise }}</p>
-        <p class="min-w-[120px]">{{ projectData.typeBuild }}</p>
-        <p class="min-w-[120px]">{{ projectData.indystri }}</p>
-        <p class="min-w-[120px]">{{ projectData.status }}</p>
-        <a :href="projectData.link" class="px-4 py-2 border-b-2 bg-[#7390C5] text-base lg:text-2xl rounded-xl hover:border-none hover:bg-[#267FBE] hover:text-black focus:bg-white focus:text-black">
+        <p class="min-w-[100px]">{{ projectsList.title }}</p>
+        <p class="min-w-[120px]">{{ projectsList.total_investment }}</p>
+        <p class="min-w-[120px]">{{ projectsList.number_date_realise }}</p>
+        <p class="min-w-[120px]">{{ projectsList.type_build }}</p>
+        <p class="min-w-[120px]">{{ projectsList.activity }}</p>
+        <p class="min-w-[120px]">{{ projectsList.status }}</p>
+        <a :href="projectsList.link" class="px-4 py-2 border-b-2 bg-[#7390C5] text-base lg:text-2xl rounded-xl hover:border-none hover:bg-[#267FBE] hover:text-black focus:bg-white focus:text-black">
             Смотреть подробно
         </a>
 

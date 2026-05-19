@@ -12,12 +12,15 @@ import { ref } from 'vue';
 const categories = ref(['']);
 const expenses = ref([{ item_name: '', amount: '' }]);
 
+// Массив для превью фотографий
+const photoPreviews = ref([]);
+
 const form = useForm({
     name: '',
     shotr_descr: '',
     full_descr: '',
     categories: [], // Массив категорий
-    fotos: null,
+    fotos: [], // Массив файлов
     ownShip: '',
     activity: '',
     type_building: '',
@@ -59,19 +62,55 @@ const removeExpense = (index) => {
     }
 };
 
-// Обработка файла
+// Обработка загрузки нескольких файлов
 const handleFileUpload = (event) => {
-    form.fotos = event.target.files[0];
+    const files = Array.from(event.target.files);
+    
+    // Добавляем новые файлы к существующим
+    form.fotos = [...form.fotos, ...files];
+    
+    // Создаем превью для новых фотографий
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            photoPreviews.value.push({
+                url: e.target.result,
+                name: file.name,
+                size: (file.size / 1024).toFixed(2) // размер в KB
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Очищаем input для возможности повторного выбора
+    event.target.value = '';
+};
+
+// Удалить фото
+const removePhoto = (index) => {
+    form.fotos.splice(index, 1);
+    photoPreviews.value.splice(index, 1);
 };
 
 const submit = () => {
     // Подготовка данных перед отправкой
-    form.categories = categories.value.filter(cat => cat.trim() !== '');
-    form.expenses = expenses.value.filter(exp => exp.item_name.trim() !== '' && exp.amount.trim() !== '');
+    form.categories = categories.value.filter(cat => cat && cat.trim() !== '');
+    
+    // Фильтруем расходы - проверяем item_name как строку, amount как число
+    form.expenses = expenses.value.filter(exp => {
+        const hasItemName = exp.item_name && String(exp.item_name).trim() !== '';
+        const hasAmount = exp.amount !== '' && exp.amount !== null && exp.amount !== undefined;
+        return hasItemName && hasAmount;
+    });
 
     form.post(route('projects.store'), {
-        onFinish: () => {
-            // Сброс формы после успешной отправки
+        forceFormData: true, // Важно для отправки файлов
+        onSuccess: () => {
+            // Сброс формы
+            form.reset();
+            categories.value = [''];
+            expenses.value = [{ item_name: '', amount: '' }];
+            photoPreviews.value = [];
         },
         onError: (errors) => {
             console.log('Ошибки валидации:', errors);
@@ -147,7 +186,7 @@ const mainColor = "#8EB6FF";
                 </div>
 
                 <!-- Категории (до 4 штук) -->
-                <div >
+                <div>
                     <InputLabel value="Категории проекта (до 4 категорий)" />
                     
                     <div class="space-y-3 mt-2 grid 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-2 grid-cols-1 gap-3">
@@ -196,26 +235,69 @@ const mainColor = "#8EB6FF";
                     <InputError class="mt-2" :message="form.errors.categories" />
                 </div>
 
-                <!-- Дополнительная информация -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <!-- Фото -->
-                    <div>
-                        <InputLabel for="fotos" value="Фото проекта" />
+                <!-- Загрузка фотографий -->
+                <div class="border-t-2 border-white pt-6">
+                    <InputLabel for="fotos" value="Изображения проекта" class="mb-3" />
+                    
+                    <!-- Кнопка загрузки -->
+                    <div class="mb-4">
+                        <label 
+                            for="fotos" 
+                            class="cursor-pointer inline-flex items-center px-6 py-3 bg-[#267FBE] hover:opacity-60 text-white font-semibold rounded-xl transition duration-200 shadow-md"
+                        >
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Добавить изображения
+                        </label>
                         <input
                             id="fotos"
                             type="file"
                             @change="handleFileUpload"
                             accept="image/*"
-                            class="mt-1 block w-full text-xl text-black bg-[#eeeeee] rounded-xl h-12
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-lg file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100"
+                            multiple
+                            class="hidden"
                         />
-                        <InputError class="mt-2" :message="form.errors.fotos" />
                     </div>
 
+                    <!-- Превью загруженных фотографий -->
+                    <div v-if="photoPreviews.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                        <div 
+                            v-for="(preview, index) in photoPreviews" 
+                            :key="index"
+                            class="relative group rounded-xl overflow-hidden"
+                        >
+                            <!-- Изображение -->
+                            <img 
+                                :src="preview.url" 
+                                :alt="preview.name"
+                                class="w-full h-48 object-cover"
+                            >
+                            
+                            <!-- Информация о файле -->
+                            <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 text-xs">
+                                <p class="truncate" :title="preview.name">{{ preview.name }}</p>
+                            </div>
+                            
+                            <!-- Кнопка удаления -->
+                            <button
+                                type="button"
+                                @click="removePhoto(index)"
+                                class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                title="Удалить фото"
+                            >
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <InputError class="mt-2" :message="form.errors.fotos" />
+                </div>
+
+                <!-- Дополнительная информация -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Собственность -->
                     <div>
                         <InputLabel for="ownShip" value="Собственность" />
@@ -389,7 +471,7 @@ const mainColor = "#8EB6FF";
                 </div>
 
                 <!-- Структура трат -->
-                <div class="border-t-2 pt-4">                    
+                <div class="border-t-2 border-white pt-4">                    
                     <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                         <div 
                             v-for="(expense, index) in expenses" 
@@ -423,7 +505,7 @@ const mainColor = "#8EB6FF";
                                     :id="`amount-${index}`"
                                     type="number"
                                     class="mt-1 block w-full"
-                                    v-model="expenses[index].amount"
+                                    v-model.number="expenses[index].amount"
                                     placeholder="100000"
                                     min="0"
                                     step="0.01"

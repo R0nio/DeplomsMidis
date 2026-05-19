@@ -102,6 +102,7 @@ const showingNavigationDropdown = ref(false);
                                                     <div>
                                                         <div v-if="$page.props.auth.user.role === 'Investor'">Инвестор</div>
                                                         <div v-if="$page.props.auth.user.role === 'Organisator'">Организатор</div>
+                                                        <div v-if="$page.props.auth.user.role === 'Admin'">Администратор</div>
                                                     </div>
                                                 
                                                 </div>
@@ -154,7 +155,8 @@ const showingNavigationDropdown = ref(false);
                             
                                 <div>
                                     <div v-if="$page.props.auth.user.role === 'Investor'">Инвестор</div>
-                                    <div v-if="$page.props.auth.user.role === 'Organisator'">организатор</div>
+                                    <div v-if="$page.props.auth.user.role === 'Organisator'">Организатор</div>
+                                    <div v-if="$page.props.auth.user.role === 'Admin'">Администратор</div>
                                 </div>
                             </div>
 
@@ -244,7 +246,8 @@ const showingNavigationDropdown = ref(false);
                             
                                 <div class="text-2xl">
                                     <div v-if="$page.props.auth.user.role === 'Investor'">Инвестор</div>
-                                    <div v-if="$page.props.auth.user.role === 'Organisator'">организатор</div>
+                                    <div v-if="$page.props.auth.user.role === 'Organisator'">Организатор</div>
+                                    <div v-if="$page.props.auth.user.role === 'Admin'">Администратор</div>
                                 </div>
                             </div>
 

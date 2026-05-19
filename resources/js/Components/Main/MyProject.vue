@@ -1,49 +1,102 @@
 <script setup>
-import slider3 from "../../../images/pictures/slider6.png"
+import { ref, computed } from 'vue';
+import { router } from '@inertiajs/vue3';
+import slider3 from "../../../images/pictures/slider6.png";
 
-defineProps({
+const props = defineProps({
     project: {
         type: Object,
-        required: false,
-        default: () => ({
-            status: "В процессе",
-            name: "Название проекта",
-            timeRelise: "20.05.2030",
-            summInvest: "2 000 000 ₽",
-            typeBuild: "Государственная"
-        })
+        required: true
     }
-})
+});
+
+// Получить первое фото проекта или заглушку
+const projectImage = computed(() => {
+    if (props.project.photos && props.project.photos.length > 0) {
+        return `/storage/${props.project.photos[0].photo_path}`;
+    }
+    return slider3;
+});
+
+// Форматирование чисел
+const formatNumber = (number) => {
+    return Number(number).toLocaleString('ru-RU');
+};
+
+// Перейти к проекту
+const goToProject = () => {
+    router.visit(route('projects.show', props.project.id));
+};
+
+// Редактировать проект
+const editProject = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    router.visit(route('projects.edit', props.project.id));
+};
+
+// Цвет статуса
+const getStatusColor = (status) => {
+    switch (status) {
+        case 'На модерации':
+            return 'bg-yellow-600';
+        case 'Одобрен':
+            return 'bg-green-600';
+        case 'Отклонен':
+            return 'bg-red-600';
+        case 'В процессе':
+            return 'bg-blue-600';
+        case 'Завершен':
+            return 'bg-gray-600';
+        default:
+            return 'bg-[#7390C5]';
+    }
+};
 </script>
 
 <template>
-    <div class="w-full h-[500px] lg:h-[550px] flex flex-col justify-between bg-blue-300 rounded-xl relative">
-        <a href="" class="w-full h-full">
-            <img :src="slider3" alt="Проект" class="w-full h-full object-cover rounded-xl">
-        </a>
+    <div class="w-full h-[500px] lg:h-[550px] flex flex-col justify-between bg-blue-300 rounded-xl relative overflow-hidden transition-shadow duration-300">
+        <!-- Изображение проекта -->
+        <div 
+            @click="goToProject"
+            class="w-full h-full cursor-pointer"
+        >
+            <img 
+                :src="projectImage" 
+                alt="Проект" 
+                class="w-full h-full object-cover rounded-xl hover:scale-105 transition-transform duration-300"
+            >
+        </div>
         
+        <!-- Верхняя панель (статус) -->
         <div class="w-full flex absolute top-2 left-2 right-2">
-            <div class="font-normal text-xl lg:text-3xl p-2.5 bg-[#7390C5] text-white mr-auto rounded-xl flex items-center h-min border-b-2 border-r-2 border-white">
+            <div class=" bg-[#7390C5] font-normal text-xl lg:text-3xl p-2.5 text-white mr-auto rounded-xl flex items-center h-min border-b-2 border-r-2 border-white"            >
                 {{ project.status }}
-            </div>
-            <div class="mt-2 mr-2 cursor-pointer hover:opacity-70 transition">
-                <img src="../../../images/Email.png" alt="star" class="w-8 h-8 lg:w-auto lg:h-auto">
             </div>
         </div>
         
-        <div class="bg-[#267FBE] w-full text-white px-4 lg:px-6 py-5 rounded-xl absolute bottom-0 border-t-2 border-white">
+        <!-- Нижняя панель с информацией -->
+        <div class="bg-[#267FBE] w-full text-white px-4 lg:px-6 py-5 rounded-xl absolute bottom-0 border-t-2 border-white  backdrop-blur-sm ">
             <div class="grid md:grid-cols-2 grid-cols-1 gap-2 text-sm lg:text-xl mb-4">
-                <p>Название: {{ project.name }}</p>
-                <p>Срок реализации: {{ project.timeRelise }}</p>
-                <p>Сумма инвестиций: {{ project.summInvest }}</p>
-                <p>Собственность: {{ project.typeBuild }}</p>
+                <p><span class="font-semibold">Название:</span> {{ project.title }}</p>
+                <p v-if="project.number_date_realise">
+                    <span class="font-semibold">Срок:</span> {{ project.number_date_realise }} мес.
+                </p>
+                <p v-if="project.total_investment">
+                    <span class="font-semibold">Инвестиции:</span> {{ formatNumber(project.total_investment) }} ₽
+                </p>
+                <p v-if="project.type_build">
+                    <span class="font-semibold">Собственность:</span> {{ project.type_build }}
+                </p>
             </div>
             
-            <a href="">
-                <div class="text-black text-xl lg:text-2xl w-full mt-4 flex items-center justify-center bg-amber-500 rounded-xl p-3 hover:bg-amber-600 hover:text-white transition duration-300">
-                    <p>Редактировать</p>
-                </div>
-            </a>
+            <!-- Кнопка редактирования -->
+            <button
+                @click="editProject"
+                class="text-black text-xl lg:text-2xl w-full mt-4 flex items-center justify-center gap-2 bg-amber-500 rounded-xl p-3 hover:bg-amber-600 hover:text-white"
+            >
+                <p>Редактировать</p>
+            </button>
         </div>
     </div>
 </template>

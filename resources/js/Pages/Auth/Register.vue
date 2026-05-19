@@ -20,6 +20,7 @@ const form = useForm({
     number: '',
     role: '',
     password: '',
+    organization_name: 'none',
     password_confirmation: '',
 });
 
@@ -147,6 +148,21 @@ const submit = () => {
                 />
 
                 <InputError class="mt-2" :message="form.errors.role" />
+            </div>
+
+            <!-- Название организации -->
+            <div v-if="form.role === 'Organisator'" class="mt-2">
+                <InputLabel for="organization_name" value="Название организации" />
+
+                <TextInput
+                    id="organization_name"
+                    type="text"
+                    class="mt-1 block w-full"
+                    v-model="form.organization_name"
+                    autocomplete="organization_name"
+                />
+
+                <InputError class="mt-2" :message="form.errors.organization_name" />
             </div>
 
             <!-- Пароль -->

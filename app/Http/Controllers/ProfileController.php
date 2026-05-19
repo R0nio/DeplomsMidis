@@ -3,25 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Project;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
-    public function edit(Request $request): Response
+    public function edit(Request $request)
     {
-        return Inertia::render('Profile/Edit', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
-            'status' => session('status'),
-        ]);
+        try {
+            $user = Auth::user();
+
+            // Получаем избранные проекты для инвестора
+            $favoriteProjects = null;
+            if ($user->role === 'Investor') {
+                $favoriteProjects = $user->favoriteProjects()
+                    ->with(['photos', 'user'])
+                    ->latest('favorites.created_at')
+                    ->limit(10)
+                    ->get();
+            }
+            
+            // Получаем последние проекты организатора
+            $myProjects = null;
+            if ($user->role === 'Organisator') {
+                $myProjects = $user->projects()
+                    ->with(['photos'])
+                    ->latest()
+                    ->limit(10)
+                    ->get();
+            }
+
+            return Inertia::render('Profile/Edit', [
+                'mustVerifyEmail' => $user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail,
+                'status' => session('status'),
+                'favoriteProjects' => $favoriteProjects,
+                'myProjects' => $myProjects,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Profile edit error: ' . $e->getMessage());
+            
+            return back()->withErrors(['error' => 'Ошибка при загрузке профиля']);
+        }
     }
 
     /**

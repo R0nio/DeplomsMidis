@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('projects', function (Blueprint $table) {
+        Schema::create('project_forecasts', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->year('year')->nullable();
+            $table->decimal('expected_revenue', 15, 2)->nullable();
+            $table->decimal('expected_expenses', 15, 2)->nullable();
             $table->timestamps();
         });
     }
@@ -23,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('projects');
+        Schema::dropIfExists('project_forecasts');
     }
 };
-
-// api google AIzaSyC6L3uzc8_Ug01uxrFdYhN_Eo5mIwyaPZY
