@@ -26,8 +26,7 @@ const selectedProject = ref(null);
 const getProjectImage = (project) => {
     if (project.photos && project.photos.length > 0) {
         const photoPath = project.photos[0].photo_path;
-        // Убедитесь, что путь правильный
-        console.log('Photo path:', photoPath); // Для отладки
+        console.log('Photo path:', photoPath);
         return `/storage/${photoPath}`;
     }
     return defaultImage;
@@ -63,7 +62,6 @@ const selectProject = (project) => {
     }
 };
 
-// Перейти к проекту
 const goToProject = (id) => {
     router.visit(route('projects.show', id));
 };
@@ -73,12 +71,12 @@ const closeMarker = () => {
     selectedProject.value = null;
 };
 
-// Форматирование чисел
+
 const formatNumber = (number) => {
     return Number(number).toLocaleString('ru-RU');
 };
 
-// Получить первое фото проекта или заглушку
+
 const projectImage = computed(() => {
     if (props.selectedProject.photos && props.selectedProject.photos.length > 0) {
         return `/storage/${props.selectedProject.photos[0].photo_path}`;
@@ -137,7 +135,7 @@ const projectImage = computed(() => {
                               </svg>
                         </div>
 
-                        <!-- Статус -->
+                        <!-- Статус
                         <div class="absolute top-2 left-2">
                             <span 
                                 class="px-3 py-1 text-xs font-semibold text-white rounded-lg shadow-md"
@@ -145,7 +143,7 @@ const projectImage = computed(() => {
                             >
                                 {{ selectedProject.status }}
                             </span>
-                        </div>
+                        </div> -->
                     </div>
 
                     <!-- Информация -->

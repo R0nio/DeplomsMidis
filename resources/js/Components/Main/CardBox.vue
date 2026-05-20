@@ -65,34 +65,25 @@ const goToProject = () => {
 // Для админки
 const selectedStatus = ref(props.project.status);
 
+// Список статусов для админа
 const statusOptions = [
     { value: 'На модерации', label: 'На модерации' },
     { value: 'Одобрен', label: 'Одобрен' },
     { value: 'Отклонен', label: 'Отклонен' },
-    { value: 'В процессе', label: 'В процессе' },
-    { value: 'Завершен', label: 'Завершен' },
     { value: 'Заблокирован', label: 'Заблокирован' },
 ];
 
-// Изменение статуса (для админа)
-const changeStatus = async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-
+const changeStatus = async () => {
     if (!confirm('Изменить статус проекта?')) {
+        selectedStatus.value = props.project.status;
         return;
     }
 
-    try {
-        await axios.patch(route('admin.projects.update-status', props.project.id), {
-            status: selectedStatus.value
-        });
-        
-        router.reload();
-    } catch (error) {
-        console.error('Ошибка при изменении статуса:', error);
-        alert('Ошибка при изменении статуса');
-    }
+    axios.patch(route('admin.projects.update-status', props.project.id), {
+        status: selectedStatus.value
+    });
+    //alert('Обновление успешно завершено!');
+    await router.reload();
 };
 </script>
 
@@ -113,9 +104,9 @@ const changeStatus = async (event) => {
         <!-- Верхняя панель (статус и избранное) -->
         <div class="w-full flex absolute top-2 left-2 right-2 z-10 justify-between">
             <!-- Статус -->
-            <div class="font-normal text-xl lg:text-3xl p-2.5 bg-[#7390C5] text-white rounded-xl flex items-center h-min border-b-2 border-r-2 border-white shadow-lg">
+            <!-- <div class="font-normal text-xl lg:text-3xl p-2.5 bg-[#7390C5] text-white rounded-xl flex items-center h-min border-b-2 border-r-2 border-white shadow-lg">
                 <p>{{ project.status }}</p>
-            </div>
+            </div> -->
             <div v-if="userRole === 'Investor'">
 
                 <!-- Кнопка избранного (если не админ) -->
@@ -151,13 +142,13 @@ const changeStatus = async (event) => {
             </div>
 
             <!-- Админ панель -->
-            <div v-if="userRole === 'Admin'" class="flex gap-3 flex-wrap mt-4 pt-4 border-t-2 border-white/30">
+            <div v-if="userRole === 'Admin'" class="flex gap-3 flex-wrap mt-4 pt-4 border-t-2 border-white/30 justify-between">
                 <!-- Изменение статуса -->
+                <!-- Выбор статуса -->
                 <select 
                     v-model="selectedStatus"
                     @change="changeStatus"
-                    class="px-3 py-2 text-black rounded-lg border-2 border-white focus:border-blue-500 focus:outline-none text-sm lg:text-base"
-                    @click.stop
+                    class="px-3 py-2 text-black rounded-lg border-2 border-white focus:border-blue-500 focus:outline-none text-sm lg:text-base min-w-[180px]"
                 >
                     <option disabled value="">Изменить статус</option>
                     <option 
@@ -168,6 +159,17 @@ const changeStatus = async (event) => {
                         {{ option.label }}
                     </option>
                 </select>
+
+                <div v-if="project.is_moderated === true">
+                    <h1 class="bg-green-600 h-full p-3 rounded-xl text-2xl">
+                        Прошла модерацию
+                    </h1>
+                </div>
+                <div v-else-if="project.is_moderated === false">
+                    <h1 class="bg-red-600 h-full p-3 rounded-xl text-2xl">
+                        Не прошла модерацию
+                    </h1>
+                </div>
             </div>
         </div>
     </div>

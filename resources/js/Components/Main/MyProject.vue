@@ -35,23 +35,6 @@ const editProject = (event) => {
     router.visit(route('projects.edit', props.project.id));
 };
 
-// Цвет статуса
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'На модерации':
-            return 'bg-yellow-600';
-        case 'Одобрен':
-            return 'bg-green-600';
-        case 'Отклонен':
-            return 'bg-red-600';
-        case 'В процессе':
-            return 'bg-blue-600';
-        case 'Завершен':
-            return 'bg-gray-600';
-        default:
-            return 'bg-[#7390C5]';
-    }
-};
 </script>
 
 <template>
@@ -91,12 +74,14 @@ const getStatusColor = (status) => {
             </div>
             
             <!-- Кнопка редактирования -->
-            <button
-                @click="editProject"
-                class="text-black text-xl lg:text-2xl w-full mt-4 flex items-center justify-center gap-2 bg-amber-500 rounded-xl p-3 hover:bg-amber-600 hover:text-white"
-            >
-                <p>Редактировать</p>
-            </button>
+             <div v-if="project.status !== 'Отклонен' && project.status !== 'Заблокирован' ">
+                <button
+                    @click="editProject"
+                    class="text-black text-xl lg:text-2xl w-full mt-4 flex items-center justify-center gap-2 bg-amber-500 rounded-xl p-3 hover:bg-amber-600 hover:text-white transition-colors duration-200"
+                >
+                    <p>Редактировать</p>
+                </button>
+             </div>
         </div>
     </div>
 </template>

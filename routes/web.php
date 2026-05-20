@@ -38,9 +38,7 @@ Route::get('/contact', function(){
 return Inertia::render('Contact');
 })->name('contact');
 
-Route::get('/projectDetail', function(){
-    return Inertia::render('ProjectDetail');
-})->name('ProjectDetail');
+Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -48,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/create', function(){
     return Inertia::render('CreateProject');
     })->name('create');
+
 
     Route::post('create', [ProjectController::class, 'store'])->name('projects.store');
 
@@ -61,14 +60,14 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/favorites/{project}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 
+
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::patch('/projects/{project}/update', [ProjectController::class, 'update'])->name('projects.update');
 });
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Управление проектами
-    Route::get('/projectss', [AdminProjectController::class, 'index'])->name('projects.index');
-    
-    // Одиночные действия
-    Route::patch('/projects/{project}/status', [AdminProjectController::class, 'updateStatus'])->name('projects.update-status');
+    Route::patch('/projects/{project}/status', [AdminProjectController::class, 'updateStatus'])
+        ->name('projects.update-status');
 });
 
 

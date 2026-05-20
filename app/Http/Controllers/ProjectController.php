@@ -20,21 +20,22 @@ class ProjectController extends Controller
         $userId = Auth::id();
         $userRole = Auth::user()?->role;
         
-        // Получаем все проекты, прошедшие модерацию
         $projects = Project::with(['photos', 'user'])
-            ->where('is_moderated', true)
             ->where('status', '!=', 'На модерации')
+            ->where('status', '!=', 'Отклонен')
+            ->where('status', '!=', 'Заблокирован')
+            ->where('is_moderated', true)
             ->latest()
             ->get();
         
-        // Получаем избранные проекты для инвестора
         $favorites = [];
         if ($userRole === 'Investor') {
             $favorites = Favorite::where('user_id', $userId)->get();
         }
-        
+        $Adminprojects = Project::with(['photos', 'user'])->get();
         return Inertia::render('Projects', [
             'projects' => $projects,
+            'Adminprojects' => $Adminprojects,
             'favorites' => $favorites
         ]);
     }
@@ -42,9 +43,11 @@ class ProjectController extends Controller
     public function map()
     {
         
-        // Получаем только проекты с координатами
         $projects = Project::with(['photos', 'user'])
             ->where('is_moderated', true)
+            ->where('status', '!=', 'На модерации')
+            ->where('status', '!=', 'Отклонен')
+            ->where('status', '!=', 'Заблокирован')
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->latest()
@@ -59,7 +62,7 @@ class ProjectController extends Controller
     {
         try {
 
-            // Создаем проект
+
             $project = Project::create([
                 'user_id' => auth()->id(),
                 'title' => $request->name,
@@ -79,8 +82,7 @@ class ProjectController extends Controller
                 'status' => 'На модерации',
                 'is_moderated' => false,
             ]);
-            //dd($project);
-            // Сохраняем фотографии
+
             if ($request->hasFile('fotos')) {
                 foreach ($request->file('fotos') as $index => $photo) {
                     $path = $photo->store('projects/' . $project->id, 'public');
@@ -93,7 +95,6 @@ class ProjectController extends Controller
                 }
             }
 
-            // Сохраняем структуру инвестиций (расходы)
             if ($request->expenses && is_array($request->expenses)) {
                 foreach ($request->expenses as $expense) {
                     if (!empty($expense['item_name']) && !empty($expense['amount'])) {
@@ -106,7 +107,7 @@ class ProjectController extends Controller
                 }
             }
 
-            // Сохраняем прогноз (если есть данные)
+
             if ($request->expected_revenue || $request->expected_expenses) {
                 Project_forecast::create([
                     'project_id' => $project->id,
@@ -132,11 +133,113 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
+        $userId = Auth::id();
+        $userRole = Auth::user()?->role;
         $project->load(['photos', 'investments', 'forecasts', 'user']);
+        $favorites = [];
+        if ($userRole === 'Investor') {
+             $favorites = Favorite::where('user_id', $userId)->get();
+        }
 
-        return Inertia::render('Projects/Show', [
+        return Inertia::render('ProjectDetail', [
             'project' => $project,
-            'isFavorited' => $project->isFavoritedBy(auth()->id()),
+            'isFavorited' => $favorites,
         ]);
+    }
+    
+    public function edit(Project $project)
+    {
+
+        if ($project->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $project->load(['photos', 'investments', 'forecasts']);
+
+        return Inertia::render('UpdateProject', [
+            'project' => $project,
+        ]);
+    }
+
+    public function update(StoreProjectRequest $request, Project $project)
+    {
+        if ($project->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        try {
+
+            $project->update([
+                'title'                      => $request->name,
+                'short_description'          => $request->shotr_descr,
+                'full_description'           => $request->full_descr,
+                'category'                   => $request->categories ? json_encode($request->categories) : null,
+                'ownership'                  => $request->ownShip,
+                'activity'                   => $request->activity,
+                'type_build'                 => $request->type_building,
+                'address'                    => $request->addres,
+                'latitude'                   => $request->latitude,
+                'longitude'                  => $request->longitude,
+                'total_investment'           => $request->total_investment,
+                'number_date_realise'        => $request->number_date_realise,
+                'count_new_job'              => $request->count_new_job,
+                'collected_total_investment' => $request->collected_total_investment ?? 0,
+                'status'                     => 'На модерации',
+                'is_moderated'               => false,
+            ]);
+
+
+            if ($request->deleted_photos && is_array($request->deleted_photos)) {
+                foreach ($request->deleted_photos as $photoId) {
+                    $photo = Project_photos::find($photoId);
+                    if ($photo && $photo->project_id === $project->id) {
+                        Storage::disk('public')->delete($photo->photo_path);
+                        $photo->delete();
+                    }
+                }
+            }
+
+            if ($request->hasFile('fotos')) {
+                $lastOrder = Project_photos::where('project_id', $project->id)->max('order') ?? -1;
+                foreach ($request->file('fotos') as $index => $photo) {
+                    $path = $photo->store('projects/' . $project->id, 'public');
+                    Project_photos::create([
+                        'project_id' => $project->id,
+                        'photo_path' => $path,
+                        'order'      => $lastOrder + $index + 1,
+                    ]);
+                }
+            }
+
+            Project_investment::where('project_id', $project->id)->delete();
+            if ($request->expenses && is_array($request->expenses)) {
+                foreach ($request->expenses as $expense) {
+                    if (!empty($expense['item_name']) && $expense['amount'] !== '') {
+                        Project_investment::create([
+                            'project_id' => $project->id,
+                            'item_name'  => $expense['item_name'],
+                            'amount'     => $expense['amount'],
+                        ]);
+                    }
+                }
+            }
+
+            Project_forecast::updateOrCreate(
+                ['project_id' => $project->id],
+                [
+                    'year'              => now()->year,
+                    'expected_revenue'  => $request->expected_revenue,
+                    'expected_expenses' => $request->expected_expenses,
+                ]
+            );
+
+            return redirect()->route('profile.edit')
+                ->with('success', 'Проект обновлён и отправлен на повторную модерацию!');
+
+        } catch (\Exception $e) {
+            return back()
+                ->withErrors(['error' => 'Ошибка при обновлении: ' . $e->getMessage()])
+                ->withInput();
+        }
     }
 }

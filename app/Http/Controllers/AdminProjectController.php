@@ -10,46 +10,57 @@ class AdminProjectController extends Controller
 {
     public function updateStatus(Request $request, Project $project)
     {
-        // Проверка прав администратора
-        if (auth()->user()->role !== 'Admin') {
-            abort(403, 'Доступ запрещен');
+        try {
+            // Проверка прав администратора
+            if (auth()->user()->role !== 'Admin') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Доступ запрещен'
+                ], 403);
+            }
+
+            // Валидация с обработкой кириллицы
+            $validated = $request->validate([
+                'status' => [
+                    'required',
+                    'string',
+                    function ($attribute, $value, $fail) {
+                        $allowedStatuses = [
+                            'На модерации',
+                            'Одобрен',
+                            'Отклонен',
+                            'Заблокирован'
+                        ];
+                        
+                        if (!in_array($value, $allowedStatuses)) {
+                            $fail('Недопустимый статус: ' . $value);
+                        }
+                    }
+                ]
+            ]);
+            
+            $project->status = $validated['status'];
+            $project->is_moderated = in_array($validated['status'], ['Одобрен']);
+            $project->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Статус проекта успешно обновлен',
+                'project' => $project->fresh()
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка валидации',
+                'errors' => $e->errors()
+            ], 422);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при обновлении статуса: ' . $e->getMessage()
+            ], 500);
         }
-
-        $request->validate([
-            'status' => 'required|string|in:На модерации,Одобрен,Отклонен,В процессе,Завершен,Заблокирован'
-        ]);
-
-        // Обновляем статус и флаг модерации
-        $project->update([
-            'status' => $request->status,
-            'is_moderated' => in_array($request->status, ['Одобрен', 'В процессе', 'Завершен'])
-        ]);
-
-        Log::info('Project status updated by admin', [
-            'admin_id' => auth()->id(),
-            'project_id' => $project->id,
-            'new_status' => $request->status
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Статус проекта успешно обновлен',
-            'project' => $project
-        ]);
-    }
-    public function index()
-    {
-        // Проверка прав администратора
-        if (auth()->user()->role !== 'Admin') {
-            abort(403, 'Доступ запрещен');
-        }
-
-        $projects = Project::with(['photos', 'user'])
-            ->latest()
-            ->paginate(20);
-
-        return inertia('Admin/Projects', [
-            'projects' => $projects
-        ]);
     }
 }

@@ -22,7 +22,7 @@ class FavoriteController extends Controller
             ->first();
 
         if ($favorite) {
-            // Удаляем из избранного
+
             $favorite->delete();
             
             return response()->json([
@@ -31,7 +31,7 @@ class FavoriteController extends Controller
                 'message' => 'Проект удален из избранного'
             ]);
         } else {
-            // Добавляем в избранное
+
             Favorite::create([
                 'user_id' => $user->id,
                 'project_id' => $project->id,
@@ -53,7 +53,7 @@ class FavoriteController extends Controller
         $favorites = Auth::user()
             ->favoriteProjects()
             ->with(['photos', 'user'])
-            ->latest('favorites.created_at') // Исправлено с favorite на favorites
+            ->latest('favorites.created_at')
             ->paginate(12);
 
         return Inertia::render('Favorites/Index', [

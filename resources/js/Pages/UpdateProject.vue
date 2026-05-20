@@ -1,36 +1,84 @@
 <script setup>
-import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+
+const props = defineProps({
+    project: {
+        type: Object,
+        required: true
+    }
+});
 
 // Массивы для категорий и трат
 const categories = ref(['']);
 const expenses = ref([{ item_name: '', amount: '' }]);
 
+// Массив для превью фотографий (существующие и новые)
+const existingPhotos = ref([]);
+const photoPreviews = ref([]);
+const photosToDelete = ref([]);
+
 const form = useForm({
-    name: '',
-    shotr_descr: '',
-    full_descr: '',
-    categories: [], // Массив категорий
-    fotos: null,
-    ownShip: '',
-    activity: '',
-    type_building: '',
-    addres: '',
-    latitude: '',
-    longitude: '',
-    total_investment: '',
-    number_date_realise: '',
-    count_new_job: '',
-    collected_total_investment: '',
+    name: props.project.title || '',
+    shotr_descr: props.project.short_description || '',
+    full_descr: props.project.full_description || '',
+    categories: [],
+    fotos: [], // Новые файлы
+    deleted_photos: [], // ID фото для удаления
+    ownShip: props.project.ownership || '',
+    activity: props.project.activity || '',
+    type_building: props.project.type_build || '',
+    addres: props.project.address || '',
+    latitude: props.project.latitude || '',
+    longitude: props.project.longitude || '',
+    total_investment: props.project.total_investment || '',
+    number_date_realise: props.project.number_date_realise || '',
+    count_new_job: props.project.count_new_job || '',
+    collected_total_investment: props.project.collected_total_investment || '',
     expected_revenue: '',
     expected_expenses: '',
-    expenses: [], // Массив трат
+    expenses: [],
+    _method: 'PATCH' // Для Laravel
+});
+
+// Инициализация данных при загрузке
+onMounted(() => {
+    // Категории
+    if (props.project.category) {
+        const cats = Array.isArray(props.project.category) 
+            ? props.project.category 
+            : JSON.parse(props.project.category);
+        categories.value = cats.length > 0 ? cats : [''];
+    }
+
+    // Существующие фотографии
+    if (props.project.photos && props.project.photos.length > 0) {
+        existingPhotos.value = props.project.photos.map(photo => ({
+            id: photo.id,
+            url: `/storage/${photo.photo_path}`,
+            name: photo.photo_path.split('/').pop()
+        }));
+    }
+
+    // Расходы (investments)
+    if (props.project.investments && props.project.investments.length > 0) {
+        expenses.value = props.project.investments.map(inv => ({
+            item_name: inv.item_name,
+            amount: inv.amount
+        }));
+    }
+
+    // Прогноз (forecasts)
+    if (props.project.forecasts && props.project.forecasts.length > 0) {
+        const forecast = props.project.forecasts[0];
+        form.expected_revenue = forecast.expected_revenue || '';
+        form.expected_expenses = forecast.expected_expenses || '';
+    }
 });
 
 // Добавить категорию
@@ -59,19 +107,57 @@ const removeExpense = (index) => {
     }
 };
 
-// Обработка файла
+// Удалить существующее фото
+const removeExistingPhoto = (index) => {
+    const photo = existingPhotos.value[index];
+    photosToDelete.value.push(photo.id);
+    existingPhotos.value.splice(index, 1);
+};
+
+// Обработка загрузки нескольких файлов
 const handleFileUpload = (event) => {
-    form.fotos = event.target.files[0];
+    const files = Array.from(event.target.files);
+    
+    // Добавляем новые файлы к существующим
+    form.fotos = [...form.fotos, ...files];
+    
+    // Создаем превью для новых фотографий
+    files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            photoPreviews.value.push({
+                url: e.target.result,
+                name: file.name,
+                size: (file.size / 1024).toFixed(2)
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    event.target.value = '';
+};
+
+// Удалить новое фото (еще не загруженное)
+const removePhoto = (index) => {
+    form.fotos.splice(index, 1);
+    photoPreviews.value.splice(index, 1);
 };
 
 const submit = () => {
-    // Подготовка данных перед отправкой
-    form.categories = categories.value.filter(cat => cat.trim() !== '');
-    form.expenses = expenses.value.filter(exp => exp.item_name.trim() !== '' && exp.amount.trim() !== '');
+    // Подготовка данных
+    form.categories = categories.value.filter(cat => cat && cat.trim() !== '');
+    form.deleted_photos = photosToDelete.value;
+    
+    form.expenses = expenses.value.filter(exp => {
+        const hasItemName = exp.item_name && String(exp.item_name).trim() !== '';
+        const hasAmount = exp.amount !== '' && exp.amount !== null && exp.amount !== undefined;
+        return hasItemName && hasAmount;
+    });
 
-    form.post(route('projects.store'), {
-        onFinish: () => {
-            // Сброс формы после успешной отправки
+    form.post(route('projects.update', props.project.id), {
+        forceFormData: true,
+        onSuccess: () => {
+            // Можно добавить уведомление
         },
         onError: (errors) => {
             console.log('Ошибки валидации:', errors);
@@ -199,22 +285,59 @@ const mainColor = "#8EB6FF";
                 <!-- Дополнительная информация -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Фото -->
-                    <div>
-                        <InputLabel for="fotos" value="Фото проекта" />
-                        <input
-                            id="fotos"
-                            type="file"
-                            @change="handleFileUpload"
-                            accept="image/*"
-                            class="mt-1 block w-full text-xl text-black bg-[#eeeeee] rounded-xl h-12
-                                file:mr-4 file:py-2 file:px-4
-                                file:rounded-lg file:border-0
-                                file:text-sm file:font-semibold
-                                file:bg-blue-50 file:text-blue-700
-                                hover:file:bg-blue-100"
-                        />
-                        <InputError class="mt-2" :message="form.errors.fotos" />
-                    </div>
+                     <div>
+                        <div>
+                            <InputLabel for="fotos" value="Фото проекта" />
+                            <input
+                                id="fotos"
+                                type="file"
+                                @change="handleFileUpload"
+                                accept="image/*"
+                                class="mt-1 block w-full text-xl text-black bg-[#eeeeee] rounded-xl h-12
+                                    file:mr-4 file:py-2 file:px-4
+                                    file:rounded-lg file:border-0
+                                    file:text-sm file:font-semibold
+                                    file:bg-blue-50 file:text-blue-700
+                                    hover:file:bg-blue-100"
+                            />
+                            <InputError class="mt-2" :message="form.errors.fotos" />
+                        </div>
+                        <div v-if="existingPhotos.length > 0" class="mt-3">
+                            <p class="text-white text-sm mb-2">Текущие фотографии:</p>
+                            <div class="flex flex-wrap gap-3">
+                                <div 
+                                    v-for="(photo, index) in existingPhotos" 
+                                    :key="photo.id"
+                                    class="relative w-24 h-24"
+                                >
+                                    <img :src="photo.url" class="w-24 h-24 object-cover rounded-lg" />
+                                    <button
+                                        type="button"
+                                        @click="removeExistingPhoto(index)"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                    >✕</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="photoPreviews.length > 0" class="mt-3">
+                            <p class="text-white text-sm mb-2">Новые фотографии:</p>
+                            <div class="flex flex-wrap gap-3">
+                                <div 
+                                    v-for="(preview, index) in photoPreviews" 
+                                    :key="index"
+                                    class="relative w-24 h-24"
+                                >
+                                    <img :src="preview.url" class="w-24 h-24 object-cover rounded-lg" />
+                                    <button
+                                        type="button"
+                                        @click="removePhoto(index)"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                    >✕</button>
+                                </div>
+                            </div>
+                        </div> 
+                     </div>
+
 
                     <!-- Собственность -->
                     <div>
@@ -387,7 +510,6 @@ const mainColor = "#8EB6FF";
                         <InputError class="mt-2" :message="form.errors.expected_expenses" />
                     </div>
                 </div>
-
                 <!-- Структура трат -->
                 <div class="border-t-2 pt-4">                    
                     <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
@@ -470,7 +592,7 @@ const mainColor = "#8EB6FF";
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                     >
-                        {{ form.processing ? 'Создание...' : 'Создать проект' }}
+                        {{ form.processing ? 'Сохранение...' : 'Сохранить изменения' }}
                     </PrimaryButton>
                 </div>
             </form>

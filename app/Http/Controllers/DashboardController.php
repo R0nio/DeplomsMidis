@@ -10,42 +10,39 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Статистика проектов
+        
         $statistics = [
             'total_projects' => Project::where('is_moderated', true)->count(),
             'total_investment' => Project::where('is_moderated', true)->sum('collected_total_investment'),
             'total_jobs' => Project::where('is_moderated', true)->sum('count_new_job'),
         ];
 
-        // Получаем все уникальные категории из проектов
         $allProjects = Project::where('is_moderated', true)
-            ->where('status', '!=', 'На модерации')
             ->whereNotNull('category')
             ->get();
 
         $categoriesCount = [];
 
         foreach ($allProjects as $project) {
-            // Получаем категории проекта
+
             $projectCategories = $project->category;
 
-            // Если это строка JSON, декодируем её
+
             if (is_string($projectCategories)) {
                 $projectCategories = json_decode($projectCategories, true);
             }
 
-            // Если это массив, обрабатываем каждую категорию
+
             if (is_array($projectCategories)) {
                 foreach ($projectCategories as $category) {
-                    // Очищаем категорию от лишних символов и пробелов
+
                     $category = trim($category);
                     
-                    // Пропускаем пустые категории
+
                     if (empty($category)) {
                         continue;
                     }
 
-                    // Подсчитываем количество проектов в каждой категории
                     if (!isset($categoriesCount[$category])) {
                         $categoriesCount[$category] = 0;
                     }
@@ -54,7 +51,7 @@ class DashboardController extends Controller
             }
         }
 
-        // Преобразуем в массив объектов и сортируем
+
         $categories = collect($categoriesCount)
             ->map(function($count, $title) {
                 return [
@@ -62,14 +59,13 @@ class DashboardController extends Controller
                     'count' => $count
                 ];
             })
-            ->sortByDesc('count') // Сортируем по количеству (самые популярные первыми)
-            ->values() // Сбрасываем ключи
-            ->take(15); // Берем топ-15 категорий
+            ->sortByDesc('count') 
+            ->values() 
+            ->take(15);
 
-        // Рандомные проекты для слайдера (6 штук)
+
         $randomProjects = Project::with(['photos'])
             ->where('is_moderated', true)
-            ->where('status', '!=', 'На модерации')
             ->inRandomOrder()
             ->limit(6)
             ->get()

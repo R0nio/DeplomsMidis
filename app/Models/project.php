@@ -66,9 +66,10 @@ use HasFactory;
             ->withTimestamps();
     }
 
-    // Проверка, добавлен ли проект в избранное текущим пользователем
-    public function isFavoritedBy($userId): bool
+    public function isFavoritedBy(?int $userId): bool
     {
+        if (!$userId) return false;
+        
         return $this->favoritedBy()->where('user_id', $userId)->exists();
     }
 }

@@ -20,7 +20,7 @@ class ProfileController extends Controller
         try {
             $user = Auth::user();
 
-            // Получаем избранные проекты для инвестора
+           
             $favoriteProjects = null;
             if ($user->role === 'Investor') {
                 $favoriteProjects = $user->favoriteProjects()
@@ -30,7 +30,7 @@ class ProfileController extends Controller
                     ->get();
             }
             
-            // Получаем последние проекты организатора
+
             $myProjects = null;
             if ($user->role === 'Organisator') {
                 $myProjects = $user->projects()

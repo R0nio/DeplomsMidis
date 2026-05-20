@@ -6,7 +6,7 @@ import { ref, computed } from "vue";
 import { FwbSelect, FwbInput, FwbButton } from 'flowbite-vue';
 import CardProjectList from "@/Components/Main/CardProjectList.vue";
 import CardBox from "@/Components/Main/CardBox.vue";
-
+import { usePage } from '@inertiajs/vue3';
 // image import
 import list from "../../images/list.png";
 import cards from "../../images/Cards.png";
@@ -16,11 +16,26 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    Adminprojects: {
+        type: Array,
+        default: () => []
+    },
     favorites: {
         type: Array,
         default: () => []
     }
 });
+
+const page = usePage();
+
+// Роль пользователя
+const userRole = computed(() => page.props.auth.user?.role);
+
+// Определяем какой массив проектов использовать
+const currentProjects = computed(() => {
+    return userRole.value === 'Admin' ? props.Adminprojects : props.projects;
+});
+
 const favoriteIds = computed(() => {
     return new Set(props.favorites.map(f => f.project_id));
 });
@@ -55,14 +70,11 @@ const industries = computed(() => {
 });
 
 const statuses = computed(() => {
-    const unique = [...new Set(props.projects
+    const unique = [...new Set(currentProjects.value 
         .map(p => p.status)
         .filter(Boolean)
     )];
-    return unique.map(item => ({ 
-        value: item, 
-        name: item 
-    }));
+    return unique.map(item => ({ value: item, name: item }));
 });
 
 const ownerships = computed(() => {
@@ -89,7 +101,7 @@ const typeBuilds = computed(() => {
 
 // Фильтрация проектов
 const filteredProjects = computed(() => {
-    return props.projects.filter(project => {
+    return currentProjects.value.filter(project => {
         // Поиск по названию
         if (searchQuery.value && 
             !project.title.toLowerCase().includes(searchQuery.value.toLowerCase())) {
@@ -132,9 +144,9 @@ const filteredProjects = computed(() => {
     });
 });
 
+
 // Количество проектов
 const projectsCount = computed(() => filteredProjects.value.length);
-const totalProjectsCount = computed(() => props.projects.length);
 
 // Очистка фильтров
 const clearFilters = () => {
@@ -316,6 +328,7 @@ const hasActiveFilters = computed(() => {
                     </div>
                 </div>
 
+                
                 <!-- Если нет проектов -->
                 <div v-if="projectsCount === 0" class="text-center py-16 px-4 ">
                     <svg class="mx-auto h-24 w-24 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -331,14 +344,13 @@ const hasActiveFilters = computed(() => {
                         Сбросить фильтры
                     </fwb-button>
                 </div>
-
                 <!-- Вид списком -->
                 <div v-else-if="switcherViewCard" class="px-4 sm:px-8">
                     <div :class="`w-full flex flex-col my-5 gap-4 ${projectsCount >= 8 ? 'overflow-y-auto max-h-[80vh]' : ''}`">
                         <CardProjectList 
                             v-for="project in filteredProjects" 
                             :key="project.id" 
-                            :projectsList="project"
+                            :project="project"
                             :isFavorited="isProjectFavorited(project.id)"
                         />
                     </div>
@@ -355,6 +367,7 @@ const hasActiveFilters = computed(() => {
                         />
                     </div>
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>
