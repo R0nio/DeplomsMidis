@@ -7,7 +7,9 @@ import { GoogleMap, Marker, InfoWindow } from "vue3-google-map";
 import SliderInDetailPage from "@/Components/Main/SliderInDetailPage.vue";
 import BarChart from "@/Components/Main/BarChart.vue";
 import axios from 'axios';
-
+import RevenueExpensesChart from "@/Components/Main/RevenueExpensesChart.vue";
+import CashFlowChart from "@/Components/Main/CashFlowChart.vue";
+import InvestmentStructureChart from "@/Components/Main/InvestmentStructureChart.vue";
 // Images
 import sliderFallback from "../../images/pictures/slider6.png";
 import FavoriteIcon from "../../images/Favorite.png";
@@ -146,6 +148,54 @@ const forecast = computed(() => {
 
 // Структура расходов
 const investments = computed(() => props.project.investments ?? []);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Срок в месяцах
+const months = computed(() => Number(props.project.number_date_realise) || 12);
+
+// Годовая прибыль
+const annualProfit = computed(() => {
+    return Number(forecast.value?.expected_revenue ?? 0) - Number(forecast.value?.expected_expenses ?? 0);
+});
+
+// Общая прибыль за весь срок
+const totalProfit = computed(() => {
+    const years = Math.ceil(months.value / 12);
+    return annualProfit.value * years;
+});
+
+// Среднегодовая выручка
+const avgAnnualRevenue = computed(() => Number(forecast.value?.expected_revenue ?? 0));
+
+// Максимальная годовая прибыль (в данном случае = annualProfit)
+const maxAnnualProfit = computed(() => annualProfit.value);
+
+// Срок окупаемости расчётный
+const paybackPeriod = computed(() => {
+    if (annualProfit.value <= 0) return '—';
+    const totalInv = Number(props.project.total_investment ?? 0);
+    const years = totalInv / annualProfit.value;
+    return years.toFixed(1) + ' лет';
+});
+
+
+
+
+
+
+
 </script>
 
 <template>
@@ -241,27 +291,62 @@ const investments = computed(() => props.project.investments ?? []);
                 </p>
             </div>
 
-            <!-- Графики -->
+             <!-- Графики -->
             <div class="my-8">
-                <h2 class="text-2xl sm:text-3xl mb-4 text-white font-semibold">Графики выгодности</h2>
+                <h2 class="text-2xl sm:text-3xl mb-6 text-white     ">Графики выгодности</h2>
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                    <div class="border-2 border-white w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-xl p-4 sm:p-6">
-                        <div class="border-2 border-white h-full">
-                            
+                    <!-- График 1 -->
+                    <div class="border-2 border-white w-full h-[400px] sm:h-[500px] lg:h-[500px] rounded-xl p-4 sm:p-6">
+                        <RevenueExpensesChart
+                            :expected-revenue="forecast?.expected_revenue ?? 0"
+                            :expected-expenses="forecast?.expected_expenses ?? 0"
+                            :months="months"
+                        />
+                    </div>
+                    <!-- График 2 -->
+                    <div class="border-2 border-white w-full h-[400px] sm:h-[500px] lg:h-[500px] rounded-xl p-4 sm:p-6">
+                        <CashFlowChart
+                            :expected-revenue="forecast?.expected_revenue ?? 0"
+                            :expected-expenses="forecast?.expected_expenses ?? 0"
+                            :months="months"
+                        />
+                    </div>
+                     <!-- График 3 -->
+                    <div class="border-2 border-white w-full h-[400px] sm:h-[500px] lg:h-[500px] rounded-xl p-4 sm:p-6">
+                        <InvestmentStructureChart :investments="investments" />
+                    </div>
+
+                    <!-- Индикаторы -->
+                    <div class="w-full h-[400px] sm:h-[500px] lg:h-[500px] grid grid-cols-2 gap-4">
+                        <!-- Срок окупаемости -->
+                        <div class="border-2 border-white rounded-xl flex flex-col items-center justify-center text-white p-4 gap-2">
+
+                            <p class="text-sm sm:text-base text-white0 text-center">Срок окупаемости</p>
+                            <p class="text-xl sm:text-2xl  text-white text-center">{{ paybackPeriod }}</p>
+                        </div>
+
+                        <!-- Общая прибыль -->
+                        <div class="border-2 border-white rounded-xl flex flex-col items-center justify-center text-white p-4 gap-2">
+
+                            <p class="text-sm sm:text-base text-white text-center">Общая прибыль за весь срок</p>
+                            <p class="text-xl sm:text-2xl  text-white text-center">{{ formatNumber(totalProfit) }} ₽</p>
+                        </div>
+
+                        <!-- Среднегодовая выручка -->
+                        <div class="border-2 border-white rounded-xl flex flex-col items-center justify-center text-white p-4 gap-2">
+
+                            <p class="text-sm sm:text-base text-white text-center">Среднегодовая выручка</p>
+                            <p class="text-xl sm:text-2xl d text-white text-center">{{ formatNumber(avgAnnualRevenue) }} ₽</p>
+                        </div>
+
+                        <!-- Максимальная годовая прибыль -->
+                        <div class="border-2 border-white rounded-xl flex flex-col items-center justify-center text-white p-4 gap-2">
+
+                            <p class="text-sm sm:text-base text-white text-center">Максимальная годовая прибыль</p>
+                            <p class="text-xl sm:text-2xl text-white text-center">{{ formatNumber(maxAnnualProfit) }} ₽</p>
                         </div>
                     </div>
-                    <div class="border-2 border-white w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-xl flex items-center justify-center text-white">
-                        <p class="text-xl">График 2</p>
-                    </div>
-                    <div class="border-2 border-white w-full h-[400px] sm:h-[500px] lg:h-[600px] rounded-xl flex items-center justify-center text-white">
-                        <p class="text-xl">График 3</p>
-                    </div>
-                    <div class="w-full h-[400px] sm:h-[500px] lg:h-[600px] grid grid-cols-2 gap-4">
-                        <div class="border-2 border-white rounded-xl flex items-center justify-center text-white"><p>Срок окупаемости:</p></div>
-                        <div class="border-2 border-white rounded-xl flex items-center justify-center text-white"><p>Общая прибыль за 5 лет:</p></div>
-                        <div class="border-2 border-white rounded-xl flex items-center justify-center text-white"><p>Среднегодовая выручка:</p></div>
-                        <div class="border-2 border-white rounded-xl flex items-center justify-center text-white"><p>Максимальная годовая прибыль:</p></div>
-                    </div>
+
                 </div>
             </div>
 
