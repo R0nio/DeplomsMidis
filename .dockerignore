@@ -1,0 +1,9 @@
+.git
+.env
+node_modules
+storage/logs/*.log
+tests
+.gitignore
+README.md
+.phpunit.cache
+.editorconfig
