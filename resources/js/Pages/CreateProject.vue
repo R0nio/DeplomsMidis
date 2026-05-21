@@ -104,9 +104,8 @@ const submit = () => {
     });
 
     form.post(route('projects.store'), {
-        forceFormData: true, // Важно для отправки файлов
+        forceFormData: true,
         onSuccess: () => {
-            // Сброс формы
             form.reset();
             categories.value = [''];
             expenses.value = [{ item_name: '', amount: '' }];
@@ -116,6 +115,8 @@ const submit = () => {
             console.log('Ошибки валидации:', errors);
         }
     });
+        console.log('Отправляемые файлы:', form.fotos);
+    console.log('Количество файлов:', form.fotos.length);
 };
 
 const mainColor = "#8EB6FF";
@@ -245,9 +246,6 @@ const mainColor = "#8EB6FF";
                             for="fotos" 
                             class="cursor-pointer inline-flex items-center px-6 py-3 bg-[#267FBE] hover:opacity-60 text-white font-semibold rounded-xl transition duration-200 shadow-md"
                         >
-                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
                             Добавить изображения
                         </label>
                         <input

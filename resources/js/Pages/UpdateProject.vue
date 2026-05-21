@@ -288,18 +288,22 @@ const mainColor = "#8EB6FF";
                      <div>
                         <div>
                             <InputLabel for="fotos" value="Фото проекта" />
-                            <input
-                                id="fotos"
-                                type="file"
-                                @change="handleFileUpload"
-                                accept="image/*"
-                                class="mt-1 block w-full text-xl text-black bg-[#eeeeee] rounded-xl h-12
-                                    file:mr-4 file:py-2 file:px-4
-                                    file:rounded-lg file:border-0
-                                    file:text-sm file:font-semibold
-                                    file:bg-blue-50 file:text-blue-700
-                                    hover:file:bg-blue-100"
-                            />
+                            <div class="mb-4">
+                                <label 
+                                    for="fotos" 
+                                    class="cursor-pointer inline-flex items-center px-6 py-3 bg-[#267FBE] hover:opacity-60 text-white font-semibold rounded-xl transition duration-200 shadow-md"
+                                >
+                                    Добавить изображения
+                                </label>
+                                <input
+                                    id="fotos"
+                                    type="file"
+                                    @change="handleFileUpload"
+                                    accept="image/*"
+                                    multiple
+                                    class="hidden"
+                                />
+                            </div>
                             <InputError class="mt-2" :message="form.errors.fotos" />
                         </div>
                         <div v-if="existingPhotos.length > 0" class="mt-3">

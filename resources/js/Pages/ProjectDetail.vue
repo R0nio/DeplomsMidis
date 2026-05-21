@@ -11,7 +11,7 @@ import RevenueExpensesChart from "@/Components/Main/RevenueExpensesChart.vue";
 import CashFlowChart from "@/Components/Main/CashFlowChart.vue";
 import InvestmentStructureChart from "@/Components/Main/InvestmentStructureChart.vue";
 // Images
-import sliderFallback from "../../images/pictures/slider6.png";
+import sliderFallback from "../../images/free-icon-image-gallery-3342137.png";
 import FavoriteIcon from "../../images/Favorite.png";
 import FavoriteActiveIcon from "../../images/FavoriteActivity.png";
 

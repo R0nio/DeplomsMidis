@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import axios from 'axios';
-import slider3 from "../../../images/pictures/slider6.png";
+import slider3 from "../../../images/free-icon-image-gallery-3342137.png";
 import favoriteActiveIcon from "../../../images/FavoriteActivity.png";
 
 const props = defineProps({

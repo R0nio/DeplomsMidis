@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('short_description')->nullable();
             $table->text('full_description')->nullable();
             $table->json('category')->nullable();
-            $table->string('status')->default('На модерации');
+            $table->string('status')->default('На модерации')->nullable();
             $table->bigInteger('total_investment')->nullable()->nullable();
-            $table->bigInteger('collected_total_investment')->default(0);
+            $table->bigInteger('collected_total_investment')->default(0)->nullable();
             $table->integer('number_date_realise')->nullable();
             $table->string('ownership')->nullable();
             $table->string('activity')->nullable();

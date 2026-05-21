@@ -7,6 +7,7 @@ use App\Models\Project_investment;
 use App\Models\Project_forecast;
 use App\Models\Project_photos;
 use App\Http\Requests\StoreProjectRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Favorite;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -61,10 +62,8 @@ class ProjectController extends Controller
     public function store(StoreProjectRequest $request)
     {
         try {
-
-
             $project = Project::create([
-                'user_id' => auth()->id(),
+                'user_id' => 1,
                 'title' => $request->name,
                 'short_description' => $request->shotr_descr,
                 'full_description' => $request->full_descr,
@@ -82,10 +81,10 @@ class ProjectController extends Controller
                 'status' => 'На модерации',
                 'is_moderated' => false,
             ]);
-
+            
             if ($request->hasFile('fotos')) {
                 foreach ($request->file('fotos') as $index => $photo) {
-                    $path = $photo->store('projects/' . $project->id, 'public');
+                    $path = $photo->store('projectsPhoto/' . $project->id, 'public');
                     
                     Project_photos::create([
                         'project_id' => $project->id,
@@ -161,7 +160,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function update(StoreProjectRequest $request, Project $project)
+    public function update(UpdateProjectRequest $request, Project $project)
     {
         if ($project->user_id !== auth()->id()) {
             abort(403);
@@ -202,7 +201,7 @@ class ProjectController extends Controller
             if ($request->hasFile('fotos')) {
                 $lastOrder = Project_photos::where('project_id', $project->id)->max('order') ?? -1;
                 foreach ($request->file('fotos') as $index => $photo) {
-                    $path = $photo->store('projects/' . $project->id, 'public');
+                    $path = $photo->store('projectsPhoto/' . $project->id, 'public');
                     Project_photos::create([
                         'project_id' => $project->id,
                         'photo_path' => $path,

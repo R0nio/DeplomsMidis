@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProjectRequest extends FormRequest
 {
-public function authorize(): bool
+    public function authorize(): bool
     {
         return true;
     }
@@ -19,7 +19,10 @@ public function authorize(): bool
             'full_descr' => 'required|string',
             'categories' => 'nullable|array|max:4',
             'categories.*' => 'string|max:255',
-            'fotos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            
+            'fotos' => 'nullable|array|max:10',
+            'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            
             'ownShip' => 'nullable|string|max:255',
             'activity' => 'nullable|string|max:255',
             'type_building' => 'nullable|string|max:255',
@@ -45,10 +48,15 @@ public function authorize(): bool
             'shotr_descr.required' => 'Короткое описание обязательно для заполнения',
             'full_descr.required' => 'Полное описание обязательно для заполнения',
             'categories.max' => 'Максимум 4 категории',
+            'fotos.max' => 'Можно загрузить не более 10 изображений',
             'fotos.*.image' => 'Файл должен быть изображением',
-            'fotos.*.max' => 'Размер изображения не должен превышать 5MB',
+            'fotos.*.mimes' => 'Поддерживаемые форматы: jpeg, png, jpg, gif',
+            'fotos.*.max' => 'Размер каждого изображения не должен превышать 5MB',
             'latitude.between' => 'Широта должна быть в диапазоне от -90 до 90',
             'longitude.between' => 'Долгота должна быть в диапазоне от -180 до 180',
+            'expenses.*.item_name.required_with' => 'Укажите название статьи расходов',
+            'expenses.*.amount.required_with' => 'Укажите сумму расхода',
+            'expenses.*.amount.min' => 'Сумма расхода не может быть отрицательной',
         ];
     }
 }
