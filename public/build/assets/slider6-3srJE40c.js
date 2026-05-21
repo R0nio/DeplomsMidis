@@ -1,0 +1,1 @@
+var e=`/build/assets/slider6-DBBTMW9F.png`;export{e as t};
