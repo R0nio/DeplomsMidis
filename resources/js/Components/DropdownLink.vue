@@ -12,7 +12,8 @@ defineProps({
 <template>
     <Link
         :href="href"
-        class="block w-full p-3 px-6 mb-0 text-start text-base leading-5 text-gray-700 transition duration-150 ease-in-out border-b-2 hover:bg-[#267FBE] hover:text-white focus:text-black focus:bg-gray-400 focus:outline-none"
+        role="menuitem"
+        class="block w-full p-3 px-6 mb-0 text-start text-base leading-5 text-gray-900 transition duration-150 ease-in-out border-b-2 hover:bg-[#267FBE] hover:text-white focus:text-black focus:bg-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-700"
     >
         <slot />
     </Link>

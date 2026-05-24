@@ -34,21 +34,20 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <section>
+    <section aria-labelledby="update-password-heading">
         <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Update Password
+            <h2 id="update-password-heading" class="text-lg font-medium text-gray-900">
+                Изменить пароль
             </h2>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Ensure your account is using a long, random password to stay
-                secure.
+            <p class="mt-1 text-sm text-gray-800">
+                Используйте длинный случайный пароль, чтобы обеспечить безопасность аккаунта.
             </p>
         </header>
 
-        <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
+        <form @submit.prevent="updatePassword" class="mt-6 space-y-6" novalidate>
             <div>
-                <InputLabel for="current_password" value="Current Password" />
+                <InputLabel for="current_password" value="Текущий пароль" :required="true" />
 
                 <TextInput
                     id="current_password"
@@ -57,51 +56,67 @@ const updatePassword = () => {
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="current-password"
+                    required
+                    :invalid="!!form.errors.current_password"
+                    described-by="current-password-error"
                 />
 
                 <InputError
+                    id="current-password-error"
                     :message="form.errors.current_password"
                     class="mt-2"
                 />
             </div>
 
             <div>
-                <InputLabel for="password" value="New Password" />
+                <InputLabel for="new_password" value="Новый пароль" :required="true" />
 
                 <TextInput
-                    id="password"
+                    id="new_password"
                     ref="passwordInput"
                     v-model="form.password"
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
+                    required
+                    :invalid="!!form.errors.password"
+                    described-by="new-password-error"
                 />
 
-                <InputError :message="form.errors.password" class="mt-2" />
+                <InputError id="new-password-error" :message="form.errors.password" class="mt-2" />
             </div>
 
             <div>
                 <InputLabel
-                    for="password_confirmation"
-                    value="Confirm Password"
+                    for="new_password_confirmation"
+                    value="Подтвердите новый пароль"
+                    :required="true"
                 />
 
                 <TextInput
-                    id="password_confirmation"
+                    id="new_password_confirmation"
                     v-model="form.password_confirmation"
                     type="password"
                     class="mt-1 block w-full"
                     autocomplete="new-password"
+                    required
+                    :invalid="!!form.errors.password_confirmation"
+                    described-by="new-password-confirmation-error"
                 />
 
                 <InputError
+                    id="new-password-confirmation-error"
                     :message="form.errors.password_confirmation"
                     class="mt-2"
                 />
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <PrimaryButton
+                    type="submit"
+                    :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
+                >Сохранить</PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -111,9 +126,11 @@ const updatePassword = () => {
                 >
                     <p
                         v-if="form.recentlySuccessful"
-                        class="text-sm text-gray-600"
+                        class="text-sm text-gray-800"
+                        role="status"
+                        aria-live="polite"
                     >
-                        Saved.
+                        Сохранено.
                     </p>
                 </Transition>
             </div>

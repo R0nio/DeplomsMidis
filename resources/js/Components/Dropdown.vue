@@ -14,11 +14,19 @@ const props = defineProps({
         type: String,
         default: 'py-1 bg-white',
     },
+    ariaLabel: {
+        type: String,
+        default: 'Меню',
+    },
 });
+
+const triggerEl = ref(null);
+const menuEl = ref(null);
 
 const closeOnEscape = (e) => {
     if (open.value && e.key === 'Escape') {
         open.value = false;
+        triggerEl.value?.querySelector('button, [tabindex]')?.focus?.();
     }
 };
 
@@ -42,11 +50,24 @@ const alignmentClasses = computed(() => {
 });
 
 const open = ref(false);
+const menuId = `dropdown-menu-${Math.random().toString(36).slice(2, 9)}`;
+
+const toggle = () => {
+    open.value = !open.value;
+};
 </script>
 
 <template>
     <div class="relative">
-        <div @click="open = !open">
+        <div
+            ref="triggerEl"
+            @click="toggle"
+            @keydown.enter.prevent="toggle"
+            @keydown.space.prevent="toggle"
+            :aria-expanded="open ? 'true' : 'false'"
+            :aria-haspopup="'menu'"
+            :aria-controls="menuId"
+        >
             <slot name="trigger" />
         </div>
 
@@ -55,6 +76,7 @@ const open = ref(false);
             v-show="open"
             class="fixed inset-0 z-40"
             @click="open = false"
+            aria-hidden="true"
         ></div>
 
         <Transition
@@ -67,6 +89,10 @@ const open = ref(false);
         >
             <div
                 v-show="open"
+                :id="menuId"
+                ref="menuEl"
+                role="menu"
+                :aria-label="ariaLabel"
                 class="absolute z-50 mt-2 rounded-md shadow-lg"
                 :class="[widthClass, alignmentClasses]"
                 style="display: none"

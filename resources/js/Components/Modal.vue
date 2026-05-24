@@ -14,6 +14,14 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    ariaLabel: {
+        type: String,
+        default: 'Диалоговое окно',
+    },
+    ariaLabelledby: {
+        type: String,
+        default: null,
+    },
 });
 
 const emit = defineEmits(['close']);
@@ -78,6 +86,10 @@ const maxWidthClass = computed(() => {
     <dialog
         class="z-50 m-0 min-h-full min-w-full overflow-y-auto bg-transparent backdrop:bg-transparent"
         ref="dialog"
+        :aria-modal="show ? 'true' : undefined"
+        :aria-label="ariaLabelledby ? undefined : ariaLabel"
+        :aria-labelledby="ariaLabelledby || undefined"
+        role="dialog"
     >
         <div
             class="fixed inset-0 z-50 overflow-y-auto px-4 py-6 sm:px-0"
@@ -95,9 +107,10 @@ const maxWidthClass = computed(() => {
                     v-show="show"
                     class="fixed inset-0 transform transition-all"
                     @click="close"
+                    aria-hidden="true"
                 >
                     <div
-                        class="absolute inset-0 bg-gray-500 opacity-75"
+                        class="absolute inset-0 bg-gray-600 opacity-80"
                     />
                 </div>
             </Transition>

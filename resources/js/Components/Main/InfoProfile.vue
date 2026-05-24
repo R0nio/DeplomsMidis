@@ -35,8 +35,8 @@ const goToAllProjects = () => {
     <div class="px-4 sm:px-10 lg:px-20 py-6">
         <div class="flex xl:flex-row flex-col gap-8">
             <!-- Левая колонка - данные пользователя -->
-            <div class="w-full xl:w-auto flex flex-col gap-4 xl:border-r-2 xl:pr-16 pb-4 xl:border-white max-xl:border-b-2 border-white max-xl:pb-10">
-                <h1 class="text-2xl sm:text-3xl mx-auto mb-4 font-medium text-white">Ваши данные</h1>
+            <section aria-labelledby="user-info-heading" class="w-full xl:w-auto flex flex-col gap-4 xl:border-r-2 xl:pr-16 pb-4 xl:border-white max-xl:border-b-2 border-white max-xl:pb-10">
+                <h2 id="user-info-heading" class="text-2xl sm:text-3xl mx-auto mb-4 font-medium text-white">Ваши данные</h2>
                 
                 <!-- FIO -->
                 <div>
@@ -65,59 +65,51 @@ const goToAllProjects = () => {
                         <p v-else>{{ user.role }}</p>
                     </div>
                 </div>
-            </div>
-            
+            </section>
+
             <!-- Правая колонка - избранные проекты для инвестора -->
-            <div v-if="user.role === 'Investor'" class="w-full flex flex-col gap-8">
+            <section v-if="user.role === 'Investor'" aria-labelledby="favorite-projects-heading" class="w-full flex flex-col gap-8">
                 <div class="flex items-center justify-between">
-                    <h1 class="text-xl sm:text-2xl lg:text-3xl mx-auto font-medium text-white">
+                    <h2 id="favorite-projects-heading" class="text-xl sm:text-2xl lg:text-3xl mx-auto font-medium text-white">
                         Избранные проекты
-                    </h1>
+                    </h2>
                 </div>
 
                 <!-- Если нет избранных -->
-                <div v-if="!favoriteProjects || favoriteProjects.length === 0" 
-                     class="text-center py-12 bg-white/10 rounded-xl backdrop-blur-sm">
+                <div v-if="!favoriteProjects || favoriteProjects.length === 0"
+                     class="text-center py-12 bg-white/10 rounded-xl backdrop-blur-sm" role="status">
                     <p class="text-white text-lg sm:text-xl mt-4">У вас пока нет избранных проектов</p>
                 </div>
 
                 <!-- Список избранных -->
-                <div v-else>
-                    <div class="w-full grid md:grid-cols-2 grid-cols-1 gap-6 mx-auto overflow-y-auto max-h-[800px] px-2 pb-10">
-                        <FavoriteCard 
-                            v-for="project in favoriteProjects" 
-                            :key="project.id"
-                            :project="project"
-                        />
-                    </div>
-                </div>
-            </div>
-            
+                <ul v-else class="w-full grid md:grid-cols-2 grid-cols-1 gap-6 mx-auto overflow-y-auto max-h-[800px] px-2 pb-10 list-none m-0 p-0" aria-label="Избранные проекты">
+                    <li v-for="project in favoriteProjects" :key="project.id">
+                        <FavoriteCard :project="project" />
+                    </li>
+                </ul>
+            </section>
+
             <!-- Правая колонка - мои проекты для организатора -->
-            <div v-else-if="user.role === 'Organisator'" class="w-full flex flex-col gap-8">
+            <section v-else-if="user.role === 'Organisator'" aria-labelledby="my-projects-heading" class="w-full flex flex-col gap-8">
                 <div class="flex items-center justify-between flex-wrap gap-4">
-                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-medium text-white">
+                    <h2 id="my-projects-heading" class="text-xl sm:text-2xl lg:text-3xl font-medium text-white">
                         Мои проекты
-                    </h1>
+                    </h2>
                 </div>
 
                 <!-- Если нет проектов -->
-                <div v-if="!myProjects || myProjects.length === 0" 
-                     class="text-center py-12 bg-white/10 rounded-xl backdrop-blur-sm">
-                    <p class="text-white text-lg sm:text-xl mt-4">У вас нету созданных проектов</p>
+                <div v-if="!myProjects || myProjects.length === 0"
+                     class="text-center py-12 bg-white/10 rounded-xl backdrop-blur-sm" role="status">
+                    <p class="text-white text-lg sm:text-xl mt-4">У вас нет созданных проектов</p>
                 </div>
 
                 <!-- Список моих проектов -->
-                <div v-else>
-                    <div class="w-full grid md:grid-cols-2 grid-cols-1 gap-6 mx-auto overflow-y-auto max-h-[800px] px-2 pb-10">
-                        <MyProject 
-                            v-for="project in myProjects" 
-                            :key="project.id"
-                            :project="project"
-                        />
-                    </div>
-                </div>
-            </div>
+                <ul v-else class="w-full grid md:grid-cols-2 grid-cols-1 gap-6 mx-auto overflow-y-auto max-h-[800px] px-2 pb-10 list-none m-0 p-0" aria-label="Мои проекты">
+                    <li v-for="project in myProjects" :key="project.id">
+                        <MyProject :project="project" />
+                    </li>
+                </ul>
+            </section>
         </div>
     </div>
 </template>

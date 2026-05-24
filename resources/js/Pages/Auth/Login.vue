@@ -18,7 +18,7 @@ defineProps({
 
 const form = useForm({
     email: '',
-    login: '',  
+    login: '',
     password: '',
     remember: false,
 });
@@ -32,16 +32,21 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Log in" />
+        <Head title="Авторизация — InvestProject" />
 
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+        <div
+            v-if="status"
+            class="mb-4 text-sm font-medium text-green-700"
+            role="status"
+            aria-live="polite"
+        >
             {{ status }}
         </div>
-        
-        <form @submit.prevent="submit" class="flex flex-col gap-5">
-            <h1 class="mx-auto text-black text-2xl">Авторизация</h1>
+
+        <form @submit.prevent="submit" class="flex flex-col gap-5" aria-labelledby="login-title" novalidate>
+            <h1 id="login-title" class="mx-auto text-black text-2xl">Авторизация</h1>
             <div>
-                <InputLabel for="login" value="Логин" />
+                <InputLabel for="login" value="Логин" :required="true" />
 
                 <TextInput
                     id="login"
@@ -50,14 +55,16 @@ const submit = () => {
                     v-model="form.login"
                     required
                     autofocus
-                    autocomplete="login"
+                    autocomplete="username"
+                    :invalid="!!form.errors.login"
+                    described-by="login-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.login" />
+                <InputError id="login-error" class="mt-2" :message="form.errors.login" />
             </div>
 
             <div class="">
-                <InputLabel for="password" value="Пароль" />
+                <InputLabel for="password" value="Пароль" :required="true" />
 
                 <TextInput
                     id="password"
@@ -66,24 +73,27 @@ const submit = () => {
                     v-model="form.password"
                     required
                     autocomplete="current-password"
+                    :invalid="!!form.errors.password"
+                    described-by="password-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError id="password-error" class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="mt-2 w-full flex flex-col items-center justify-center ">
                 <Link
                     v-if="canResetPassword"
                     :href="route('register')"
-                    class="mb-2 rounded-xl w-full text-sm text-gray-800 underline hover:text-gray-300 focus:outline-none focus:text-blue-200"
+                    class="mb-2 rounded-xl w-full text-sm text-gray-900 underline hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-700"
                 >
                     Регистрация
                 </Link>
 
                 <PrimaryButton
-                    class=""
-                    :class="{ 'opacity-25': form.processing }"
+                    type="submit"
+                    :class="{ 'opacity-50': form.processing }"
                     :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
                 >
                     Войти
                 </PrimaryButton>

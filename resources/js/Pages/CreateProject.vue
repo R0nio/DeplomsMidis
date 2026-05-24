@@ -123,22 +123,22 @@ const mainColor = "#8EB6FF";
 </script>
 
 <template>
-    <Head title="Создание проекта" />
+    <Head title="Создание проекта — InvestProject" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold text-gray-800">
+            <h1 class="text-xl font-semibold text-gray-900">
                 Создание проекта
-            </h2>
+            </h1>
         </template>
-        
+
         <div class="mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <form @submit.prevent="submit" class="flex flex-col gap-6 border-2 border-white px-4 sm:px-8 py-6 rounded-xl shadow-lg mx-8">
-                
+            <form @submit.prevent="submit" class="flex flex-col gap-6 border-2 border-white px-4 sm:px-8 py-6 rounded-xl shadow-lg mx-8" novalidate>
+
                 <!-- Описание проекта -->
-                <h1 class="text-white text-2xl border-b-2 border-white">
+                <h2 class="text-white text-2xl border-b-2 border-white">
                     Описание проекта
-                </h1>
+                </h2>
                 
                 <!-- Название и описания -->
                 <div class="flex flex-col lg:flex-row gap-4 mb-4">
@@ -205,25 +205,27 @@ const mainColor = "#8EB6FF";
                             />
                             
                             <!-- Кнопка удаления -->
-                            <button 
+                            <button
                                 v-if="categories.length > 1"
                                 type="button"
                                 @click="removeCategory(index)"
-                                class="bg-red-500 hover:bg-red-600 text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12"
+                                class="bg-red-700 hover:bg-red-600 text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700"
+                                :aria-label="`Удалить категорию ${index + 1}`"
                             >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
-                            
+
                             <!-- Кнопка добавления (только для последнего элемента) -->
-                            <button 
+                            <button
                                 v-if="index === categories.length - 1 && categories.length < 4"
                                 type="button"
                                 @click="addCategory"
-                                class="bg-green-500 hover:bg-green-600 text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12"
+                                class="bg-green-700 hover:bg-green-600 text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-700"
+                                aria-label="Добавить новую категорию"
                             >
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
                             </button>
@@ -281,10 +283,10 @@ const mainColor = "#8EB6FF";
                             <button
                                 type="button"
                                 @click="removePhoto(index)"
-                                class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                title="Удалить фото"
+                                class="absolute top-2 right-2 bg-red-700 hover:bg-red-600 text-white p-2 rounded-lg opacity-100 sm:opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white"
+                                :aria-label="`Удалить фото: ${preview.name}`"
                             >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -337,9 +339,9 @@ const mainColor = "#8EB6FF";
                 </div>
 
                 <!-- Геоданные -->
-                <h1 class="text-white text-2xl border-b-2 border-white">
+                <h2 class="text-white text-2xl border-b-2 border-white">
                     Геоданные
-                </h1>
+                </h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Адрес -->
@@ -383,9 +385,9 @@ const mainColor = "#8EB6FF";
                 </div>
 
                 <!-- Финансовые показатели -->
-                <h1 class="text-white text-2xl border-b-2 border-white">
+                <h2 class="text-white text-2xl border-b-2 border-white">
                     Финансовые показатели
-                </h1>
+                </h2>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Требуемая сумма -->
@@ -513,27 +515,27 @@ const mainColor = "#8EB6FF";
                             <!-- Кнопки -->
                             <div class="flex gap-2 justify-end mt-2">
                                 <!-- Удалить -->
-                                <button 
+                                <button
                                     v-if="expenses.length > 1"
                                     type="button"
                                     @click="removeExpense(index)"
-                                    class="bg-red-700 hover:bg-red-400 text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 shadow-md hover:shadow-lg"
-                                    title="Удалить статью расходов"
+                                    class="bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-700"
+                                    :aria-label="`Удалить статью расходов ${index + 1}`"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-                                
+
                                 <!-- Добавить (только для последнего элемента) -->
-                                <button 
+                                <button
                                     v-if="index === expenses.length - 1"
                                     type="button"
                                     @click="addExpense"
-                                    class="bg-green-700 hover:bg-green-400 text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 shadow-md hover:shadow-lg"
-                                    title="Добавить новую статью расходов"
+                                    class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-700"
+                                    aria-label="Добавить новую статью расходов"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
                                 </button>
@@ -546,9 +548,11 @@ const mainColor = "#8EB6FF";
                 <!-- Кнопка отправки -->
                 <div class="flex justify-center mt-6">
                     <PrimaryButton
+                        type="submit"
                         class="px-8 py-3 text-lg"
-                        :class="{ 'opacity-25': form.processing }"
+                        :class="{ 'opacity-50': form.processing }"
                         :disabled="form.processing"
+                        :aria-busy="form.processing ? 'true' : 'false'"
                     >
                         {{ form.processing ? 'Создание...' : 'Создать проект' }}
                     </PrimaryButton>
