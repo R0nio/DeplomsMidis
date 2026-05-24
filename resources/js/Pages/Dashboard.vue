@@ -150,5 +150,6 @@ const socials = [
                 :socials="socials"
             ></ContactsInfo>
         </div>
+        
     </AuthenticatedLayout>
 </template>
