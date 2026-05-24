@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Head } from "@inertiajs/vue3";       
+import { Head } from "@inertiajs/vue3";
 import ContactsInfo from "@/Components/Main/ContactsInfo.vue";
 import Vk from "../../images/VK com.png";
 
@@ -18,13 +18,13 @@ const socials = [
 </script>
 
 <template>
-    <Head title="Contact" />
+    <Head title="Контакты — InvestProject" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-3xl font-semibold leading-tight text-gray-800">
+            <h1 class="text-3xl font-semibold leading-tight text-gray-900">
                 Контакты
-            </h2>
+            </h1>
             <ContactsInfo class="mb-[120px]" :phonesdata="phonesInfo" :emails="emails" :socials="socials"></ContactsInfo>
         </template>
 

@@ -1,3 +1,38 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        color-scheme: light;
+    }
+
+    *:focus-visible {
+        outline: 2px solid #1d4ed8;
+        outline-offset: 2px;
+    }
+}
+
+@layer utilities {
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.001ms !important;
+            scroll-behavior: auto !important;
+        }
+    }
+
+    @media (forced-colors: active) {
+        button,
+        a,
+        input,
+        select,
+        textarea {
+            forced-color-adjust: none;
+            border: 1px solid CanvasText;
+        }
+    }
+}

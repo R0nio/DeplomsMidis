@@ -30,13 +30,13 @@ const mainColor = "#8EB6FF";
 </script>
 
 <template>
-    <Head title="Профиль" />
+    <Head title="Личный кабинет — InvestProject" />
 
     <AuthenticatedLayout>
         <template #header :style="{backgroundColor: mainColor}">
-            <h2 :style="{backgroundColor: mainColor}" class="text-3xl font-semibold leading-tight text-gray-800">
+            <h1 :style="{backgroundColor: mainColor}" class="text-3xl font-semibold leading-tight text-gray-900">
                 Личный кабинет
-            </h2>
+            </h1>
         </template>
 
         <div :style="{backgroundColor: mainColor}" class="relative h-max z-0 mx-auto py-6 px-4 sm:px-10 lg:px-16">

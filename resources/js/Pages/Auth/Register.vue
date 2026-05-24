@@ -22,6 +22,7 @@ const form = useForm({
     password: '',
     organization_name: 'none',
     password_confirmation: '',
+    acceptPersonalDate: false,
 });
 
 const submit = () => {
@@ -33,13 +34,13 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Register" />
+        <Head title="Регистрация — InvestProject" />
 
-        <form @submit.prevent="submit" class="flex flex-col gap-2">
-            <h1 class="mx-auto text-black text-2xl">Регистрация</h1>
+        <form @submit.prevent="submit" class="flex flex-col gap-2" aria-labelledby="register-title" novalidate>
+            <h1 id="register-title" class="mx-auto text-black text-2xl">Регистрация</h1>
             <!-- имя -->
             <div>
-                <InputLabel for="name" value="Имя" />
+                <InputLabel for="name" value="Имя" :required="true" />
 
                 <TextInput
                     id="name"
@@ -48,15 +49,17 @@ const submit = () => {
                     v-model="form.name"
                     required
                     autofocus
-                    autocomplete="name"
+                    autocomplete="given-name"
+                    :invalid="!!form.errors.name"
+                    described-by="name-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name" />
+                <InputError id="name-error" class="mt-2" :message="form.errors.name" />
             </div>
 
             <!-- Фамилия -->
             <div class="mt-2">
-                <InputLabel for="middlename" value="Фамилия" />
+                <InputLabel for="middlename" value="Фамилия" :required="true" />
 
                 <TextInput
                     id="middlename"
@@ -64,11 +67,12 @@ const submit = () => {
                     class="mt-1 block w-full"
                     v-model="form.middlename"
                     required
-                    autofocus
-                    autocomplete="middlename"
+                    autocomplete="family-name"
+                    :invalid="!!form.errors.middlename"
+                    described-by="middlename-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.middlename" />
+                <InputError id="middlename-error" class="mt-2" :message="form.errors.middlename" />
             </div>
 
             <!-- Отчество -->
@@ -80,16 +84,17 @@ const submit = () => {
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.lastname"
-                    autofocus
-                    autocomplete="lastname"
+                    autocomplete="additional-name"
+                    :invalid="!!form.errors.lastname"
+                    described-by="lastname-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.lastname" />
+                <InputError id="lastname-error" class="mt-2" :message="form.errors.lastname" />
             </div>
 
             <!-- Логин -->
             <div class="mt-2">
-                <InputLabel for="login" value="Логин" />
+                <InputLabel for="login" value="Логин" :required="true" />
 
                 <TextInput
                     id="login"
@@ -97,15 +102,17 @@ const submit = () => {
                     class="mt-1 block w-full"
                     v-model="form.login"
                     required
-                    autocomplete="login"
+                    autocomplete="username"
+                    :invalid="!!form.errors.login"
+                    described-by="login-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.login" />
+                <InputError id="login-error" class="mt-2" :message="form.errors.login" />
             </div>
 
             <!-- Почта -->
             <div class="mt-2">
-                <InputLabel for="email" value="Почта" />
+                <InputLabel for="email" value="Почта" :required="true" />
 
                 <TextInput
                     id="email"
@@ -113,41 +120,48 @@ const submit = () => {
                     class="mt-1 block w-full"
                     v-model="form.email"
                     required
-                    autocomplete="username"
+                    autocomplete="email"
+                    :invalid="!!form.errors.email"
+                    described-by="email-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError id="email-error" class="mt-2" :message="form.errors.email" />
             </div>
 
             <!-- Телефон -->
             <div class="mt-2">
-                <InputLabel for="number" value="Телефон" />
+                <InputLabel for="number" value="Телефон" :required="true" />
 
-                <MaskInput 
-                    v-model="form.number" 
+                <MaskInput
+                    id="number"
+                    v-model="form.number"
                     mask="+7 (###) ###-##-##"
                     placeholder="+7 (___) ___-__-__"
                     required
-                    class="mt-1 block w-full rounded-md shadow-sm border-none focus:border-blue-200 focus:ring-blue-200  bg-[#E8E8E8] h-12"
+                    autocomplete="tel"
+                    inputmode="tel"
+                    :aria-invalid="!!form.errors.number || undefined"
+                    aria-describedby="number-error"
+                    class="mt-1 block w-full rounded-md shadow-sm border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 bg-[#E8E8E8] h-12 px-3"
                 />
 
-                <InputError class="mt-2" :message="form.errors.number" />
+                <InputError id="number-error" class="mt-2" :message="form.errors.number" />
             </div>
 
             <!-- Роль -->
             <div class="mt-2">
-                <InputLabel for="role" value="Ваша роль" />
+                <InputLabel for="role" value="Ваша роль" :required="true" />
 
                 <Select
                     id="role"
-                    type="select"
                     class="mt-1 block w-full"
                     v-model="form.role"
                     required
-                    autocomplete="role"
+                    :invalid="!!form.errors.role"
+                    described-by="role-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.role" />
+                <InputError id="role-error" class="mt-2" :message="form.errors.role" />
             </div>
 
             <!-- Название организации -->
@@ -159,15 +173,17 @@ const submit = () => {
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.organization_name"
-                    autocomplete="organization_name"
+                    autocomplete="organization"
+                    :invalid="!!form.errors.organization_name"
+                    described-by="organization-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.organization_name" />
+                <InputError id="organization-error" class="mt-2" :message="form.errors.organization_name" />
             </div>
 
             <!-- Пароль -->
             <div class="mt-2">
-                <InputLabel for="password" value="Пароль" />
+                <InputLabel for="password" value="Пароль" :required="true" />
 
                 <TextInput
                     id="password"
@@ -176,9 +192,11 @@ const submit = () => {
                     v-model="form.password"
                     required
                     autocomplete="new-password"
+                    :invalid="!!form.errors.password"
+                    described-by="password-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError id="password-error" class="mt-2" :message="form.errors.password" />
             </div>
 
             <!-- Подтверждение пароля -->
@@ -186,6 +204,7 @@ const submit = () => {
                 <InputLabel
                     for="password_confirmation"
                     value="Подтвердите пароль"
+                    :required="true"
                 />
 
                 <TextInput
@@ -195,35 +214,43 @@ const submit = () => {
                     v-model="form.password_confirmation"
                     required
                     autocomplete="new-password"
+                    :invalid="!!form.errors.password_confirmation"
+                    described-by="password-confirmation-error"
                 />
 
                 <InputError
+                    id="password-confirmation-error"
                     class="mt-2"
                     :message="form.errors.password_confirmation"
                 />
             </div>
 
-            
+
             <div class="mt-4 flex items-center justify-end flex-col">
                 <div class="mt-2 block w-full mb-4">
-                    <label class="flex items-center">
-                        <Checkbox name="acceptPersonalDate" v-model:checked="form.acceptPersonalDate" required/>
-                        <span class="ms-2 text-sm text-gray-800 focus:outline-none focus:text-blue-2"
-                            >Согласие на обработку персональных данных</span
-                        >
+                    <label for="acceptPersonalDate" class="flex items-center gap-2 cursor-pointer">
+                        <Checkbox
+                            id="acceptPersonalDate"
+                            name="acceptPersonalDate"
+                            v-model:checked="form.acceptPersonalDate"
+                            required
+                            value="1"
+                        />
+                        <span class="ms-2 text-sm text-gray-900">Согласие на обработку персональных данных <span class="text-red-700" aria-hidden="true">*</span><span class="sr-only">обязательное поле</span></span>
                     </label>
                 </div>
                 <Link
                     :href="route('login')"
-                    class="mb-2 rounded-xl w-full text-sm text-gray-800 underline hover:text-gray-300 focus:outline-none focus:text-blue-200"
+                    class="mb-2 rounded-xl w-full text-sm text-gray-900 underline hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-700"
                 >
                     Уже зарегистрированы?
                 </Link>
 
                 <PrimaryButton
-                    class=""
-                    :class="{ 'opacity-25': form.processing }"
+                    type="submit"
+                    :class="{ 'opacity-50': form.processing }"
                     :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
                 >
                     Зарегистрироваться
                 </PrimaryButton>

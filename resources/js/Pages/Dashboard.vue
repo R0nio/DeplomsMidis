@@ -103,7 +103,7 @@ const socials = [
 </script>
 
 <template>
-    <Head title="Главная" />
+    <Head title="Главная — InvestProject" />
 
     <AuthenticatedLayout>
         <template #header>

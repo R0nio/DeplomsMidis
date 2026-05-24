@@ -199,7 +199,7 @@ const paybackPeriod = computed(() => {
 </script>
 
 <template>
-    <Head :title="project.title" />
+    <Head :title="`${project.title} — InvestProject`" />
 
     <AuthenticatedLayout>
         <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
@@ -225,14 +225,18 @@ const paybackPeriod = computed(() => {
                          <div v-if="props.user === 'Investor'">
                             <button
                                 v-if="authUser"
+                                type="button"
                                 @click="toggleFavorite"
                                 :disabled="favoriteLoading"
-                                class="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform disabled:opacity-50"
-                                :title="isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'"
+                                :aria-pressed="isFavorite ? 'true' : 'false'"
+                                :aria-busy="favoriteLoading ? 'true' : 'false'"
+                                :aria-label="isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'"
+                                class="flex-shrink-0 cursor-pointer hover:scale-110 transition-transform disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white rounded"
                             >
                                 <img
                                     :src="isFavorite ? FavoriteActiveIcon : FavoriteIcon"
-                                    alt="Избранное"
+                                    alt=""
+                                    aria-hidden="true"
                                     class="w-8 h-8 sm:w-10 sm:h-10"
                                 >
                             </button>
@@ -240,15 +244,15 @@ const paybackPeriod = computed(() => {
                     </div>
 
                     <!-- Категории -->
-                    <div v-if="categories.length > 0" class="flex flex-wrap gap-2 mb-4">
-                        <span
+                    <ul v-if="categories.length > 0" class="flex flex-wrap gap-2 mb-4 list-none m-0 p-0" aria-label="Категории проекта">
+                        <li
                             v-for="(cat, i) in categories"
                             :key="i"
                             class="bg-white/20 text-white text-sm px-3 py-1 rounded-full border border-white/40"
                         >
                             {{ cat }}
-                        </span>
-                    </div>
+                        </li>
+                    </ul>
 
                     <!-- Детали -->
                     <div class="flex flex-col gap-3 text-white">
@@ -397,8 +401,8 @@ const paybackPeriod = computed(() => {
                                         :alt="project.title"
                                         class="w-full h-full object-cover rounded-xl"
                                     />
-                                    <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center">
-                                        <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div v-else class="w-full h-full bg-gray-200 flex items-center justify-center" role="img" aria-label="Фото проекта отсутствует">
+                                        <svg class="w-16 h-16 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>

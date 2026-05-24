@@ -3,11 +3,15 @@ defineProps({
     value: {
         type: String,
     },
+    level: {
+        type: [String, Number],
+        default: 1,
+    },
 });
 </script>
 
 <template>
-    <h2 class="text-3xl font-semibold leading-tight text-gray-800" >
-        {{value}}
-    </h2>
+    <component :is="`h${level}`" class="text-3xl font-semibold leading-tight text-gray-900">
+        {{ value }}
+    </component>
 </template>

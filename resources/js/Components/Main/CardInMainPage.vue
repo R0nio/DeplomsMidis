@@ -8,12 +8,12 @@ defineProps({
 </script>
 
 <template>
-    <div 
-        v-for="(item, index) in infos" 
+    <article
+        v-for="(item, index) in infos"
         :key="index"
         class="px-6 py-16 flex flex-col border-2 border-[#2D1DC0] bg-[#5B83CD] gap-5 rounded-[20px] "
     >
-        <p class="text-xl text-white font-semibold">{{ item.title }}</p>
-        <p class="text-4xl text-white font-bold">{{ item.info }}</p>
-    </div>
+        <h3 class="text-xl text-white font-semibold">{{ item.title }}</h3>
+        <p class="text-4xl text-white font-bold" aria-label="Значение">{{ item.info }}</p>
+    </article>
 </template>

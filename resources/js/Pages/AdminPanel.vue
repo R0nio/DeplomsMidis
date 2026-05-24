@@ -58,13 +58,13 @@ const projectdata = [
 </script>
 
 <template>
-    <Head title="Projects" />
+    <Head title="Админ-панель — InvestProject" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <h1 class="text-xl font-semibold leading-tight text-gray-900">
                 Админ панель
-            </h2>
+            </h1>
         </template>
 
         <div class="px-[80px] max-xl:px-4 py-6">
@@ -124,13 +124,25 @@ const projectdata = [
             <!-- Проекты -->
             <div class="w-full border-2 rounded-xl border-black h-max flex flex-col mt-3" :style="{ backgroundColor: mainColor }">
                 <div class="flex w-full justify-end items-center p-3">
-                    <div class="flex bg-white gap-4 p-4 rounded-xl">
-                        <div :class="`rounded-xl cursor-pointer ${switcherViewCard ? 'opacity-50 pointer-events-none' : ''}`" @click="switcherViewCard = true">
-                            <img :src="list" alt="Список">
-                        </div>
-                        <div :class="`rounded-xl cursor-pointer ${switcherViewCard ? '' : 'opacity-50 pointer-events-none'}`" @click="switcherViewCard = false">
-                            <img :src="cards" alt="Карточки">
-                        </div>
+                    <div class="flex bg-white gap-4 p-4 rounded-xl" role="group" aria-label="Переключатель вида проектов">
+                        <button
+                            type="button"
+                            :class="`rounded-xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-700 ${switcherViewCard ? 'opacity-50' : ''}`"
+                            @click="switcherViewCard = true"
+                            :aria-pressed="switcherViewCard ? 'true' : 'false'"
+                            aria-label="Показать проекты списком"
+                        >
+                            <img :src="list" alt="" aria-hidden="true">
+                        </button>
+                        <button
+                            type="button"
+                            :class="`rounded-xl cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-700 ${switcherViewCard ? '' : 'opacity-50'}`"
+                            @click="switcherViewCard = false"
+                            :aria-pressed="!switcherViewCard ? 'true' : 'false'"
+                            aria-label="Показать проекты карточками"
+                        >
+                            <img :src="cards" alt="" aria-hidden="true">
+                        </button>
                     </div>
                 </div>
                 

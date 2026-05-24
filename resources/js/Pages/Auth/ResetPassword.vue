@@ -33,11 +33,13 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Reset Password" />
+        <Head title="Сброс пароля — InvestProject" />
 
-        <form @submit.prevent="submit">
+        <h1 class="text-2xl text-black mb-4">Сброс пароля</h1>
+
+        <form @submit.prevent="submit" novalidate>
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="Email" :required="true" />
 
                 <TextInput
                     id="email"
@@ -46,14 +48,16 @@ const submit = () => {
                     v-model="form.email"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="email"
+                    :invalid="!!form.errors.email"
+                    described-by="email-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError id="email-error" class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="Пароль" :required="true" />
 
                 <TextInput
                     id="password"
@@ -62,15 +66,18 @@ const submit = () => {
                     v-model="form.password"
                     required
                     autocomplete="new-password"
+                    :invalid="!!form.errors.password"
+                    described-by="password-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError id="password-error" class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="mt-4">
                 <InputLabel
                     for="password_confirmation"
-                    value="Confirm Password"
+                    value="Подтвердите пароль"
+                    :required="true"
                 />
 
                 <TextInput
@@ -80,9 +87,12 @@ const submit = () => {
                     v-model="form.password_confirmation"
                     required
                     autocomplete="new-password"
+                    :invalid="!!form.errors.password_confirmation"
+                    described-by="password-confirmation-error"
                 />
 
                 <InputError
+                    id="password-confirmation-error"
                     class="mt-2"
                     :message="form.errors.password_confirmation"
                 />
@@ -90,10 +100,12 @@ const submit = () => {
 
             <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
+                    type="submit"
+                    :class="{ 'opacity-50': form.processing }"
                     :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
                 >
-                    Reset Password
+                    Сбросить пароль
                 </PrimaryButton>
             </div>
         </form>

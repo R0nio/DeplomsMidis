@@ -23,24 +23,27 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Forgot Password" />
+        <Head title="Восстановление пароля — InvestProject" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email
-            address and we will email you a password reset link that will allow
-            you to choose a new one.
-        </div>
+        <h1 class="text-2xl text-black mb-4">Восстановление пароля</h1>
+
+        <p class="mb-4 text-sm text-gray-800">
+            Забыли пароль? Не беда. Сообщите нам ваш email, и мы вышлем
+            ссылку для сброса пароля.
+        </p>
 
         <div
             v-if="status"
-            class="mb-4 text-sm font-medium text-green-600"
+            class="mb-4 text-sm font-medium text-green-700"
+            role="status"
+            aria-live="polite"
         >
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form @submit.prevent="submit" novalidate>
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="email" value="Email" :required="true" />
 
                 <TextInput
                     id="email"
@@ -49,18 +52,22 @@ const submit = () => {
                     v-model="form.email"
                     required
                     autofocus
-                    autocomplete="username"
+                    autocomplete="email"
+                    :invalid="!!form.errors.email"
+                    described-by="email-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError id="email-error" class="mt-2" :message="form.errors.email" />
             </div>
 
             <div class="mt-4 flex items-center justify-end">
                 <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
+                    type="submit"
+                    :class="{ 'opacity-50': form.processing }"
                     :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
                 >
-                    Email Password Reset Link
+                    Отправить ссылку для сброса пароля
                 </PrimaryButton>
             </div>
         </form>

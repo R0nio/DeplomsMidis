@@ -19,16 +19,17 @@ const submit = () => {
 
 <template>
     <GuestLayout>
-        <Head title="Confirm Password" />
+        <Head title="Подтверждение пароля — InvestProject" />
 
-        <div class="mb-4 text-sm text-gray-600">
-            This is a secure area of the application. Please confirm your
-            password before continuing.
-        </div>
+        <h1 class="text-2xl text-black mb-4">Подтверждение пароля</h1>
 
-        <form @submit.prevent="submit">
+        <p class="mb-4 text-sm text-gray-800">
+            Это защищённая область. Пожалуйста, подтвердите ваш пароль, прежде чем продолжить.
+        </p>
+
+        <form @submit.prevent="submit" novalidate>
             <div>
-                <InputLabel for="password" value="Password" />
+                <InputLabel for="password" value="Пароль" :required="true" />
                 <TextInput
                     id="password"
                     type="password"
@@ -37,17 +38,21 @@ const submit = () => {
                     required
                     autocomplete="current-password"
                     autofocus
+                    :invalid="!!form.errors.password"
+                    described-by="password-error"
                 />
-                <InputError class="mt-2" :message="form.errors.password" />
+                <InputError id="password-error" class="mt-2" :message="form.errors.password" />
             </div>
 
             <div class="mt-4 flex justify-end">
                 <PrimaryButton
+                    type="submit"
                     class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
+                    :class="{ 'opacity-50': form.processing }"
                     :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
                 >
-                    Confirm
+                    Подтвердить
                 </PrimaryButton>
             </div>
         </form>

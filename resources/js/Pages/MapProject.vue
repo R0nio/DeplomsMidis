@@ -30,14 +30,14 @@ const projectsCount = computed(() => props.projects.length);
 </script>
 
 <template>
-    <Head title="Карта проектов" />
+    <Head title="Карта проектов — InvestProject" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex justify-between items-center flex-wrap gap-4">
-                <h2 class="text-2xl sm:text-3xl font-semibold text-gray-800">
+                <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">
                     Карта проектов
-                </h2>
+                </h1>
             </div>
         </template>
 

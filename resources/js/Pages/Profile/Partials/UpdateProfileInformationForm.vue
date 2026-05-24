@@ -23,75 +23,86 @@ const form = useForm({
 </script>
 
 <template>
-    <section>
+    <section aria-labelledby="profile-info-heading">
         <header>
-            <h2 class="text-lg font-medium text-gray-900">
-                Profile Information
+            <h2 id="profile-info-heading" class="text-lg font-medium text-gray-900">
+                Информация профиля
             </h2>
 
-            <p class="mt-1 text-sm text-gray-600">
-                Update your account's profile information and email address.
+            <p class="mt-1 text-sm text-gray-800">
+                Обновите имя и адрес электронной почты вашего аккаунта.
             </p>
         </header>
 
         <form
             @submit.prevent="form.patch(route('profile.update'))"
             class="mt-6 space-y-6"
+            novalidate
         >
             <div>
-                <InputLabel for="name" value="Name" />
+                <InputLabel for="profile-name" value="Имя" :required="true" />
 
                 <TextInput
-                    id="name"
+                    id="profile-name"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.name"
                     required
                     autofocus
-                    autocomplete="name"
+                    autocomplete="given-name"
+                    :invalid="!!form.errors.name"
+                    described-by="profile-name-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name" />
+                <InputError id="profile-name-error" class="mt-2" :message="form.errors.name" />
             </div>
 
             <div>
-                <InputLabel for="email" value="Email" />
+                <InputLabel for="profile-email" value="Email" :required="true" />
 
                 <TextInput
-                    id="email"
+                    id="profile-email"
                     type="email"
                     class="mt-1 block w-full"
                     v-model="form.email"
                     required
-                    autocomplete="username"
+                    autocomplete="email"
+                    :invalid="!!form.errors.email"
+                    described-by="profile-email-error"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email" />
+                <InputError id="profile-email-error" class="mt-2" :message="form.errors.email" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">
-                <p class="mt-2 text-sm text-gray-800">
-                    Your email address is unverified.
+                <p class="mt-2 text-sm text-gray-900">
+                    Ваш email не подтверждён.
                     <Link
                         :href="route('verification.send')"
                         method="post"
                         as="button"
-                        class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        class="rounded-md text-sm text-gray-900 underline hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-700"
                     >
-                        Click here to re-send the verification email.
+                        Отправить письмо повторно.
                     </Link>
                 </p>
 
                 <div
                     v-show="status === 'verification-link-sent'"
-                    class="mt-2 text-sm font-medium text-green-600"
+                    class="mt-2 text-sm font-medium text-green-700"
+                    role="status"
+                    aria-live="polite"
                 >
-                    A new verification link has been sent to your email address.
+                    На ваш email отправлена новая ссылка для подтверждения.
                 </div>
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <PrimaryButton
+                    type="submit"
+                    :disabled="form.processing"
+                    :aria-busy="form.processing ? 'true' : 'false'"
+                >Сохранить</PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"
@@ -101,9 +112,11 @@ const form = useForm({
                 >
                     <p
                         v-if="form.recentlySuccessful"
-                        class="text-sm text-gray-600"
+                        class="text-sm text-gray-800"
+                        role="status"
+                        aria-live="polite"
                     >
-                        Saved.
+                        Сохранено.
                     </p>
                 </Transition>
             </div>
