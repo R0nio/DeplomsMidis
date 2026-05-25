@@ -66,7 +66,9 @@ const cardInfoProjects = computed(() => [
 </script>
 
 <template>
-    <Head title="Главная" />
+    <Head title="Главная">
+        <meta name="description" content="Инвестиционная платформа для поиска и финансирования проектов">
+    </Head>
 
     <AuthenticatedLayout>
         <template #header>
@@ -75,33 +77,39 @@ const cardInfoProjects = computed(() => [
         
         <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
             <!-- Информация о проектах -->
-            <Title value="Информация о проектах"></Title>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8 mb-11 sm:grid-cols-2">
-                <CardInMainPage :infos="cardInfoProjects"></CardInMainPage>
-            </div>
+            <section aria-labelledby="projects-info-title">
+                <Title id="projects-info-title" value="Информация о проектах"></Title>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-8 mb-11 sm:grid-cols-2">
+                    <CardInMainPage :infos="cardInfoProjects"></CardInMainPage>
+                </div>
+            </section>
 
             <!-- Категории -->
-            <Title value="Категории"></Title>
-            <div v-if="categories && categories.length > 0" class="flex flex-wrap gap-4 mt-8 mb-11">
-                <CardCategories :infos="categories"></CardCategories>
-            </div>
-            <div v-else class="text-center py-8 rounded-xl" style="background-color: #284139; border: 2px solid #886830;">
-                <p class="text-white/60">Категории появятся после добавления проектов</p>
-            </div>
+            <section aria-labelledby="categories-title">
+                <Title id="categories-title" value="Категории"></Title>
+                <div v-if="categories && categories.length > 0" class="flex flex-wrap gap-4 mt-8 mb-11">
+                    <CardCategories :infos="categories"></CardCategories>
+                </div>
+                <div v-else class="text-center py-8 rounded-xl" style="background-color: #284139; border: 2px solid #886830;" role="status" aria-label="Категории не найдены">
+                    <p class="text-white/60">Категории появятся после добавления проектов</p>
+                </div>
+            </section>
 
             <!-- Рекомендуемые проекты -->
-            <Title id="Slider" class="mb-6" value="Вам может понравиться"></Title>
-            <div v-if="randomProjects && randomProjects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <CardBoxInDashboard 
-                    v-for="project in randomProjects" 
-                    :key="project.id"
-                    :project="project" 
-                    :isFavorited="favoriteProjects"
-                ></CardBoxInDashboard>
-            </div>
-            <div v-else class="text-center py-12 rounded-xl mb-[120px]" style="background-color: #284139; border: 2px solid #886830">
-                <p class="text-white/80 text-xl">Проекты для отображения появятся скоро</p>
-            </div>
+            <section aria-labelledby="recommended-projects-title">
+                <Title id="recommended-projects-title" class="mb-6" value="Вам может понравиться"></Title>
+                <div v-if="randomProjects && randomProjects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <CardBoxInDashboard 
+                        v-for="project in randomProjects" 
+                        :key="project.id"
+                        :project="project" 
+                        :isFavorited="favoriteProjects"
+                    ></CardBoxInDashboard>
+                </div>
+                <div v-else class="text-center py-12 rounded-xl mb-[120px]" style="background-color: #284139; border: 2px solid #886830" role="status" aria-label="Проекты не найдены">
+                    <p class="text-white/80 text-xl">Проекты для отображения появятся скоро</p>
+                </div>
+            </section>
         </div>
     </AuthenticatedLayout>
 </template>

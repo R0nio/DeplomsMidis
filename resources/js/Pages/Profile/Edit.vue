@@ -31,7 +31,9 @@ const mainColor = "#436343";
 </script>
 
 <template>
-    <Head title="Профиль" />
+    <Head title="Профиль">
+        <meta name="description" content="Личный кабинет пользователя">
+    </Head>
 
     <AuthenticatedLayout>
         <template #header>

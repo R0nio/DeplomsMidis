@@ -39,7 +39,7 @@ class RegisteredUserController extends Controller
             'login' => 'required|string|max:255|unique:'.User::class,
             'number' => 'required|string|max:255',
             'role' => 'required|string|max:255',
-            'organization_name' => 'string|max:255',
+            'organization_name' => 'nullable|string|max:255',
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 

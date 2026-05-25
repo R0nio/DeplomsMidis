@@ -7,7 +7,14 @@ defineProps({
 </script>
 
 <template>
-    <h2 class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight" style="color: #F8D794">
+    <component 
+        :is="level"
+        :id="id"
+        class="text-2xl sm:text-3xl lg:text-4xl font-semibold leading-tight focus:outline-none"
+        style="color: #F8D794"
+        tabindex="-1"
+    >
         {{ value }}
-    </h2>
+        <span v-if="id" class="sr-only">Начало раздела: {{ value }}</span>
+    </component>
 </template>

@@ -32,7 +32,9 @@ const projectsCount = computed(() => props.projects.length);
 </script>
 
 <template>
-    <Head title="Карта проектов" />
+    <Head title="Карта проектов">
+        <meta name="description" content="Интерактивная карта инвестиционных проектов">
+    </Head>
 
     <AuthenticatedLayout>
         <template #header>
@@ -40,11 +42,14 @@ const projectsCount = computed(() => props.projects.length);
         </template>
 
         <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16" :style="{ backgroundColor: mainColor }">
-            <!-- Карта -->
-            <GoogleMapExample 
-                :projects="projects"
-                :center="mapCenter"
-            />
+            <section aria-labelledby="map-title">
+                <h2 id="map-title" class="sr-only">Карта инвестиционных проектов</h2>
+                <!-- Карта -->
+                <GoogleMapExample 
+                    :projects="projects"
+                    :center="mapCenter"
+                />
+            </section>
         </div>
     </AuthenticatedLayout>
 </template>

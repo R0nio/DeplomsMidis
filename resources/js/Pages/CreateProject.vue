@@ -124,7 +124,9 @@ const colors = {
 </script>
 
 <template>
-    <Head title="Создание проекта" />
+    <Head title="Создание проекта">
+        <meta name="description" content="Форма создания нового инвестиционного проекта">
+    </Head>
 
     <AuthenticatedLayout>
         <template #header>
@@ -133,17 +135,14 @@ const colors = {
         </template>
         
         <div class="mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <form @submit.prevent="submit" class="flex flex-col gap-6 rounded-xl p-6"  :style="{ border: `2px solid ${colors.border}`, backgroundColor: colors.bgLight }">
+            <form @submit.prevent="submit" class="flex flex-col gap-6 rounded-xl p-6" :style="{ border: `2px solid ${colors.border}`, backgroundColor: colors.bgLight }">
                 
-                <!-- Описание проекта -->
                 <h1 class="text-2xl pb-2" :style="{ color: colors.accent, borderBottom: `2px solid ${colors.border}` }">
                     Описание проекта
                 </h1>
                 
-                <!-- Название и описания -->
                 <div class="flex flex-col lg:flex-row gap-4 mb-4">
                     <div class="flex flex-col gap-3 w-full lg:w-auto">
-                        <!-- Название проекта -->
                         <div class="w-full lg:w-[450px]">
                             <InputLabel for="name" value="Название проекта" :style="{ color: colors.accent }" />
                             <TextInput
@@ -158,7 +157,6 @@ const colors = {
                             <InputError class="mt-2" :message="form.errors.name" />
                         </div>
                         
-                        <!-- Короткое описание -->
                         <div class="w-full lg:w-[450px]">
                             <InputLabel for="shotr_descr" value="Короткое описание" :style="{ color: colors.accent }" />
                             <TextInput
@@ -174,7 +172,6 @@ const colors = {
                         </div>
                     </div>
 
-                    <!-- Подробное описание -->
                     <div class="flex-1 min-w-[300px]">
                         <InputLabel for="full_descr" value="Подробное описание" :style="{ color: colors.accent }" />
                         <textarea
@@ -189,7 +186,7 @@ const colors = {
                     </div>
                 </div>
 
-                <!-- Категории (до 4 штук) -->
+                <!-- Категории -->
                 <div>
                     <InputLabel value="Категории проекта (до 4 категорий)" :style="{ color: colors.accent }" />
                     
@@ -214,8 +211,9 @@ const colors = {
                                 @click="removeCategory(index)"
                                 class="text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 bg-red-500"
                                 :style="{ border: `2px solid ${colors.border}` }"
+                                :aria-label="`Удалить категорию ${category || index + 1}`"
                             >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -226,15 +224,16 @@ const colors = {
                                 @click="addCategory"
                                 class="text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 bg-green-500"
                                 :style="{ border: `2px solid ${colors.border}` }"
+                                aria-label="Добавить новую категорию"
                             >
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
                             </button>
                         </div>
                     </div>
                     
-                    <p v-if="categories.length >= 4" class="text-base mt-2" :style="{ color: colors.accent }">
+                    <p v-if="categories.length >= 4" class="text-base mt-2" :style="{ color: colors.accent }" role="status">
                         Достигнуто максимальное количество категорий (4)
                     </p>
                     <InputError class="mt-2" :message="form.errors.categories" />
@@ -259,22 +258,24 @@ const colors = {
                             accept="image/*"
                             multiple
                             class="hidden"
+                            aria-label="Выберите изображения для проекта"
                         />
                     </div>
                     
                     <InputError class="mt-2" :message="form.errors.fotos" />
 
                     <!-- Превью загруженных фотографий -->
-                    <div v-if="photoPreviews.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <div v-if="photoPreviews.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" role="list" aria-label="Загруженные изображения">
                         <div 
                             v-for="(preview, index) in photoPreviews" 
                             :key="index"
                             class="relative group rounded-xl overflow-hidden"
                             :style="{ border: `2px solid ${colors.border}` }"
+                            role="listitem"
                         >
                             <img 
                                 :src="preview.url" 
-                                :alt="preview.name"
+                                :alt="`Изображение ${preview.name}`"
                                 class="w-full h-48 object-cover"
                             >
                             
@@ -287,9 +288,10 @@ const colors = {
                                 @click="removePhoto(index)"
                                 class="absolute top-2 right-2 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                                 :style="{ backgroundColor: '#f44336' }"
+                                :aria-label="`Удалить изображение ${preview.name}`"
                                 title="Удалить фото"
                             >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
@@ -525,9 +527,10 @@ const colors = {
                                     @click="removeExpense(index)"
                                     class="text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 bg-red-500"
                                     :style="{ border: `2px solid ${colors.border}` }"
+                                    :aria-label="`Удалить статью расходов ${index + 1}`"
                                     title="Удалить статью расходов"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -538,9 +541,10 @@ const colors = {
                                     @click="addExpense"
                                     class="text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 bg-green-500"
                                     :style="{ border: `2px solid ${colors.border}` }"
+                                    aria-label="Добавить новую статью расходов"
                                     title="Добавить новую статью расходов"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
                                 </button>
@@ -557,6 +561,7 @@ const colors = {
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         :style="{ backgroundColor: colors.bgDark, color: colors.accent, border: `2px solid ${colors.border}` }"
+                        :aria-label="form.processing ? 'Создание проекта...' : 'Создать проект'"
                     >
                         {{ form.processing ? 'Создание...' : 'Создать проект' }}
                     </PrimaryButton>

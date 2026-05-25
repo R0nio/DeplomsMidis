@@ -143,15 +143,21 @@ const changeStatus = async () => {
 </script>
 
 <template>
-    <div 
-        class="w-full h-[450px] sm:h-[500px] lg:h-[550px] flex flex-col rounded-2xl relative overflow-hidden transition-all duration-300 group "
+    <article 
+        class="w-full h-[450px] sm:h-[500px] lg:h-[550px] flex flex-col rounded-2xl relative overflow-hidden transition-all duration-300 group"
         :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}` }"
+        :aria-label="`Карточка проекта: ${project.title}`"
     >
         <!-- Изображение проекта -->
         <div 
             @click="goToProject"
+            @keydown.enter="goToProject"
+            @keydown.space.prevent="goToProject"
             class="flex-1 cursor-pointer flex items-center justify-center overflow-hidden rounded-t-xl"
             :style="{ backgroundColor: colors.bgImage }"
+            role="button"
+            tabindex="0"
+            :aria-label="`Перейти к проекту ${project.title}`"
         >
             <img 
                 :src="currentImage"
@@ -159,7 +165,7 @@ const changeStatus = async () => {
                 class="transition-transform duration-300 group-hover:scale-105"
                 :class="isPlaceholder ? 'object-contain' : 'object-cover w-full h-full'"
                 :style="isPlaceholder ? 'max-width: 100%; max-height: 100%; width: auto; height: auto;' : ''"
-                alt="Проект"
+                :alt="`Изображение проекта ${project.title}`"
                 loading="lazy"
             >
         </div>
@@ -168,14 +174,17 @@ const changeStatus = async () => {
         <div class="absolute top-3 right-3 z-10">
             <div v-if="user && userRole === 'Investor'">    
                 <button 
-                    @click="toggleFavorite" 
+                    @click="toggleFavorite"
                     class="cursor-pointer bg-white/40 p-2 rounded-xl"
                     :title="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                    :aria-label="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                    :aria-pressed="isFavorite"
                 >
                     <img 
                         :src="isFavorite ? favoriteActiveIcon : favoriteIcon" 
-                        alt="Избранное" 
+                        alt="" 
                         class="w-10 h-10"
+                        aria-hidden="true"
                     >
                 </button>
             </div>
@@ -186,24 +195,28 @@ const changeStatus = async () => {
             <div class="p-3 sm:p-4">
                 <!-- Информация о проекте -->
                 <div class="grid grid-cols-1 gap-x-4 gap-y-2 text-lg sm:text-xl lg:text-xl">
-                    <p class="truncate ">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Название: </span> 
-                        <span class="" :style="{ color: colors.white }">{{ project.title }}</span>
+                    <p class="truncate">
+                        <span class="font-semibold" :style="{ color: colors.accent }">Название:</span>
+                        <span class="sr-only"> - </span>
+                        <span :style="{ color: colors.white }">{{ project.title }}</span>
                     </p>
                     
-                    <p v-if="project.number_date_realise" class="truncate ">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Срок: </span> 
-                        <span class="" :style="{ color: colors.white }">{{ project.number_date_realise }} мес.</span>
+                    <p v-if="project.number_date_realise" class="truncate">
+                        <span class="font-semibold" :style="{ color: colors.accent }">Срок:</span>
+                        <span class="sr-only"> - </span>
+                        <span :style="{ color: colors.white }">{{ project.number_date_realise }} мес.</span>
                     </p>
                     
-                    <p v-if="project.total_investment" class="truncate ">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Инвестиции: </span> 
-                        <span class="" :style="{ color: colors.white }">{{ formatNumber(project.total_investment) }} ₽</span>
+                    <p v-if="project.total_investment" class="truncate">
+                        <span class="font-semibold" :style="{ color: colors.accent }">Инвестиции:</span>
+                        <span class="sr-only"> - </span>
+                        <span :style="{ color: colors.white }">{{ formatNumber(project.total_investment) }} ₽</span>
                     </p>
                     
-                    <p v-if="project.type_build" class="truncate ">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Собственность: </span> 
-                        <span class="" :style="{ color: colors.white }">{{ project.type_build }}</span>
+                    <p v-if="project.type_build" class="truncate">
+                        <span class="font-semibold" :style="{ color: colors.accent }">Собственность:</span>
+                        <span class="sr-only"> - </span>
+                        <span :style="{ color: colors.white }">{{ project.type_build }}</span>
                     </p>
                 </div>
 
@@ -214,6 +227,7 @@ const changeStatus = async () => {
                         @change="changeStatus"
                         class="px-2 py-1.5 rounded-lg border focus:outline-none text-sm"
                         :style="{ borderColor: colors.border, backgroundColor: colors.bgDark, color: colors.white }"
+                        aria-label="Изменить статус проекта"
                     >
                         <option disabled value="">Изменить статус</option>
                         <option 
@@ -225,14 +239,26 @@ const changeStatus = async () => {
                         </option>
                     </select>
 
-                    <div v-if="project.is_moderated === true" class="px-2 py-1.5 rounded-lg text-xs text-center whitespace-nowrap" style="background-color: #4caf50; color: white">
+                    <div 
+                        v-if="project.is_moderated === true" 
+                        class="px-2 py-1.5 rounded-lg text-xs text-center whitespace-nowrap"
+                        style="background-color: #4caf50; color: white"
+                        role="status"
+                        aria-label="Проект прошёл модерацию"
+                    >
                         Прошла модерацию
                     </div>
-                    <div v-else-if="project.is_moderated === false" class="px-2 py-1.5 rounded-lg text-xs text-center whitespace-nowrap" style="background-color: #f44336; color: white">
+                    <div 
+                        v-else-if="project.is_moderated === false" 
+                        class="px-2 py-1.5 rounded-lg text-xs text-center whitespace-nowrap"
+                        style="background-color: #f44336; color: white"
+                        role="alert"
+                        aria-label="Проект не прошёл модерацию"
+                    >
                         Не прошла модерацию
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </article>
 </template>

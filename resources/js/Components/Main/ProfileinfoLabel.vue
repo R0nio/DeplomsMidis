@@ -13,10 +13,14 @@ defineProps({
 
 <template>
     <div>
-        <h3 class="text-xl sm:text-2xl mb-1 font-semibold pl-3" :style="{ color: '#F8D794' }">{{ title }}</h3>
+        <h3 class="text-xl sm:text-2xl mb-1 font-semibold pl-3" :style="{ color: '#F8D794' }" :id="`label-${title.replace(/\s/g, '-')}`">
+            {{ title }}
+        </h3>
         <div 
             class="text-lg sm:text-xl lg:text-2xl p-3 w-auto rounded-xl flex justify-center items-center"
             :style="{ backgroundColor: '#284139', border: `2px solid #886830`, color: '#ffffff' }"
+            role="group"
+            :aria-labelledby="`label-${title.replace(/\s/g, '-')}`"
         >
             <p>{{ info }}</p>
         </div>

@@ -15,12 +15,15 @@ const goToCategory = (categoryTitle) => {
 </script>
 
 <template>
-    <div
+    <p
         v-for="(item, index) in infos" 
         :key="index"
-        class="px-6 py-3 flex items-center gap-3 rounded-xl transition-all duration-300 hover:scale-105"
+        class="px-6 py-3 flex items-center gap-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F8D794]"
         style="background-color: #284139; border: 2px solid #886830;"
+        role="button"
+        :aria-label="`Категория: ${item.title}`"
+        tabindex="0"
     >
         <p class="text-lg font-medium" style="color: #F8D794">{{ item.title }}</p>
-    </div>
+</p>
 </template>

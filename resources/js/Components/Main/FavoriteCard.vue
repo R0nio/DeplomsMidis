@@ -79,7 +79,12 @@ const goToProject = () => {
         <!-- Изображение проекта -->
         <div 
             @click="goToProject"
+            @keydown.enter="goToProject"
+            @keydown.space.prevent="goToProject"
             class="flex-1 cursor-pointer flex items-center justify-center overflow-hidden"
+            role="button"
+            tabindex="0"
+            :aria-label="`Перейти к проекту ${project.title}`"
         >
             <img 
                 :src="currentImage"
@@ -87,7 +92,7 @@ const goToProject = () => {
                 class="transition-transform duration-300 group-hover:scale-105"
                 :class="isPlaceholder ? 'object-contain w-auto h-auto max-w-full max-h-full' : 'object-cover w-full h-full'"
                 :style="isPlaceholder ? 'width: auto; height: auto; max-width: 100%; max-height: 100%;' : ''"
-                alt="Проект"
+                :alt="`Изображение проекта ${project.title}`"
                 loading="lazy"
             >
         </div>
@@ -102,13 +107,15 @@ const goToProject = () => {
             <!-- Кнопка удаления из избранного -->
             <button 
                 @click="toggleFavorite" 
-                class="cursor-pointer hover:scale-110 transition-transform p-1.5 sm:p-2 rounded-lg"
+                class="cursor-pointer bg-white/40 p-2 rounded-xl"
+                :aria-label="`Удалить проект ${project.title} из избранного`"
                 title="Удалить из избранного"
             >
                 <img 
                     :src="favoriteActiveIcon" 
-                    alt="Убрать из избранного"  
+                    alt="" 
                     class="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 xl:w-10 xl:h-10"
+                    aria-hidden="true"
                 >
             </button>
         </div>
@@ -116,25 +123,28 @@ const goToProject = () => {
         <!-- Нижняя панель с информацией -->
         <div class="rounded-t-xl border-t-2 flex-shrink-0" :style="{ backgroundColor: '#809076', borderColor: '#886830' }">
             <div class="p-3 sm:p-4 lg:p-5">
-                <!-- Информация в 2 колонки на планшетах, в 1 на мобильных -->
                 <div class="flex flex-col justify-between overflow-x-auto gap-x-3 gap-y-1.5 text-lg sm:text-xl lg:text-xl w-full">
                     <p class="truncate">
-                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Название: </span>
+                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Название:</span>
+                        <span class="sr-only"> - </span>
                         <span class="text-xl sm:text-xl" :style="{ color: '#ffffff' }">{{ project.title }}</span>
                     </p>
                     
                     <p v-if="project.number_date_realise" class="truncate">
-                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Срок: </span>
+                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Срок:</span>
+                        <span class="sr-only"> - </span>
                         <span class="break-words" :style="{ color: '#ffffff' }">{{ project.number_date_realise }} мес.</span>
                     </p>
                     
                     <p v-if="project.total_investment" class="truncate">
-                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Инвестиции: </span>
+                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Инвестиции:</span>
+                        <span class="sr-only"> - </span>
                         <span class="break-words" :style="{ color: '#ffffff' }">{{ formatNumber(project.total_investment) }} ₽</span>
                     </p>
                     
                     <p v-if="project.type_build || project.ownership" class="truncate">
-                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Собственность: </span>
+                        <span class="font-semibold block sm:inline" :style="{ color: '#F8D794' }">Собственность:</span>
+                        <span class="sr-only"> - </span>
                         <span class="break-words" :style="{ color: '#ffffff' }">{{ project.type_build || project.ownership }}</span>
                     </p>
                 </div>

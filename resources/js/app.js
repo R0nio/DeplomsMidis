@@ -9,6 +9,7 @@ import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 
 const appName = import.meta.env.VITE_APP_NAME || 'InvestProject';
 
+
 createInertiaApp({
     title: (title) => `${title}`,
     resolve: (name) =>

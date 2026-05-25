@@ -208,10 +208,14 @@ const colors = reactive({
 });
 </script>
 
+
 <template>
     <AuthenticatedLayout>
+        <Head :title="project.title">
+            <meta name="description" :content="project.short_description">
+        </Head>
+        
         <div class="min-h-screen" :style="{ backgroundColor: colors.bgPage }">
-            <!-- секция со слайдером и информацией -->
             <div class="relative">
                 <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
                     <div class="flex flex-col lg:flex-row lg:gap-6">
@@ -233,24 +237,23 @@ const colors = reactive({
                                         {{ project.title }}
                                     </h1>
                                     
-                                    <!-- Кнопка избранного только для инвесторов -->
                                     <div v-if="userRole === 'Investor'">
                                         <button 
                                             @click="toggleFavorite" 
-                                            class="cursor-pointer hover:scale-110 transition-transform "
+                                            class="cursor-pointer hover:scale-110 transition-transform"
                                             :title="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                                            :aria-label="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                                            :aria-pressed="isFavorite"
                                         >
                                             <img 
                                                 :src="isFavorite ? FavoriteActiveIcon : FavoriteIcon" 
-                                                alt="Избранное" 
+                                                alt="" 
                                                 class="w-10 h-10"
+                                                aria-hidden="true"
                                             >
                                         </button>
                                     </div>
                                 </div>
-
-                                <!-- Для отладки - можно удалить после проверки -->
-                                <!-- <div class="text-xs text-white mb-2">В избранном: {{ isFavorite ? 'Да' : 'Нет' }}</div> -->
 
                                 <!-- Категории -->
                                 <div v-if="categories.length > 0" class="flex flex-wrap gap-2 mb-5">
@@ -326,7 +329,7 @@ const colors = reactive({
                 </div>
             </div>
 
-            <!-- Остальной контент (описание, детали, карта) -->
+            <!-- Остальной контент -->
             <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 <!-- Описание -->
                 <div class="mb-6" :style="{ border: `2px solid ${colors.border}`, borderRadius: '16px', padding: '20px', backgroundColor: colors.bgLight }">
@@ -418,7 +421,6 @@ const colors = reactive({
                                         } 
                                     }"
                                 >
-                                    <!-- Меняем backgroundColor с colors.bgDark на colors.cardBg -->
                                     <div
                                         class="w-64 sm:w-72 rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.02]"
                                         :style="{ backgroundColor: colors.cardBg, border: `2px solid ${colors.border}` }"
@@ -432,7 +434,7 @@ const colors = reactive({
                                                 class="w-full h-full object-cover"
                                             />
                                             <div v-else class="w-full h-full flex items-center justify-center" :style="{ backgroundColor: colors.border }">
-                                                <svg class="w-16 h-16" :style="{ color: colors.accent }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg class="w-16 h-16" :style="{ color: colors.accent }" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
@@ -461,11 +463,9 @@ const colors = reactive({
                                                 <button 
                                                     class="w-full font-semibold py-2 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 hover:opacity-90"
                                                     :style="{ backgroundColor: colors.buttonBg, color: colors.accent }"
+                                                    :aria-label="`Подробнее о проекте ${selectedProject.title}`"
                                                 >
                                                     <span>Подробнее</span>
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                                                    </svg>
                                                 </button>
                                             </div>
                                         </div>

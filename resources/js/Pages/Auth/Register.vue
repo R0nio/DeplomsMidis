@@ -18,7 +18,7 @@ const form = useForm({
     number: '',
     role: '',
     password: '',
-    organization_name: 'none',
+    organization_name: '',
     password_confirmation: '',
     acceptPersonalDate: false,
 });

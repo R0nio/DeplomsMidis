@@ -1,3 +1,45 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* Стили для доступности */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.skip-to-main {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #F8D794;
+    color: #284139;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 1001;
+}
+
+.skip-to-main:focus {
+    top: 0;
+}
+
+/* Фокус с клавиатуры */
+*:focus-visible {
+    outline: 3px solid #F8D794 !important;
+    outline-offset: 2px !important;
+    border-radius: 4px !important;
+}
+
+/* Шрифт для дислексиков */
+@font-face {
+    font-family: 'OpenDyslexic';
+    src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/otf/OpenDyslexic-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}

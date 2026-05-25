@@ -95,71 +95,100 @@ const changeStatus = async () => {
 </script>
 
 <template>
-    <div class="grid grid-cols-6 place-items-center w-full rounded-xl border-2 border-[#886830] bg-[#809076]">
+    <div 
+        class="grid grid-cols-6 place-items-center w-full rounded-xl border-2 border-[#886830] bg-[#809076]"
+        role="row"
+        :aria-label="`Проект: ${project.title}`"
+    >
         <!-- Название -->
-        <div class="w-[250px] p-4 flex-shrink-0">
+        <div class="w-[250px] p-4 flex-shrink-0" role="cell">
             <p class="font-semibold text-[#F8D794]">{{ project.title }}</p>
         </div>
         
         <!-- Инвестиции -->
-        <div class="w-[180px] p-4 flex-shrink-0">
-            <p class="text-sm text-white/70">Инвестиции</p>
+        <div class="w-[180px] p-4 flex-shrink-0" role="cell">
+            <p class="text-sm text-white/70" aria-hidden="true">Инвестиции</p>
             <p class="font-semibold text-white">{{ formatNumber(project.total_investment) }} ₽</p>
+            <span class="sr-only">Инвестиции: {{ formatNumber(project.total_investment) }} рублей</span>
         </div>
         
         <!-- Срок -->
-        <div class="w-[120px] p-4 flex-shrink-0">
-            <p class="text-sm text-white/70">Срок</p>
+        <div class="w-[120px] p-4 flex-shrink-0" role="cell">
+            <p class="text-sm text-white/70" aria-hidden="true">Срок</p>
             <p class="font-semibold text-white">{{ project.number_date_realise || '—' }} мес.</p>
+            <span class="sr-only">Срок: {{ project.number_date_realise || 'не указан' }} месяцев</span>
         </div>
         
         <!-- Собственность -->
-        <div class="w-[160px] p-4 flex-shrink-0">
-            <p class="text-sm text-white/70">Собственность</p>
+        <div class="w-[160px] p-4 flex-shrink-0" role="cell">
+            <p class="text-sm text-white/70" aria-hidden="true">Собственность</p>
             <p class="font-semibold text-white">{{ project.type_build || '—' }}</p>
+            <span class="sr-only">Собственность: {{ project.type_build || 'не указана' }}</span>
         </div>
         
         <!-- Деятельность -->
-        <div class="w-[160px] p-4 flex-shrink-0">
-            <p class="text-sm text-white/70">Деятельность</p>
+        <div class="w-[160px] p-4 flex-shrink-0" role="cell">
+            <p class="text-sm text-white/70" aria-hidden="true">Деятельность</p>
             <p class="font-semibold text-white">{{ project.activity || '—' }}</p>
+            <span class="sr-only">Деятельность: {{ project.activity || 'не указана' }}</span>
         </div>
 
         <!-- Кнопка подробнее -->
-        <div class="w-[160px] p-4 flex-shrink-0">
+        <div class="w-[160px] p-4 flex-shrink-0" role="cell">
             <button 
                 @click="goToProject"
+                @keydown.enter="goToProject"
+                @keydown.space.prevent="goToProject"
                 class="w-full px-4 py-2 rounded-xl font-medium text-center transition-opacity hover:opacity-80 bg-[#284139] text-[#F8D794] border-2 border-[#886830]"
+                :aria-label="`Подробнее о проекте ${project.title}`"
             >
                 Смотреть подробно
             </button>
         </div>
         
         <!-- Кнопка избранного для инвестора -->
-        <div v-if="userRole === 'Investor'" class="w-[80px] p-4 flex-shrink-0 flex justify-center">
+        <div v-if="userRole === 'Investor'" class="w-[80px] p-4 flex-shrink-0 flex justify-center" role="cell">
             <button 
-                @click="toggleFavorite" 
+                @click="toggleFavorite"
                 class="p-2 rounded-full transition-opacity hover:opacity-80 bg-[#284139] border-2 border-[#886830]"
                 :title="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                :aria-label="isFavorite ? `Удалить проект ${project.title} из избранного` : `Добавить проект ${project.title} в избранное`"
+                :aria-pressed="isFavorite"
             >
                 <img 
                     :src="isFavorite ? favoriteActiveIcon : favoriteIcon" 
-                    alt="Избранное" 
+                    alt="" 
                     class="w-6 h-6"
+                    aria-hidden="true"
                 >
             </button>
         </div>
         
         <!-- Админ панель -->
-        <div v-if="userRole === 'Admin'" class="flex items-center gap-2 p-4 flex-shrink-0">
+        <div v-if="userRole === 'Admin'" class="flex items-center gap-2 p-4 flex-shrink-0" role="cell">
             <!-- Статус модерации -->
-            <div v-if="project.is_moderated === true" class="w-[160px] px-3 py-2 rounded-xl text-sm text-center bg-green-600 text-white">
+            <div 
+                v-if="project.is_moderated === true" 
+                class="w-[160px] px-3 py-2 rounded-xl text-sm text-center bg-green-600 text-white"
+                role="status"
+                aria-label="Проект прошёл модерацию"
+            >
                 Прошла модерацию
             </div>
-            <div v-else-if="project.is_moderated === false" class="w-[160px] px-3 py-2 rounded-xl text-sm text-center bg-red-600 text-white">
+            <div 
+                v-else-if="project.is_moderated === false" 
+                class="w-[160px] px-3 py-2 rounded-xl text-sm text-center bg-red-600 text-white"
+                role="alert"
+                aria-label="Проект не прошёл модерацию"
+            >
                 Не прошла модерацию
             </div>
-            <div v-else class="w-[160px] px-3 py-2 rounded-xl text-sm text-center bg-[#284139] text-white/80 border-2 border-[#886830]">
+            <div 
+                v-else 
+                class="w-[160px] px-3 py-2 rounded-xl text-sm text-center bg-[#284139] text-white/80 border-2 border-[#886830]"
+                role="status"
+                aria-label="Проект ожидает модерации"
+            >
                 Ожидает модерации
             </div>
             
@@ -168,6 +197,7 @@ const changeStatus = async () => {
                 v-model="selectedStatus"
                 @change="changeStatus"
                 class="w-[160px] px-3 py-2 rounded-lg border-2 focus:outline-none cursor-pointer bg-[#284139] text-[#F8D794] border-[#886830]"
+                aria-label="Изменить статус проекта"
             >
                 <option disabled value="">Изменить статус</option>
                 <option 
@@ -179,6 +209,5 @@ const changeStatus = async () => {
                 </option>
             </select>
         </div>
-        
     </div>
 </template>

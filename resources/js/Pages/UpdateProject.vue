@@ -161,7 +161,9 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Редактирование проекта" />
+    <Head title="Редактирование проекта">
+        <meta name="description" content="Форма редактирования инвестиционного проекта">
+    </Head>
 
     <AuthenticatedLayout>
         <template #header>
@@ -172,12 +174,10 @@ const submit = () => {
         <div class="mx-auto py-6 px-4 sm:px-6 lg:px-8">
             <form @submit.prevent="submit" class="flex flex-col gap-6 rounded-xl p-6" :style="{ border: `2px solid ${colors.border}`, backgroundColor: colors.bgLight }">
                 
-                <!-- Описание проекта -->
                 <h1 class="text-2xl pb-2" :style="{ color: colors.accent, borderBottom: `2px solid ${colors.border}` }">
                     Описание проекта
                 </h1>
                 
-                <!-- Название и описания -->
                 <div class="flex flex-col lg:flex-row gap-4 mb-4">
                     <div class="flex flex-col gap-3 w-full lg:w-auto">
                         <div class="w-full lg:w-[450px]">
@@ -248,9 +248,10 @@ const submit = () => {
                                 @click="removeCategory(index)"
                                 class="text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 bg-red-500"
                                 :style="{ border: `2px solid ${colors.border}` }"
+                                :aria-label="`Удалить категорию ${category || index + 1}`"
                             >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12 " />
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                             
@@ -260,15 +261,16 @@ const submit = () => {
                                 @click="addCategory"
                                 class="text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 bg-green-500"
                                 :style="{ border: `2px solid ${colors.border}` }"
+                                aria-label="Добавить новую категорию"
                             >
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
                             </button>
                         </div>
                     </div>
                     
-                    <p v-if="categories.length >= 4" class="text-base mt-2" :style="{ color: colors.accent }">
+                    <p v-if="categories.length >= 4" class="text-base mt-2" :style="{ color: colors.accent }" role="status">
                         Достигнуто максимальное количество категорий (4)
                     </p>
                     <InputError class="mt-2" :message="form.errors.categories" />
@@ -293,6 +295,7 @@ const submit = () => {
                             accept="image/*"
                             multiple
                             class="hidden"
+                            aria-label="Выберите изображения для проекта"
                         />
                     </div>
                     
@@ -301,19 +304,21 @@ const submit = () => {
                     <!-- Существующие фотографии -->
                     <div v-if="existingPhotos.length > 0" class="mt-3">
                         <p class="text-sm mb-2" :style="{ color: colors.accent }">Текущие фотографии:</p>
-                        <div class="flex flex-wrap gap-3">
+                        <div class="flex flex-wrap gap-3" role="list" aria-label="Существующие фотографии проекта">
                             <div 
                                 v-for="(photo, index) in existingPhotos" 
                                 :key="photo.id"
                                 class="relative w-24 h-24 rounded-lg overflow-hidden"
                                 :style="{ border: `2px solid ${colors.border}` }"
+                                role="listitem"
                             >
-                                <img :src="photo.url" class="absolute w-full h-full object-cover" />
+                                <img :src="photo.url" class="absolute w-full h-full object-cover" :alt="`Фото проекта ${index + 1}`" />
                                 <button
                                     type="button"
                                     @click="removeExistingPhoto(index)"
-                                    class="absolute  z-20 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shadow-md"
+                                    class="absolute z-20 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shadow-md"
                                     style="top: -1px; right: -1px;"
+                                    :aria-label="`Удалить фото ${index + 1}`"
                                 >✕</button>
                             </div>
                         </div>
@@ -322,19 +327,21 @@ const submit = () => {
                     <!-- Новые фотографии -->
                     <div v-if="photoPreviews.length > 0" class="mt-3">
                         <p class="text-sm mb-2" :style="{ color: colors.accent }">Новые фотографии:</p>
-                        <div class="flex flex-wrap gap-3">
+                        <div class="flex flex-wrap gap-3" role="list" aria-label="Новые фотографии проекта">
                             <div 
                                 v-for="(preview, index) in photoPreviews" 
                                 :key="index"
                                 class="relative w-24 h-24 rounded-lg overflow-hidden"
                                 :style="{ border: `2px solid ${colors.border}` }"
+                                role="listitem"
                             >
-                                <img :src="preview.url" class="w-full h-full object-cover" />
+                                <img :src="preview.url" class="w-full h-full object-cover" :alt="`Новое фото ${index + 1}`" />
                                 <button
                                     type="button"
                                     @click="removePhoto(index)"
                                     class="absolute z-10 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 shadow-md"
                                     style="top: -1px; right: -1px;"
+                                    :aria-label="`Удалить новое фото ${index + 1}`"
                                 >✕</button>
                             </div>
                         </div>
@@ -566,10 +573,11 @@ const submit = () => {
                                     type="button"
                                     @click="removeExpense(index)"
                                     class="text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 bg-red-500"
-                                    :style="{  border: `2px solid ${colors.border}` }"
+                                    :style="{ border: `2px solid ${colors.border}` }"
+                                    :aria-label="`Удалить статью расходов ${index + 1}`"
                                     title="Удалить статью расходов"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
@@ -580,9 +588,10 @@ const submit = () => {
                                     @click="addExpense"
                                     class="text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 bg-green-500"
                                     :style="{ border: `2px solid ${colors.border}` }"
+                                    aria-label="Добавить новую статью расходов"
                                     title="Добавить новую статью расходов"
                                 >
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                     </svg>
                                 </button>
@@ -599,6 +608,7 @@ const submit = () => {
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                         :style="{ backgroundColor: colors.bgDark, color: colors.accent, border: `2px solid ${colors.border}` }"
+                        :aria-label="form.processing ? 'Сохранение проекта...' : 'Сохранить изменения'"
                     >
                         {{ form.processing ? 'Сохранение...' : 'Сохранить изменения' }}
                     </PrimaryButton>
