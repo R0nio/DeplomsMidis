@@ -3,6 +3,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head } from "@inertiajs/vue3";
 import GoogleMapExample from "@/Components/Main/GoogleMapExample.vue";
 import { computed } from 'vue';
+import TitlePage from "@/Layouts/TitlePage.vue";
 
 const props = defineProps({
     projects: {
@@ -11,7 +12,8 @@ const props = defineProps({
     }
 });
 
-const mainColor = "#8EB6FF";
+// ========== ЦВЕТОВАЯ СХЕМА ==========
+const mainColor = "#436343";
 
 // Центр карты (средняя точка всех проектов или дефолт)
 const mapCenter = computed(() => {
@@ -34,14 +36,10 @@ const projectsCount = computed(() => props.projects.length);
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex justify-between items-center flex-wrap gap-4">
-                <h2 class="text-2xl sm:text-3xl font-semibold text-gray-800">
-                    Карта проектов
-                </h2>
-            </div>
+            <TitlePage id="Main" value="Карта проектов"></TitlePage>
         </template>
 
-        <div :style="{backgroundColor: mainColor}" class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
+        <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16" :style="{ backgroundColor: mainColor }">
             <!-- Карта -->
             <GoogleMapExample 
                 :projects="projects"

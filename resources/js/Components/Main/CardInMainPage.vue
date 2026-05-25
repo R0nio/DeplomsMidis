@@ -11,9 +11,10 @@ defineProps({
     <div 
         v-for="(item, index) in infos" 
         :key="index"
-        class="px-6 py-16 flex flex-col border-2 border-[#2D1DC0] bg-[#5B83CD] gap-5 rounded-[20px] "
+        class="px-6 py-8 flex flex-col gap-3 rounded-xl text-center"
+        style="background-color: #284139; border: 2px solid #886830;"
     >
-        <p class="text-xl text-white font-semibold">{{ item.title }}</p>
-        <p class="text-4xl text-white font-bold">{{ item.info }}</p>
+        <p class="text-lg font-medium" style="color: #F8D794">{{ item.title }}</p>
+        <p class="text-3xl font-bold" style="color: white">{{ item.info }}</p>
     </div>
 </template>

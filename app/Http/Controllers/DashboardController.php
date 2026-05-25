@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -63,27 +64,19 @@ class DashboardController extends Controller
             ->values() 
             ->take(15);
 
-
-        $randomProjects = Project::with(['photos'])
+        $randomProjects = Project::with(['photos', 'user'])
+            ->where('status', '!=', 'На модерации')
+            ->where('status', '!=', 'Отклонен')
+            ->where('status', '!=', 'Заблокирован')
             ->where('is_moderated', true)
             ->inRandomOrder()
-            ->limit(6)
-            ->get()
-            ->map(function($project) {
-                return [
-                    'id' => $project->id,
-                    'title' => $project->title,
-                    'description' => $project->short_description,
-                    'image' => $project->photos && $project->photos->count() > 0 
-                        ? '/storage/' . $project->photos[0]->photo_path 
-                        : null,
-                ];
-            });
+            ->limit(3)
+            ->get();
 
         return Inertia::render('Dashboard', [
             'statistics' => $statistics,
             'categories' => $categories,
-            'randomProjects' => $randomProjects,
+            'randomProjects' => $randomProjects
         ]);
     }
 }

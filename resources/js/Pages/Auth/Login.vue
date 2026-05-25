@@ -39,51 +39,51 @@ const submit = () => {
         </div>
         
         <form @submit.prevent="submit" class="flex flex-col gap-5">
-            <h1 class="mx-auto text-black text-2xl">Авторизация</h1>
+            <h1 class="mx-auto text-2xl font-semibold" style="color: #F8D794">Авторизация</h1>
+            
             <div>
-                <InputLabel for="login" value="Логин" />
-
+                <InputLabel for="login" value="Логин" style="color: #F8D794" />
                 <TextInput
                     id="login"
                     type="text"
-                    class="block w-full"
+                    class="block w-full mt-1"
                     v-model="form.login"
                     required
                     autofocus
                     autocomplete="login"
+                    style="background-color: #284139; border: 2px solid #886830; color: white; border-radius: 12px;"
                 />
-
                 <InputError class="mt-2" :message="form.errors.login" />
             </div>
 
-            <div class="">
-                <InputLabel for="password" value="Пароль" />
-
+            <div>
+                <InputLabel for="password" value="Пароль" style="color: #F8D794" />
                 <TextInput
                     id="password"
                     type="password"
-                    class="block w-full"
+                    class="block w-full mt-1"
                     v-model="form.password"
                     required
                     autocomplete="current-password"
+                    style="background-color: #284139; border: 2px solid #886830; color: white; border-radius: 12px;"
                 />
-
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="mt-2 w-full flex flex-col items-center justify-center ">
+            <div class="mt-2 w-full flex flex-col items-center justify-center">
                 <Link
-                    v-if="canResetPassword"
                     :href="route('register')"
-                    class="mb-2 rounded-xl w-full text-sm text-gray-800 underline hover:text-gray-300 focus:outline-none focus:text-blue-200"
+                    class="mb-2 rounded-xl w-full text-base text-end hover:opacity-80 transition-colors"
+                    style="color: #F8D794"
                 >
                     Регистрация
                 </Link>
 
                 <PrimaryButton
-                    class=""
-                    :class="{ 'opacity-25': form.processing }"
+                    class="w-full flex justify-center mt-2"
+                    :class="{ 'opacity-50': form.processing }"
                     :disabled="form.processing"
+                    style="background-color: #809076; border: 2px solid #886830; color: white; border-radius: 12px; padding: 10px;"
                 >
                     Войти
                 </PrimaryButton>

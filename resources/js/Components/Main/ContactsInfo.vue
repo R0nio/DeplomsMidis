@@ -1,55 +1,52 @@
 <script setup>
 defineProps({
-    phonesdata:{
-        type:Array
+    phonesdata: {
+        type: Array,
+        default: () => []
     },
-    emails:{
-        type:Array
+    emails: {
+        type: Array,
+        default: () => []
     },
-    socials:{
-        type:Array
+    socials: {
+        type: Array,
+        default: () => []
     },
 })
 </script>
+
 <template>
-    <div class="mt-6 w-max ml-2">
+    <div class="mt-6 w-full">
         <!-- Phone -->
-        <div class="flex flex-col mb-8 w-auto" >
-            <div class="border-b-[1px] border-white text-white">
-                <h3 class="text-3xl pl-3 pb-4">Телефон</h3>
+        <div class="flex flex-col mb-8 w-full">
+            <div class="border-b-2 border-[#886830] mb-4">
+                <h3 class="text-2xl sm:text-3xl pb-3 pl-2 font-semibold" style="color: #F8D794">Телефон</h3>
             </div>
-            <div class="flex flex-col ml-3" v-for="phone in phonesdata">
-                <div class="flex justify-start items-center gap-4 mt-6 bg-[#EEEEEE] w-max px-5 py-1 rounded-3xl">
-                    <img class="object-cover h-14" src="../../../images/Phone.png" alt="">
-                    <p class="text-2xl max-sm:text-xl">{{ phone.number }}</p>
+            <div class="flex flex-col gap-4" v-for="phone in phonesdata" :key="phone.number">
+                <div class="flex items-center gap-4 p-3 rounded-xl w-full sm:w-auto" style="background-color: #284139; border: 2px solid #886830">
+                    <img class="w-10 h-10 sm:w-12 sm:h-12 object-contain" src="../../../images/Phone.png" alt="Phone">
+                    <p class="text-base sm:text-xl font-medium" style="color: #F8D794">{{ phone.number }}</p>
                 </div>
             </div>
         </div>
 
         <!-- Email -->
-        <div class="flex flex-col mb-8 w-max" >
-            <div class="border-b-[1px] border-white text-white">
-                <h3 class="text-3xl pl-3 pb-4">Почта</h3>
+        <div class="flex flex-col mb-8 w-full">
+            <div class="border-b-2 border-[#886830] mb-4">
+                <h3 class="text-2xl sm:text-3xl pb-3 pl-2 font-semibold" style="color: #F8D794">Почта</h3>
             </div>
-            <div class="flex flex-col ml-3" v-for="email in emails">
-                <div class="flex justify-start items-center gap-4 mt-6 bg-[#EEEEEE] w-max px-5 py-1 rounded-3xl">
-                    <img class="object-cover h-14" src="../../../images/Email.png" alt="">
-                    <p class="text-2xl max-sm:text-xl">{{ email.pochta }}</p>
+            <div class="flex flex-col gap-4" v-for="email in emails" :key="email.pochta">
+                <div class="flex items-center gap-4 p-3 rounded-xl w-full sm:w-auto" style="background-color: #284139; border: 2px solid #886830">
+                    <img class="w-10 h-10 sm:w-12 sm:h-12 object-contain" src="../../../images/Email.png" alt="Email">
+                    <p class="text-base sm:text-xl font-medium" style="color: #F8D794">{{ email.pochta }}</p>
                 </div>
             </div>
         </div>
-
-        <!-- Social 
-        <div class="flex flex-col mb-8 w-max" >
-            <div class="border-b-[1px] border-white text-white">
-                <h3 class="text-3xl pl-3 pb-4">Социальные сети</h3>
-            </div>
-            <div class="flex flex-col ml-3" v-for="social in socials">
-                <div class="flex justify-start items-center gap-4 mt-6 bg-[#EEEEEE] w-max px-5 py-1 rounded-3xl">
-                    <img class="object-cover h-14" :src="social.img" alt="">
-                    <p class="text-3xl">{{ social.name }}</p>
-                </div>
-            </div>
-        </div>-->
     </div>
 </template>
+
+<style scoped>
+* {
+    box-shadow: none !important;
+}
+</style>

@@ -20,8 +20,8 @@ class StoreProjectRequest extends FormRequest
             'categories' => 'nullable|array|max:4',
             'categories.*' => 'string|max:255',
             
-            'fotos' => 'nullable|array|max:10',
-            'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
+            // 'fotos' => 'nullable|array|max:10',
+            // 'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
             
             'ownShip' => 'nullable|string|max:255',
             'activity' => 'nullable|string|max:255',

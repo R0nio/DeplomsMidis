@@ -1,6 +1,5 @@
 <script setup>
 import { router } from '@inertiajs/vue3';
-import { ref } from 'vue';
 
 const props = defineProps({
     photos: {
@@ -16,36 +15,40 @@ const goToProject = (photoId) => {
     }
 };
 
-// Обработка ошибки загрузки изображения
-const imageError = (event) => {
-    event.target.src = '/images/free-icon-image-gallery-3342137.png';
-};
-
 // Проверка URL изображения
-const getImageSrc = (src) => {
-    if (!src || src === 'null' || src === 'undefined') {
-        return '/images/free-icon-image-gallery-3342137.png';
+const getImageSrc = (photo, index) => {
+    if (imageErrors.value[index]) {
+        return defaultImage;
     }
-    return src;
+    
+    if (!photo || !photo.src || photo.src === 'null' || photo.src === 'undefined') {
+        return defaultImage;
+    }
+    return photo.src;
 };
 </script>
 
 <template>
     <div id="indicators-carousel" class="relative w-full " data-carousel="static">
-<!-- Carousel wrapper -->
-        <div class="relative max-sm:h-[400px] sm:h-[500px] md:h-[600px] lg:h-[800px] xl:h-[1000px] overflow-hidden rounded-xl">
-        
+    <!-- Carousel wrapper -->
+        <div class="relative max-sm:h-[400px] sm:h-[500px] md:h-[600px] lg:h-[800px] xl:h-[1000px] overflow-hidden rounded-xl bg-gray-100">
             <div 
                 v-for="(photo, index) in photos" 
                 :key="index"
-                class="hidden duration-700 ease-in-out"
+                class="hidden duration-700 ease-in-out w-full h-full"
                 :data-carousel-item="index === 0 ? 'active' : ''"
                 @click="goToProject(photo.id)"
             >
-                <div 
-                    class="absolute inset-0 bg-cover bg-center"
-                    :style="{ backgroundImage: `url(${getImageSrc(photo.src)})` }"
-                ></div>
+                <div class="w-full h-full flex items-center justify-center">
+                    <img 
+                        :src="getImageSrc(photo, index)"
+                        @error="() => handleImageError(index)"
+                        class="w-full h-full rounded-xl transition-transform duration-300 hover:scale-105"
+                        :class="imageErrors[index] || !photo.src || photo.src === 'null' || photo.src === 'undefined' ? 'object-contain' : 'object-cover'"
+                        :style="imageErrors[index] || !photo.src || photo.src === 'null' || photo.src === 'undefined' ? 'width: auto; height: auto; max-width: 100%; max-height: 100%;' : ''"
+                        :alt="`Фото проекта ${index + 1}`"
+                    >
+                </div>
             </div>
         </div>
         <!-- Slider indicators -->

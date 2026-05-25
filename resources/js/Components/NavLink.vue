@@ -12,13 +12,12 @@ const props = defineProps({
     },
 });
 
-const mainColor = "#A9BCDB";
-
-const classes = computed(() =>
-    props.active
-        ? 'inline-flex items-center text-center justify-center px-4 py-3 rounded-2xl max-sm:p-2 max-sm:w-full h-14 w-max border-2 bg-[#88B2FF] border-[#FFFFFF] text-lg font-medium leading-5 text-black focus:outline-none focus:border-indigo-700 transition duration-700 ease-in-out'
-        : 'inline-flex items-center text-center justify-center px-4 py-3 rounded-3xl max-sm:p-2 max-sm:w-full w-max h-max bg-[#EEEEEE] border-transparent text-base font-normal leading-5 text-black hover:text-[#267FBE] hover:border-2 hover:border-[#2D1DC0] focus:outline-none focus:text-gray-800 focus:text-medium focus:bg-[#88B2FF] focus:border-white transition duration-700 ease-in-out',
-);
+const classes = computed(() => {
+    if (props.active) {
+        return 'inline-flex items-center text-center justify-center px-5 py-3 rounded-xl max-sm:p-2 max-sm:w-full h-12 w-max border-2 border-[#886830] bg-white/30 text-white text-base font-medium leading-5 transition-all duration-300 ease-in-out';
+    }
+    return 'inline-flex items-center text-center justify-center px-5 py-3 rounded-xl max-sm:p-2 max-sm:w-full w-max h-12 border-2 border-[#886830] bg-transparent text-white/80 text-base font-normal leading-5 transition-all duration-300 ease-in-out hover:bg-white/10 hover:text-white';
+});
 </script>
 
 <template>

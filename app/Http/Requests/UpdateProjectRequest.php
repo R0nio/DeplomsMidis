@@ -23,7 +23,7 @@ public function rules(): array
         'categories' => 'nullable|array|max:4',
         'categories.*' => 'string|max:255',
         
-        // ВРЕМЕННО УБИРАЕМ ВСЕ ПРАВИЛА ДЛЯ ФАЙЛОВ
+        
         // 'fotos' => 'nullable|array|max:10',
         // 'fotos.*' => 'image|mimes:jpeg,png,jpg,gif|max:5120',
         

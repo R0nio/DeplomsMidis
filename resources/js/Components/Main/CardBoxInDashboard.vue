@@ -3,8 +3,6 @@ import { ref, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import slider3 from "../../../images/LogoInvestProject.png";
-import favoriteIcon from "../../../images/Favorite.png";
-import favoriteActiveIcon from "../../../images/FavoriteActivity.png";
 
 const colors = {
     bgPage: '#436343',
@@ -162,23 +160,6 @@ const changeStatus = async () => {
                 alt="Проект"
                 loading="lazy"
             >
-        </div>
-        
-        <!-- избранное -->
-        <div class="absolute top-3 right-3 z-10">
-            <div v-if="user && userRole === 'Investor'">    
-                <button 
-                    @click="toggleFavorite" 
-                    class="cursor-pointer bg-white/40 p-2 rounded-xl"
-                    :title="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
-                >
-                    <img 
-                        :src="isFavorite ? favoriteActiveIcon : favoriteIcon" 
-                        alt="Избранное" 
-                        class="w-10 h-10"
-                    >
-                </button>
-            </div>
         </div>
         
         <!-- Нижняя панель с информацией -->

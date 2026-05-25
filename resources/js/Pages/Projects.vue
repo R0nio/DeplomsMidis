@@ -10,6 +10,7 @@ import { usePage } from '@inertiajs/vue3';
 // image import
 import list from "../../images/list.png";
 import cards from "../../images/Cards.png";
+import TitlePage from "@/Layouts/TitlePage.vue";
 
 const props = defineProps({
     projects: {
@@ -45,7 +46,7 @@ const isProjectFavorited = (projectId) => {
     return favoriteIds.value.has(projectId);
 };
 
-const mainColor = "#8EB6FF";
+const mainColor = "#436343";
 const switcherViewCard = ref(false); // false = карточки, true = список
 
 // Фильтры
@@ -174,6 +175,15 @@ const hasActiveFilters = computed(() => {
            selectedOwnership.value || 
            selectedTypeBuild.value;
 });
+const colors = {
+    bgPage: '#e8f0ee',      // Светлый фон страницы
+    bgLight: '#809076',     // Фон блоков фильтров
+    bgDark: '#284139',      // Фон карточек
+    accent: '#F8D794',      // Акцентный цвет
+    border: '#886830',      // Цвет обводки
+    white: '#ffffff',
+    white80: 'rgba(255, 255, 255, 0.8)',
+};
 </script>
 
 <template>
@@ -181,25 +191,22 @@ const hasActiveFilters = computed(() => {
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-2xl sm:text-3xl font-semibold leading-tight text-gray-800">
-                Все проекты
-            </h2>
+            <TitlePage id="Main" value="Все проекты"></TitlePage>
         </template>
 
         <div class="px-4 sm:px-10 lg:px-20 py-6">
             <!-- Фильтрация -->
-            <div class="w-full border-2 rounded-xl border-white h-full p-4 sm:p-6 shadow-lg" :style="{ backgroundColor: mainColor }">
+            <div class="w-full rounded-xl p-4 sm:p-6 mb-6" :style="{ backgroundColor: colors.bgLight, border: `2px solid ${colors.border}` }">
                 <!-- Поиск -->
                 <div class="flex items-center mb-4 flex-wrap gap-3">
-                    <p class="text-white text-lg sm:text-xl font-semibold min-w-[250px]">
+                    <p class="text-white text-lg sm:text-xl font-semibold min-w-[250px]" :style="{ color: colors.accent }">
                         Поиск по названию проекта
                     </p>
                     <SearchInput @search="handleSearch" class="flex-1 min-w-[200px]"></SearchInput>
                 </div>
                 
                 <!-- Остальные фильтры -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6  gap-3">
-                    <!-- Отрасль -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                     <fwb-select
                         v-model="selectedIndustry"
                         :options="industries"
@@ -207,7 +214,6 @@ const hasActiveFilters = computed(() => {
                         class="w-full"
                     />
                     
-                    <!-- Сумма от -->
                     <fwb-input
                         v-model="sumFrom"
                         placeholder="Сумма от (₽)"
@@ -215,7 +221,6 @@ const hasActiveFilters = computed(() => {
                         class="w-full"
                     />
                     
-                    <!-- Сумма до -->
                     <fwb-input
                         v-model="sumBefore"
                         placeholder="Сумма до (₽)"
@@ -223,15 +228,13 @@ const hasActiveFilters = computed(() => {
                         class="w-full"
                     />
 
-                    <!-- Статус -->
-                    <fwb-select
+                    <!-- <fwb-select
                         v-model="selectedStatus"
                         :options="statuses"
                         placeholder="Выберите статус"
                         class="w-full"
-                    />
+                    /> -->
                     
-                    <!-- Собственность -->
                     <fwb-select
                         v-model="selectedOwnership"
                         :options="ownerships"
@@ -239,7 +242,6 @@ const hasActiveFilters = computed(() => {
                         class="w-full"
                     />
                     
-                    <!-- Вид строительства -->
                     <fwb-select
                         v-model="selectedTypeBuild"
                         :options="typeBuilds"
@@ -247,11 +249,10 @@ const hasActiveFilters = computed(() => {
                         class="w-full"
                     />
                     
-                    <!-- Кнопка очистки -->
                     <fwb-button 
                         @click="clearFilters"
                         color="light"
-                        class="w-full sm:col-span-2 lg:col-span-1 lg:-col-start-1"
+                        class="w-full sm:col-span-2 lg:col-span-1"
                         :class="{ 'opacity-50': !hasActiveFilters }"
                         :disabled="!hasActiveFilters"
                     >
@@ -261,41 +262,41 @@ const hasActiveFilters = computed(() => {
 
                 <!-- Активные фильтры (теги) -->
                 <div v-if="hasActiveFilters" class="mt-4 flex flex-wrap gap-2">
-                    <span class="text-white text-sm font-semibold mr-2">Активные фильтры:</span>
+                    <span class="text-white text-sm font-semibold mr-2" :style="{ color: colors.accent }">Активные фильтры:</span>
                     
-                    <span v-if="searchQuery" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="searchQuery" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         Поиск: "{{ searchQuery }}"
-                        <button @click="searchQuery = ''" class="hover:text-red-600">×</button>
+                        <button @click="searchQuery = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                     
-                    <span v-if="sumFrom" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="sumFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         От: {{ Number(sumFrom).toLocaleString('ru-RU') }} ₽
-                        <button @click="sumFrom = ''" class="hover:text-red-600">×</button>
+                        <button @click="sumFrom = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                     
-                    <span v-if="sumBefore" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="sumBefore" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         До: {{ Number(sumBefore).toLocaleString('ru-RU') }} ₽
-                        <button @click="sumBefore = ''" class="hover:text-red-600">×</button>
+                        <button @click="sumBefore = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                     
-                    <span v-if="selectedIndustry" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="selectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         Отрасль: {{ selectedIndustry }}
-                        <button @click="selectedIndustry = ''" class="hover:text-red-600">×</button>
+                        <button @click="selectedIndustry = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                     
-                    <span v-if="selectedStatus" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="selectedStatus" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         Статус: {{ selectedStatus }}
-                        <button @click="selectedStatus = ''" class="hover:text-red-600">×</button>
+                        <button @click="selectedStatus = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                     
-                    <span v-if="selectedOwnership" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="selectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         Собственность: {{ selectedOwnership }}
-                        <button @click="selectedOwnership = ''" class="hover:text-red-600">×</button>
+                        <button @click="selectedOwnership = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                     
-                    <span v-if="selectedTypeBuild" class="bg-white text-gray-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                    <span v-if="selectedTypeBuild" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
                         Вид: {{ selectedTypeBuild }}
-                        <button @click="selectedTypeBuild = ''" class="hover:text-red-600">×</button>
+                        <button @click="selectedTypeBuild = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
                     </span>
                 </div>
             </div>

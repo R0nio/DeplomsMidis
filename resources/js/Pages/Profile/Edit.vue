@@ -26,20 +26,21 @@ const props = defineProps({
     },
 });
 
-const mainColor = "#8EB6FF";
+// Изменен цвет фона
+const mainColor = "#436343";
 </script>
 
 <template>
     <Head title="Профиль" />
 
     <AuthenticatedLayout>
-        <template #header :style="{backgroundColor: mainColor}">
-            <h2 :style="{backgroundColor: mainColor}" class="text-3xl font-semibold leading-tight text-gray-800">
+        <template #header>
+            <h2 class="text-3xl font-semibold leading-tight" :style="{ color: '#F8D794' }">
                 Личный кабинет
             </h2>
         </template>
 
-        <div :style="{backgroundColor: mainColor}" class="relative h-max z-0 mx-auto py-6 px-4 sm:px-10 lg:px-16">
+        <div :style="{ backgroundColor: mainColor }" class="relative h-max z-0 mx-auto py-6 px-4 sm:px-10 lg:px-16">
             <InfoProfile 
                 :user="user"
                 :favoriteProjects="favoriteProjects"

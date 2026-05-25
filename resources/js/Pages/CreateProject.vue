@@ -7,6 +7,7 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { ref } from 'vue';
+import TitlePage from '@/Layouts/TitlePage.vue';
 
 // Массивы для категорий и трат
 const categories = ref(['']);
@@ -19,8 +20,8 @@ const form = useForm({
     name: '',
     shotr_descr: '',
     full_descr: '',
-    categories: [], // Массив категорий
-    fotos: [], // Массив файлов
+    categories: [],
+    fotos: [],
     ownShip: '',
     activity: '',
     type_building: '',
@@ -33,7 +34,7 @@ const form = useForm({
     collected_total_investment: '',
     expected_revenue: '',
     expected_expenses: '',
-    expenses: [], // Массив трат
+    expenses: [],
 });
 
 // Добавить категорию
@@ -66,23 +67,20 @@ const removeExpense = (index) => {
 const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     
-    // Добавляем новые файлы к существующим
     form.fotos = [...form.fotos, ...files];
     
-    // Создаем превью для новых фотографий
     files.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
             photoPreviews.value.push({
                 url: e.target.result,
                 name: file.name,
-                size: (file.size / 1024).toFixed(2) // размер в KB
+                size: (file.size / 1024).toFixed(2)
             });
         };
         reader.readAsDataURL(file);
     });
     
-    // Очищаем input для возможности повторного выбора
     event.target.value = '';
 };
 
@@ -93,10 +91,8 @@ const removePhoto = (index) => {
 };
 
 const submit = () => {
-    // Подготовка данных перед отправкой
     form.categories = categories.value.filter(cat => cat && cat.trim() !== '');
     
-    // Фильтруем расходы - проверяем item_name как строку, amount как число
     form.expenses = expenses.value.filter(exp => {
         const hasItemName = exp.item_name && String(exp.item_name).trim() !== '';
         const hasAmount = exp.amount !== '' && exp.amount !== null && exp.amount !== undefined;
@@ -115,11 +111,16 @@ const submit = () => {
             console.log('Ошибки валидации:', errors);
         }
     });
-        console.log('Отправляемые файлы:', form.fotos);
-    console.log('Количество файлов:', form.fotos.length);
 };
 
-const mainColor = "#8EB6FF";
+// Цветовая схема
+const colors = {
+    bgDark: '#284139',
+    bgLight: '#809076',
+    accent: '#F8D794',
+    border: '#886830',
+    white: '#ffffff',
+};
 </script>
 
 <template>
@@ -127,16 +128,15 @@ const mainColor = "#8EB6FF";
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold text-gray-800">
-                Создание проекта
-            </h2>
+            <TitlePage id="createProject" value="Создание проекта">
+            </TitlePage>    
         </template>
         
         <div class="mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <form @submit.prevent="submit" class="flex flex-col gap-6 border-2 border-white px-4 sm:px-8 py-6 rounded-xl shadow-lg mx-8">
+            <form @submit.prevent="submit" class="flex flex-col gap-6 rounded-xl p-6"  :style="{ border: `2px solid ${colors.border}`, backgroundColor: colors.bgLight }">
                 
                 <!-- Описание проекта -->
-                <h1 class="text-white text-2xl border-b-2 border-white">
+                <h1 class="text-2xl pb-2" :style="{ color: colors.accent, borderBottom: `2px solid ${colors.border}` }">
                     Описание проекта
                 </h1>
                 
@@ -145,7 +145,7 @@ const mainColor = "#8EB6FF";
                     <div class="flex flex-col gap-3 w-full lg:w-auto">
                         <!-- Название проекта -->
                         <div class="w-full lg:w-[450px]">
-                            <InputLabel for="name" value="Название проекта" />
+                            <InputLabel for="name" value="Название проекта" :style="{ color: colors.accent }" />
                             <TextInput
                                 id="name"
                                 type="text"
@@ -153,13 +153,14 @@ const mainColor = "#8EB6FF";
                                 v-model="form.name"
                                 required
                                 placeholder="Введите название проекта"
+                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                             />
                             <InputError class="mt-2" :message="form.errors.name" />
                         </div>
                         
                         <!-- Короткое описание -->
                         <div class="w-full lg:w-[450px]">
-                            <InputLabel for="shotr_descr" value="Короткое описание" />
+                            <InputLabel for="shotr_descr" value="Короткое описание" :style="{ color: colors.accent }" />
                             <TextInput
                                 id="shotr_descr"
                                 type="text"
@@ -167,6 +168,7 @@ const mainColor = "#8EB6FF";
                                 v-model="form.shotr_descr"
                                 required
                                 placeholder="Краткое описание проекта"
+                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                             />
                             <InputError class="mt-2" :message="form.errors.shotr_descr" />
                         </div>
@@ -174,13 +176,14 @@ const mainColor = "#8EB6FF";
 
                     <!-- Подробное описание -->
                     <div class="flex-1 min-w-[300px]">
-                        <InputLabel for="full_descr" value="Подробное описание" />
+                        <InputLabel for="full_descr" value="Подробное описание" :style="{ color: colors.accent }" />
                         <textarea
                             id="full_descr"
-                            class="mt-1 block w-full h-[150px] bg-[#eeeeee] border-gray-300 focus:border-gray-200 rounded-2xl shadow-sm"
+                            class="mt-1 block w-full h-[150px] rounded-xl focus:outline-none p-2"
                             v-model="form.full_descr"
                             required
                             placeholder="Подробное описание проекта"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         ></textarea>
                         <InputError class="mt-2" :message="form.errors.full_descr" />
                     </div>
@@ -188,7 +191,7 @@ const mainColor = "#8EB6FF";
 
                 <!-- Категории (до 4 штук) -->
                 <div>
-                    <InputLabel value="Категории проекта (до 4 категорий)" />
+                    <InputLabel value="Категории проекта (до 4 категорий)" :style="{ color: colors.accent }" />
                     
                     <div class="space-y-3 mt-2 grid 2xl:grid-cols-4 xl:grid-cols-3 lg:grid-cols-2 grid-cols-1 gap-3">
                         <div 
@@ -202,26 +205,27 @@ const mainColor = "#8EB6FF";
                                 class="block w-full sm:w-[450px]"
                                 v-model="categories[index]"
                                 :placeholder="`Категория ${index + 1}`"
+                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                             />
                             
-                            <!-- Кнопка удаления -->
                             <button 
                                 v-if="categories.length > 1"
                                 type="button"
                                 @click="removeCategory(index)"
-                                class="bg-red-500 hover:bg-red-600 text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12"
+                                class="text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 bg-red-500"
+                                :style="{ border: `2px solid ${colors.border}` }"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                             </button>
                             
-                            <!-- Кнопка добавления (только для последнего элемента) -->
                             <button 
                                 v-if="index === categories.length - 1 && categories.length < 4"
                                 type="button"
                                 @click="addCategory"
-                                class="bg-green-500 hover:bg-green-600 text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12"
+                                class="text-white p-3 rounded-xl transition duration-200 flex items-center justify-center w-12 h-12 bg-green-500"
+                                :style="{ border: `2px solid ${colors.border}` }"
                             >
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -230,21 +234,21 @@ const mainColor = "#8EB6FF";
                         </div>
                     </div>
                     
-                    <p v-if="categories.length >= 4" class="text-base text-gray-800 border-b-2 w-max px-2 mt-2">
+                    <p v-if="categories.length >= 4" class="text-base mt-2" :style="{ color: colors.accent }">
                         Достигнуто максимальное количество категорий (4)
                     </p>
                     <InputError class="mt-2" :message="form.errors.categories" />
                 </div>
 
                 <!-- Загрузка фотографий -->
-                <div class="border-t-2 border-white pt-6">
-                    <InputLabel for="fotos" value="Изображения проекта" class="mb-3" />
+                <div class="pt-6" :style="{ borderTop: `2px solid ${colors.border}` }">
+                    <InputLabel for="fotos" value="Изображения проекта" class="mb-3" :style="{ color: colors.accent }" />
                     
-                    <!-- Кнопка загрузки -->
                     <div class="mb-4">
                         <label 
                             for="fotos" 
-                            class="cursor-pointer inline-flex items-center px-6 py-3 bg-[#267FBE] hover:opacity-60 text-white font-semibold rounded-xl transition duration-200 shadow-md"
+                            class="cursor-pointer inline-flex items-center px-6 py-3 font-semibold rounded-xl transition duration-200"
+                            :style="{ backgroundColor: colors.bgDark, color: colors.accent, border: `2px solid ${colors.border}` }"
                         >
                             Добавить изображения
                         </label>
@@ -257,6 +261,8 @@ const mainColor = "#8EB6FF";
                             class="hidden"
                         />
                     </div>
+                    
+                    <InputError class="mt-2" :message="form.errors.fotos" />
 
                     <!-- Превью загруженных фотографий -->
                     <div v-if="photoPreviews.length > 0" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -264,24 +270,23 @@ const mainColor = "#8EB6FF";
                             v-for="(preview, index) in photoPreviews" 
                             :key="index"
                             class="relative group rounded-xl overflow-hidden"
+                            :style="{ border: `2px solid ${colors.border}` }"
                         >
-                            <!-- Изображение -->
                             <img 
                                 :src="preview.url" 
                                 :alt="preview.name"
                                 class="w-full h-48 object-cover"
                             >
                             
-                            <!-- Информация о файле -->
                             <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-70 text-white p-2 text-xs">
                                 <p class="truncate" :title="preview.name">{{ preview.name }}</p>
                             </div>
                             
-                            <!-- Кнопка удаления -->
                             <button
                                 type="button"
                                 @click="removePhoto(index)"
-                                class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                class="absolute top-2 right-2 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                :style="{ backgroundColor: '#f44336' }"
                                 title="Удалить фото"
                             >
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,153 +301,152 @@ const mainColor = "#8EB6FF";
 
                 <!-- Дополнительная информация -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Собственность -->
                     <div>
-                        <InputLabel for="ownShip" value="Собственность" />
+                        <InputLabel for="ownShip" value="Собственность" :style="{ color: colors.accent }" />
                         <TextInput
                             id="ownShip"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.ownShip"
                             placeholder="Тип собственности"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.ownShip" />
                     </div>
 
-                    <!-- Деятельность -->
                     <div>
-                        <InputLabel for="activity" value="Деятельность" />
+                        <InputLabel for="activity" value="Деятельность" :style="{ color: colors.accent }" />
                         <TextInput
                             id="activity"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.activity"
                             placeholder="Вид деятельности"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.activity" />
                     </div>
 
-                    <!-- Вид строительства -->
                     <div>
-                        <InputLabel for="type_building" value="Вид строительства" />
+                        <InputLabel for="type_building" value="Вид строительства" :style="{ color: colors.accent }" />
                         <TextInput
                             id="type_building"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.type_building"
                             placeholder="Тип строительства"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.type_building" />
                     </div>
                 </div>
 
                 <!-- Геоданные -->
-                <h1 class="text-white text-2xl border-b-2 border-white">
+                <h1 class="text-2xl pb-2" :style="{ color: colors.accent, borderBottom: `2px solid ${colors.border}` }">
                     Геоданные
                 </h1>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Адрес -->
                     <div class="lg:col-span-3">
-                        <InputLabel for="addres" value="Адрес" />
+                        <InputLabel for="addres" value="Адрес" :style="{ color: colors.accent }" />
                         <TextInput
                             id="addres"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.addres"
                             placeholder="Адрес проекта"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.addres" />
                     </div>
 
-                    <!-- Широта -->
                     <div>
-                        <InputLabel for="latitude" value="Широта" />
+                        <InputLabel for="latitude" value="Широта" :style="{ color: colors.accent }" />
                         <TextInput
                             id="latitude"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.latitude"
                             placeholder="55.7558"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.latitude" />
                     </div>
 
-                    <!-- Долгота -->
                     <div>
-                        <InputLabel for="longitude" value="Долгота" />
+                        <InputLabel for="longitude" value="Долгота" :style="{ color: colors.accent }" />
                         <TextInput
                             id="longitude"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.longitude"
                             placeholder="37.6173"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.longitude" />
                     </div>
                 </div>
 
                 <!-- Финансовые показатели -->
-                <h1 class="text-white text-2xl border-b-2 border-white">
+                <h1 class="text-2xl pb-2" :style="{ color: colors.accent, borderBottom: `2px solid ${colors.border}` }">
                     Финансовые показатели
                 </h1>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Требуемая сумма -->
                     <div>
-                        <InputLabel for="total_investment" value="Требуемая сумма инвестиций (₽)" />
+                        <InputLabel for="total_investment" value="Требуемая сумма инвестиций (₽)" :style="{ color: colors.accent }" />
                         <TextInput
                             id="total_investment"
                             type="number"
                             class="mt-1 block w-full"
                             v-model="form.total_investment"
                             placeholder="1000000"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.total_investment" />
                     </div>
 
-                    <!-- Срок окупаемости -->
                     <div>
-                        <InputLabel for="number_date_realise" value="Срок окупаемости (месяцев)" />
+                        <InputLabel for="number_date_realise" value="Срок окупаемости (месяцев)" :style="{ color: colors.accent }" />
                         <TextInput
                             id="number_date_realise"
                             type="number"
                             class="mt-1 block w-full"
                             v-model="form.number_date_realise"
                             placeholder="24"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.number_date_realise" />
                     </div>
 
-                    <!-- Создаваемые места -->
                     <div>
-                        <InputLabel for="count_new_job" value="Количество рабочих мест" />
+                        <InputLabel for="count_new_job" value="Количество рабочих мест" :style="{ color: colors.accent }" />
                         <TextInput
                             id="count_new_job"
                             type="number"
                             class="mt-1 block w-full"
                             v-model="form.count_new_job"
                             placeholder="10"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.count_new_job" />
                     </div>
 
-                    <!-- Собрано средств -->
                     <div>
-                        <InputLabel for="collected_total_investment" value="Уже собрано средств (₽)" />
+                        <InputLabel for="collected_total_investment" value="Уже собрано средств (₽)" :style="{ color: colors.accent }" />
                         <TextInput
                             id="collected_total_investment"
                             type="number"
                             class="mt-1 block w-full"
                             v-model="form.collected_total_investment"
                             placeholder="500000"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.collected_total_investment" />
                     </div>
 
-                    <!-- Ожидаемая доходность -->
                     <div>
-                        <InputLabel for="expected_revenue" value="Ожидаемая доходность (%)" />
+                        <InputLabel for="expected_revenue" value="Ожидаемая доходность (%)" :style="{ color: colors.accent }" />
                         <TextInput
                             id="expected_revenue"
                             type="number"
@@ -450,38 +454,40 @@ const mainColor = "#8EB6FF";
                             class="mt-1 block w-full"
                             v-model="form.expected_revenue"
                             placeholder="15.5"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.expected_revenue" />
                     </div>
 
-                    <!-- Ожидаемые расходы -->
                     <div>
-                        <InputLabel for="expected_expenses" value="Ожидаемые расходы (₽)" />
+                        <InputLabel for="expected_expenses" value="Ожидаемые расходы (₽)" :style="{ color: colors.accent }" />
                         <TextInput
                             id="expected_expenses"
                             type="number"
                             class="mt-1 block w-full"
                             v-model="form.expected_expenses"
                             placeholder="800000"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
                         />
                         <InputError class="mt-2" :message="form.errors.expected_expenses" />
                     </div>
                 </div>
 
                 <!-- Структура трат -->
-                <div class="border-t-2 border-white pt-4">                    
+                <div class="pt-4" :style="{ borderTop: `2px solid ${colors.border}` }">                    
                     <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                         <div 
                             v-for="(expense, index) in expenses" 
                             :key="index" 
-                            class="flex flex-col gap-3 rounded-lg transition-colors duration-300"
+                            class="flex flex-col gap-3 rounded-lg transition-colors duration-300 p-4"
+                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}` }"
                         >
-                            <!-- Название траты -->
                             <div class="w-full">
                                 <InputLabel 
                                     :for="`item_name-${index}`" 
                                     :value="`Статья расходов ${index + 1}`" 
-                                    class="text-sm font-semibold " 
+                                    class="text-sm font-semibold"
+                                    :style="{ color: colors.accent }" 
                                 />
                                 <TextInput
                                     :id="`item_name-${index}`"
@@ -489,15 +495,16 @@ const mainColor = "#8EB6FF";
                                     class="mt-1 block w-full"
                                     v-model="expenses[index].item_name"
                                     placeholder="Ваши расходы для проекта..."
+                                    :style="{ backgroundColor: colors.bgLight, border: `2px solid ${colors.border}`, color: colors.white }"
                                 />
                             </div>
                             
-                            <!-- Сумма -->
                             <div class="w-full">
                                 <InputLabel 
                                     :for="`amount-${index}`" 
                                     value="Сумма (₽)" 
-                                    class="text-sm font-semibold " 
+                                    class="text-sm font-semibold"
+                                    :style="{ color: colors.accent }" 
                                 />
                                 <TextInput
                                     :id="`amount-${index}`"
@@ -507,17 +514,17 @@ const mainColor = "#8EB6FF";
                                     placeholder="100000"
                                     min="0"
                                     step="0.01"
+                                    :style="{ backgroundColor: colors.bgLight, border: `2px solid ${colors.border}`, color: colors.white }"
                                 />
                             </div>
                             
-                            <!-- Кнопки -->
                             <div class="flex gap-2 justify-end mt-2">
-                                <!-- Удалить -->
                                 <button 
                                     v-if="expenses.length > 1"
                                     type="button"
                                     @click="removeExpense(index)"
-                                    class="bg-red-700 hover:bg-red-400 text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 shadow-md hover:shadow-lg"
+                                    class="text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 bg-red-500"
+                                    :style="{ border: `2px solid ${colors.border}` }"
                                     title="Удалить статью расходов"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -525,12 +532,12 @@ const mainColor = "#8EB6FF";
                                     </svg>
                                 </button>
                                 
-                                <!-- Добавить (только для последнего элемента) -->
                                 <button 
                                     v-if="index === expenses.length - 1"
                                     type="button"
                                     @click="addExpense"
-                                    class="bg-green-700 hover:bg-green-400 text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 shadow-md hover:shadow-lg"
+                                    class="text-white px-4 py-2 rounded-xl transition duration-600 flex items-center gap-2 bg-green-500"
+                                    :style="{ border: `2px solid ${colors.border}` }"
                                     title="Добавить новую статью расходов"
                                 >
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -546,9 +553,10 @@ const mainColor = "#8EB6FF";
                 <!-- Кнопка отправки -->
                 <div class="flex justify-center mt-6">
                     <PrimaryButton
-                        class="px-8 py-3 text-lg"
+                        class="px-8 py-3 text-lg rounded-xl"
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
+                        :style="{ backgroundColor: colors.bgDark, color: colors.accent, border: `2px solid ${colors.border}` }"
                     >
                         {{ form.processing ? 'Создание...' : 'Создать проект' }}
                     </PrimaryButton>

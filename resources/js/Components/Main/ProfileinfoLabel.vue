@@ -1,10 +1,10 @@
 <script setup>
 defineProps({
-    title:{
+    title: {
         type: String,
         required: true,
     },
-    info:{
+    info: {
         type: String,
         required: true
     }
@@ -12,9 +12,12 @@ defineProps({
 </script>
 
 <template>
-    <div class="">
-        <h3 class="text-2xl text-white ml-3 mb-1">{{title}}</h3>
-        <div class="text-2xl p-3 bg-white w-auto rounded-xl flex justify-center items-center">
+    <div>
+        <h3 class="text-xl sm:text-2xl mb-1 font-semibold pl-3" :style="{ color: '#F8D794' }">{{ title }}</h3>
+        <div 
+            class="text-lg sm:text-xl lg:text-2xl p-3 w-auto rounded-xl flex justify-center items-center"
+            :style="{ backgroundColor: '#284139', border: `2px solid #886830`, color: '#ffffff' }"
+        >
             <p>{{ info }}</p>
         </div>
     </div>

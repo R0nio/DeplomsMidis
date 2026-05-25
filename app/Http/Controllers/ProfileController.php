@@ -26,7 +26,7 @@ class ProfileController extends Controller
                 $favoriteProjects = $user->favoriteProjects()
                     ->with(['photos', 'user'])
                     ->latest('favorites.created_at')
-                    ->limit(10)
+                    ->limit(9)
                     ->get();
             }
             
@@ -36,7 +36,7 @@ class ProfileController extends Controller
                 $myProjects = $user->projects()
                     ->with(['photos'])
                     ->latest()
-                    ->limit(10)
+                    ->limit(9)
                     ->get();
             }
 
