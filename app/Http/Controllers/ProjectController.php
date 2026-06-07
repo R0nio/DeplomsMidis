@@ -57,6 +57,7 @@ class ProjectController extends Controller
             ->where('status', '!=', 'На модерации')
             ->where('status', '!=', 'Отклонен')
             ->where('status', '!=', 'Заблокирован')
+            ->where('is_moderated', true)
             ->whereNotNull('latitude')
             ->whereNotNull('longitude')
             ->latest()
