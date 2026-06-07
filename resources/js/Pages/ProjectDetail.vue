@@ -27,41 +27,94 @@ import FavoriteIcon from "../../images/Favorite.png";
 import FavoriteActiveIcon from "../../images/FavoriteActivity.png";
 import defaultImage from "../../images/LogoInvestProject.png";
 
-// ========== ЦВЕТОВАЯ СХЕМА И ШРИФТЫ ==========
-const a11y = {
-  colors: {
-    bgPage: '#436343',
-    bgLight: '#809076',
-    bgDark: '#284139',
-    cardBg: '#243a33',
-    cardBgSoft: '#2f4d43',
-    buttonBg: '#809076',
-    accent: '#F8D794',
-    border: '#886830',
-    textLight: '#e8f0ee',
-    textDark: '#111A19',
-    white: '#ffffff',
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА (из глобальных переменных) =====
+const colors = {
+    brand: 'var(--color-brand)',
+    brandDark: 'var(--color-brand-dark)',
+    accent: 'var(--color-accent)',
+    focus: 'var(--color-focus)',
+    hover: 'var(--color-hover)',
+    page: 'var(--color-page)',
+    surface: 'var(--color-surface)',
+    light: 'var(--color-light)',
+    muted: 'var(--color-muted)',
+    text: 'var(--color-text)',
+    textMuted: 'var(--color-text-muted)',
+    textSoft: 'var(--color-text-soft)',
+    border: 'var(--color-border)',
+    divider: 'var(--color-divider)',
+    error: 'var(--color-error)',
+    success: 'var(--color-success)',
+    info: 'var(--color-info)',
+    white: 'var(--color-white)',
     white80: 'rgba(255, 255, 255, 0.8)',
     white60: 'rgba(255, 255, 255, 0.6)',
-    red: '#ef4444',
+    white70: 'rgba(255, 255, 255, 0.7)',
+    red: 'var(--color-error)',
     redDark: '#b91c1c',
-    green: '#4caf50'
-  },
-  fonts: {
-    base: '14px',
-    sm: '12px',
-    lg: '16px',
-    xl: '18px',
-    xxl: '24px'
-  }
+    green: 'var(--color-success)',
+};
+
+const fonts = {
+    brand: 'var(--font-brand)',
+    heading: 'var(--font-heading)',
+    body: 'var(--font-body)',
+};
+
+const fontSizes = {
+    xs: 'var(--text-xs)',
+    sm: 'var(--text-sm)',
+    base: 'var(--text-base)',
+    md: 'var(--text-md)',
+    lg: 'var(--text-xl)',
+    xl: 'var(--text-xl)',
+    '2xl': 'var(--text-2xl)',
+    '3xl': 'var(--text-3xl)',
+    '4xl': 'var(--text-4xl)',
+};
+
+const shadows = {
+    sm: 'var(--shadow-sm)',
+    md: 'var(--shadow-md)',
+    lg: 'var(--shadow-lg)',
+    xl: 'var(--shadow-xl)',
+};
+
+const transitions = {
+    fast: 'var(--transition-fast)',
+    normal: 'var(--transition-normal)',
+    slow: 'var(--transition-slow)',
+};
+
+// Вспомогательная функция для получения цвета
+const getColor = (colorName) => colors[colorName] || colorName;
+
+// Состояния для скринридера
+const srAnnouncement = ref('');
+
+const imageLoading = ref(true);
+const imageError = ref(false);
+
+const hasPhotos = computed(() => {
+    return props.project.photos && props.project.photos.length > 0;
+});
+
+const handleImageLoad = () => {
+    imageLoading.value = false;
+};
+
+const handleImageError = (event) => {
+    imageError.value = true;
+    imageLoading.value = false;
+    event.target.src = defaultImage;
 };
 
 // Опции полигона
 const polygonOptions = {
-    strokeColor: "#F8D794",
+    strokeColor: colors.accent,
     strokeOpacity: 0.8,
     strokeWeight: 3,
-    fillColor: "#F8D794",
+    fillColor: colors.accent,
     fillOpacity: 0.15,
     clickable: false,
     editable: false,
@@ -80,12 +133,15 @@ const props = defineProps({
     }
 });
 
+// Обновите функцию getProjectImage
 const getProjectImage = (project) => {
-    if (project.photos && project.photos.length > 0) {
+    if (imageError.value) return defaultImage;
+    if (hasPhotos.value) {
         const photoPath = project.photos[0].photo_path;
+        if (photoPath && photoPath.startsWith('/')) return photoPath;
         return `/storage/${photoPath}`;
     }
-    return sliderFallback;
+    return defaultImage;
 };
 
 // Текущий пользователь
@@ -98,10 +154,11 @@ const imagesSlider = computed(() => {
     if (props.project.photos && props.project.photos.length > 0) {
         return props.project.photos.map((photo, index) => ({
             src: `/storage/${photo.photo_path}`,
-            alt: `Фото проекта ${index + 1}`
+            alt: `Фото проекта ${index + 1}`,
+            id: props.project.id
         }));
     }
-    return [{ src: sliderFallback, alt: 'Фото проекта' }];
+    return [];
 });
 
 // Форматирование числа
@@ -185,11 +242,14 @@ const toggleFavorite = async (event) => {
 
     if (!authUser.value) {
         alert('Необходимо авторизоваться');
+        srAnnouncement.value = 'Необходимо авторизоваться';
+        setTimeout(() => { srAnnouncement.value = ''; }, 3000);
         return;
     }
 
     const previousState = isFavorite.value;
     isFavorite.value = !isFavorite.value;
+    srAnnouncement.value = isFavorite.value ? 'Проект добавлен в избранное' : 'Проект удален из избранного';
 
     try {
         const response = await axios.post(route('favorites.toggle', props.project.id));
@@ -210,6 +270,7 @@ const toggleFavorite = async (event) => {
             alert('Произошла ошибка. Попробуте позже.');
         }
     }
+    setTimeout(() => { srAnnouncement.value = ''; }, 3000);
 };
 
 // Переход на страницу редактирования
@@ -236,12 +297,14 @@ const changeAdminStatus = async () => {
         await axios.patch(route('admin.projects.update-status', props.project.id), {
             status: selectedAdminStatus.value
         });
+        srAnnouncement.value = `Статус проекта изменен на "${selectedAdminStatus.value}"`;
         await router.reload();
     } catch (error) {
         console.error('Ошибка при изменении статуса:', error);
         selectedAdminStatus.value = props.project.status;
         alert('Не удалось изменить статус проекта');
     }
+    setTimeout(() => { srAnnouncement.value = ''; }, 3000);
 };
 
 // Полигон границы Челябинской области
@@ -264,15 +327,13 @@ const loadRegionPolygon = () => {
                 lat: coord[1],
                 lng: coord[0]
             }));
-            
-            console.log('Polygon loaded, points count:', regionPolygon.value.length);
         }
     }
 };
 
 // Карта
-const api = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyDfKb4UVvQwK3cANRf-7EVCLlGy0fi2yno";
-const mapZoom = ref(5);
+const api = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const mapZoom = ref(10);
 
 const hasCoordinates = computed(() => {
     return props.project.latitude && props.project.longitude;
@@ -308,7 +369,7 @@ const projectMarker = computed(() => ({
     longitude: props.project.longitude
 }));
 
-const selectedProjectId = ref(props.project.id); // По умолчанию показываем popup
+const selectedProjectId = ref(props.project.id);
 
 const selectProject = () => {
     selectedProjectId.value = selectedProjectId.value === props.project.id ? null : props.project.id;
@@ -326,18 +387,17 @@ const goBack = () => {
     router.visit('/projects');
 };
 
-// Красный пин как на карте проектов
+// Красный пин
 const buildRedPinIcon = (active = false) => {
     const size = active ? 44 : 40;
-    const fill = a11y.colors.red;
-    const stroke = a11y.colors.redDark;
+    const fill = colors.error;
+    const stroke = colors.redDark;
 
     const svg = `
 <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 64 64">
   <path
     d="M32 4c-11.6 0-21 9.4-21 21 0 15.2 21 35 21 35s21-19.8 21-35c0-11.6-9.4-21-21-21z"
-    fill="${fill}"
-    stroke="${stroke}"
+    fill="red" stroke="black"
     stroke-width="2.5"
   />
   <circle cx="32" cy="25" r="9.2" fill="#fff" />
@@ -357,7 +417,10 @@ const buildRedPinIcon = (active = false) => {
             <meta name="description" :content="project.short_description">
         </Head>
         
-        <div class="min-h-screen" :style="{ backgroundColor: a11y.colors.bgPage }">
+        <!-- Область для объявлений скринридера -->
+        <div role="status" aria-live="polite" class="sr-only">{{ srAnnouncement }}</div>
+        
+        <div class="min-h-screen" :style="{ backgroundColor: colors.page }">
             <div class="relative">
                 <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
         
@@ -367,8 +430,16 @@ const buildRedPinIcon = (active = false) => {
                             @click="goBack"
                             @keydown.enter="goBack"
                             @keydown.space.prevent="goBack"
-                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200"
-                            :style="{ backgroundColor: a11y.colors.bgDark, color: a11y.colors.accent, border: `1px solid ${a11y.colors.border}` }"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2"
+                            :style="{ 
+                                backgroundColor: colors.brand, 
+                                color: colors.white,
+                                border: `1px solid ${colors.accent}`,
+                                transition: transitions.normal
+                            }"
+                            @mouseenter="$event.target.style.backgroundColor = colors.hover"
+                            @mouseleave="$event.target.style.backgroundColor = colors.brand"
+                            :styleFocus="{ ringColor: colors.accent }"
                             aria-label="Вернуться к списку проектов"
                             tabindex="0"
                         >
@@ -383,8 +454,15 @@ const buildRedPinIcon = (active = false) => {
                                     @click="toggleFavorite"
                                     @keydown.enter="toggleFavorite"
                                     @keydown.space.prevent="toggleFavorite"
-                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200"
-                                    :style="{ backgroundColor: a11y.colors.bgDark, border: `1px solid ${a11y.colors.border}` }"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2"
+                                    :style="{ 
+                                        backgroundColor: colors.brand, 
+                                        border: `1px solid ${colors.accent}`,
+                                        transition: transitions.normal
+                                    }"
+                                    @mouseenter="$event.target.style.backgroundColor = colors.hover"
+                                    @mouseleave="$event.target.style.backgroundColor = colors.brand"
+                                    :styleFocus="{ ringColor: colors.accent }"
                                     :aria-label="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
                                     :aria-pressed="isFavorite"
                                     tabindex="0"
@@ -395,18 +473,26 @@ const buildRedPinIcon = (active = false) => {
                                         class="w-5 h-5"
                                         aria-hidden="true"
                                     >
-                                    <span :style="{ color: a11y.colors.accent }">{{ isFavorite ? 'В избранном' : 'В избранное' }}</span>
+                                    <span :style="{ color: colors.accent }">{{ isFavorite ? 'В избранном' : 'В избранное' }}</span>
                                 </button>
                             </div>
                             
-                            <!-- Кнопка редактировать (для организатора - владельца проекта) -->
+                            <!-- Кнопка редактировать (для организатора) -->
                             <div v-if="userRole === 'Organisator' && authUser?.id === project.user?.id">
                                 <button 
                                     @click="goToEdit"
                                     @keydown.enter="goToEdit"
                                     @keydown.space.prevent="goToEdit"
-                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
-                                    :style="{ backgroundColor: a11y.colors.bgDark, border: `1px solid ${a11y.colors.border}`, color: a11y.colors.accent }"
+                                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2"
+                                    :style="{ 
+                                        backgroundColor: colors.brand, 
+                                        border: `1px solid ${colors.accent}`,
+                                        color: colors.white,
+                                        transition: transitions.normal
+                                    }"
+                                    @mouseenter="$event.target.style.backgroundColor = colors.hover; $event.target.style.color = colors.white"
+                                    @mouseleave="$event.target.style.backgroundColor = colors.brand; $event.target.style.color = colors.accent"
+                                    :styleFocus="{ ringColor: colors.accent }"
                                     aria-label="Редактировать проект"
                                     tabindex="0"
                                 >
@@ -418,47 +504,66 @@ const buildRedPinIcon = (active = false) => {
                     </div>
 
                     <!-- Слайдер -->
-                    <div class="mb-8 rounded-xl overflow-hidden" :style="{ border: `2px solid ${a11y.colors.border}` }">
+                    <div v-if="imagesSlider.length > 0" class="mb-8 rounded-2xl overflow-hidden border-2" :style="{ borderColor: colors.accent }">
                         <SliderInDetailPage :photos="imagesSlider" />
                     </div>
+                    
+                    <!-- Если нет фото, показываем заглушку -->
+                    <div v-else class="mb-8 rounded-2xl overflow-hidden border-2" :style="{ borderColor: colors.accent }">
+                        <div class="flex items-center justify-center h-[500px] sm:h-[600px] md:h-[600px] lg:h-[700px] xl:h-[800px]" :style="{ backgroundColor: colors.brand }">
+                            <img 
+                                :src="sliderFallback" 
+                                alt="Логотип проекта"
+                                class="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] md:max-w-[180px] md:max-h-[180px] object-contain opacity-60"
+                            >
+                        </div>
+                    </div>
 
-                    <!-- Панель администратора (под слайдером, только для админа) -->
-                    <div v-if="userRole === 'Admin'" class="mb-6 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4" :style="{ backgroundColor: a11y.colors.bgDark, border: `1px solid ${a11y.colors.border}` }">
+                    <!-- Панель администратора -->
+                    <div v-if="userRole === 'Admin'" class="mb-6 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}` }">
                         <div class="flex items-center gap-3">
-                            <span class="text-sm font-semibold" :style="{ color: a11y.colors.accent }">Управление проектом:</span>
+                            <span class="text-sm font-semibold" :style="{ color: colors.white }">Управление проектом:</span>
                             
-                            <!-- Статус модерации -->
                             <div 
                                 v-if="project.is_moderated === true" 
                                 class="px-3 py-1.5 rounded-lg text-xs text-center"
-                                style="background-color: #4caf50; color: white"
+                                :style="{ backgroundColor: colors.success, color: colors.white }"
+                                tabindex="0"
                             >
                                 Прошла модерацию
                             </div>
                             <div 
                                 v-else-if="project.is_moderated === false" 
                                 class="px-3 py-1.5 rounded-lg text-xs text-center"
-                                style="background-color: #f44336; color: white"
+                                :style="{ backgroundColor: colors.error, color: colors.white }"
+                                tabindex="0"
                             >
                                 Не прошла модерацию
                             </div>
                             <div 
                                 v-else 
                                 class="px-3 py-1.5 rounded-lg text-xs text-center"
-                                :style="{ backgroundColor: a11y.colors.bgLight, color: a11y.colors.white }"
+                                :style="{ backgroundColor: colors.light, color: colors.brand }"
+                                tabindex="0"
                             >
                                 Ожидает модерации
                             </div>
                         </div>
                         
                         <div class="flex items-center gap-3">
-                            <span class="text-sm" :style="{ color: a11y.colors.white80 }">Изменить статус:</span>
+                            <span class="text-sm" :style="{ color: colors.white80 }">Изменить статус:</span>
                             <select 
                                 v-model="selectedAdminStatus"
                                 @change="changeAdminStatus"
-                                class="px-3 py-1.5 rounded-lg text-sm focus:outline-none cursor-pointer"
-                                :style="{ backgroundColor: a11y.colors.bgLight, color: a11y.colors.white, border: `1px solid ${a11y.colors.border}` }"
+                                class="px-3 py-1.5 rounded-lg text-sm focus:outline-none cursor-pointer focus:ring-2"
+                                :style="{ 
+                                    backgroundColor: colors.light, 
+                                    color: colors.brand, 
+                                    border: `1px solid ${colors.accent}`,
+                                    ringColor: colors.accent
+                                }"
                                 aria-label="Изменить статус проекта"
+                                tabindex="0"
                             >
                                 <option 
                                     v-for="option in statusOptions" 
@@ -472,15 +577,15 @@ const buildRedPinIcon = (active = false) => {
                     </div>
 
                     <!-- Основная плашка -->
-                    <div class="rounded-xl overflow-hidden" :style="{ backgroundColor: a11y.colors.bgLight, border: `2px solid ${a11y.colors.border}` }">
+                    <div class="rounded-xl overflow-hidden border-2 shadow-lg" :style="{ backgroundColor: colors.light, borderColor: colors.accent, boxShadow: shadows.lg }">
                         
                         <!-- Шапка -->
-                        <div class="p-6" :style="{ borderBottom: `2px solid ${a11y.colors.border}` }">
+                        <div class="p-6 border-b-2" :style="{ borderColor: colors.accent }">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
                                     <h1 
-                                        class="text-2xl sm:text-3xl font-bold mb-3" 
-                                        :style="{ color: a11y.colors.accent }"
+                                        class="text-2xl sm:text-3xl font-heading font-bold mb-3"
+                                        :style="{ color: colors.brand, fontFamily: fonts.heading }"
                                         tabindex="0"
                                         role="heading"
                                         aria-level="1"
@@ -496,8 +601,9 @@ const buildRedPinIcon = (active = false) => {
                                         <span 
                                             v-for="cat in categories" 
                                             :key="cat"
-                                            class="px-3 py-1 text-xs font-medium rounded-full"
-                                            :style="{ backgroundColor: a11y.colors.bgDark, color: a11y.colors.accent, border: `1px solid ${a11y.colors.border}` }"
+                                            class="px-4 py-2 text-base font-medium rounded-full border"
+                                            :style="{ backgroundColor: colors.brand, color: colors.white, borderColor: colors.accent }"
+                                            tabindex="0"
                                         >
                                             {{ cat }}
                                         </span>
@@ -513,181 +619,146 @@ const buildRedPinIcon = (active = false) => {
                             <div class="lg:col-span-2 space-y-6">
                                 <!-- Прогресс сбора -->
                                 <div 
-                                    class="p-4 rounded-lg" 
-                                    :style="{ backgroundColor: a11y.colors.bgDark }"
-                                    tabindex="0"
+                                    v-if="project.total_investment || project.collected_total_investment"
+                                    class="p-4 rounded-lg "
                                     role="region"
-                                    :aria-label="`Прогресс сбора: собрано ${formatNumber(project.collected_total_investment)} рублей из ${formatNumber(project.total_investment)} рублей, ${Math.min(progress, 100).toFixed(1)} процентов от цели`"
+                                    aria-label="Прогресс сбора средств"
+                                    tabindex="0"
                                 >
                                     <div class="flex items-start gap-3 mb-3">
-                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.accent }" aria-hidden="true">
-                                            <TrendingUp class="w-6 h-6" :style="{ color: a11y.colors.bgDark }" />
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <TrendingUp class="w-6 h-6" :style="{ color: colors.white }" />
                                         </div>
                                         <div class="flex-1">
-                                            <p class="text-sm mb-1" :style="{ color: a11y.colors.white80 }">Собрано средств</p>
-                                            <p class="font-semibold text-lg" :style="{ color: a11y.colors.accent }">
+                                            <p class="text-xl mb-1" :style="{ color: colors.textMuted }">Собрано средств</p>
+                                            <p class="font-semibold text-xl" :style="{ color: colors.accent }">
                                                 {{ formatNumber(project.collected_total_investment) }} ₽
                                             </p>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">
+                                            <p class="text-base" :style="{ color: colors.textMuted }">
                                                 из {{ formatNumber(project.total_investment) }} ₽
                                             </p>
                                         </div>
                                     </div>
-                                    <div class="w-full h-3 rounded-full overflow-hidden" :style="{ backgroundColor: a11y.colors.border }" role="progressbar" :aria-valuenow="Math.min(progress, 100)" aria-valuemin="0" aria-valuemax="100">
+                                    <div class="w-full h-3 rounded-full overflow-hidden" :style="{ backgroundColor: colors.page }" role="progressbar" :aria-valuenow="Math.min(progress, 100)" aria-valuemin="0" aria-valuemax="100">
                                         <div 
                                             class="h-full rounded-full transition-all duration-300"
-                                            :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: a11y.colors.accent }"
+                                            :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"
                                         ></div>
                                     </div>
-                                    <p class="text-sm font-medium mt-2" :style="{ color: a11y.colors.accent }">{{ Math.min(progress, 100).toFixed(1) }}% от цели</p>
+                                    <p class="text-base font-medium mt-2" :style="{ color: colors.brand }">{{ Math.min(progress, 100).toFixed(1) }}% от цели</p>
                                 </div>
 
                                 <!-- Показатели -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div 
-                                        class="flex items-start gap-3"
-                                        tabindex="0"
-                                        role="group"
-                                        :aria-label="`Требуемые инвестиции: ${formatNumber(project.total_investment)} рублей`"
-                                    >
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <RussianRuble class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
+                                    <div v-if="project.total_investment" class="flex items-start gap-3 p-3 rounded-lg " tabindex="0" role="group" :aria-label="`Требуемые инвестиции: ${formatNumber(project.total_investment)} рублей`">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <RussianRuble class="w-5 h-5" :style="{ color: colors.white }" />
                                         </div>
                                         <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Требуемые инвестиции</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ formatNumber(project.total_investment) }} ₽</p>
+                                            <p class="text-base" :style="{ color: colors.textMuted }">Требуемые инвестиции</p>
+                                            <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ formatNumber(project.total_investment) }} ₽</p>
                                         </div>
                                     </div>
-                                    <div 
-                                        class="flex items-start gap-3"
-                                        tabindex="0"
-                                        role="group"
-                                        :aria-label="`Срок реализации: ${project.number_date_realise || 'не указан'} месяцев`"
-                                    >
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <Calendar class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
+                                    <div v-if="project.number_date_realise" class="flex items-start gap-3 p-3 rounded-lg" tabindex="0" role="group" :aria-label="`Срок реализации: ${project.number_date_realise} месяцев`">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <Calendar class="w-5 h-5" :style="{ color: colors.white }" />
                                         </div>
                                         <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Срок реализации</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ project.number_date_realise || '—' }} мес.</p>
+                                            <p class="text-base" :style="{ color: colors.textMuted }">Срок реализации</p>
+                                            <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ project.number_date_realise }} мес.</p>
                                         </div>
                                     </div>
-                                    <div 
-                                        class="flex items-start gap-3"
-                                        tabindex="0"
-                                        role="group"
-                                        :aria-label="`Количество рабочих мест: ${project.count_new_job || 'не указано'}`"
-                                    >
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <Users class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
+                                    <div v-if="project.count_new_job" class="flex items-start gap-3 p-3 rounded-lg " tabindex="0" role="group" :aria-label="`Количество рабочих мест: ${formatNumber(project.count_new_job)}`">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <Users class="w-5 h-5" :style="{ color: colors.white }" />
                                         </div>
                                         <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Рабочих мест</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ project.count_new_job || '—' }}</p>
+                                            <p class="text-base" :style="{ color: colors.textMuted }">Рабочих мест</p>
+                                            <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ formatNumber(project.count_new_job) }}</p>
                                         </div>
                                     </div>
-                                    <div 
-                                        class="flex items-start gap-3"
-                                        tabindex="0"
-                                        role="group"
-                                        :aria-label="`Форма собственности: ${project.ownership || 'не указана'}`"
-                                    >
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <Building class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
+                                    <div v-if="project.ownership" class="flex items-start gap-3 p-3 rounded-lg" tabindex="0" role="group" :aria-label="`Форма собственности: ${project.ownership}`">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <Building class="w-5 h-5" :style="{ color: colors.white }" />
                                         </div>
                                         <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Собственность</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ project.ownership || '—' }}</p>
+                                            <p class="text-base" :style="{ color: colors.textMuted }">Собственность</p>
+                                            <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ project.ownership }}</p>
                                         </div>
                                     </div>
-                                    <div 
-                                        class="flex items-start gap-3"
-                                        tabindex="0"
-                                        role="group"
-                                        :aria-label="`Вид строительства: ${project.type_build || 'не указан'}`"
-                                    >
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <Hammer class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
+                                    <div v-if="project.type_build" class="flex items-start gap-3 p-3 rounded-lg" tabindex="0" role="group" :aria-label="`Вид строительства: ${project.type_build}`">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <Hammer class="w-5 h-5" :style="{ color: colors.white }" />
                                         </div>
                                         <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Вид строительства</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ project.type_build || '—' }}</p>
+                                            <p class="text-base" :style="{ color: colors.textMuted }">Вид строительства</p>
+                                            <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ project.type_build }}</p>
                                         </div>
                                     </div>
-                                    <div 
-                                        class="flex items-start gap-3"
-                                        tabindex="0"
-                                        role="group"
-                                        :aria-label="`Вид деятельности: ${project.activity || 'не указан'}`"
-                                    >
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <Briefcase class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
+                                    <div v-if="project.activity" class="flex items-start gap-3 p-3 rounded-lg" tabindex="0" role="group" :aria-label="`Вид деятельности: ${project.activity}`">
+                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                            <Briefcase class="w-5 h-5" :style="{ color: colors.white }" />
                                         </div>
                                         <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Деятельность</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ project.activity || '—' }}</p>
+                                            <p class="text-base" :style="{ color: colors.textMuted }">Деятельность</p>
+                                            <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ project.activity }}</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Адрес -->
-                                <div 
-                                    class="pt-2"
-                                    tabindex="0"
-                                    role="group"
-                                    :aria-label="`Адрес: ${project.address || 'не указан'}`"
-                                >
-                                    <div class="flex items-start gap-3">
-                                        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: a11y.colors.bgDark }" aria-hidden="true">
-                                            <MapPin class="w-5 h-5" :style="{ color: a11y.colors.accent }" />
-                                        </div>
-                                        <div>
-                                            <p class="text-sm" :style="{ color: a11y.colors.white80 }">Адрес</p>
-                                            <p class="text-sm font-medium" :style="{ color: a11y.colors.white }">{{ project.address || '—' }}</p>
-                                        </div>
+                                <div v-if="project.address" class="flex items-start gap-3 p-3 rounded-lg" tabindex="0" role="group" :aria-label="`Адрес: ${project.address}`">
+                                    <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" :style="{ backgroundColor: colors.brand }" aria-hidden="true">
+                                        <MapPin class="w-5 h-5" :style="{ color: colors.white }" />
+                                    </div>
+                                    <div>
+                                        <p class="text-base" :style="{ color: colors.textMuted }">Адрес</p>
+                                        <p class="text-xl font-semibold" :style="{ color: colors.brand }">{{ project.address }}</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Правая колонка - контакты -->
-                            <div class="lg:col-span-2">
-                                <div class="p-4 rounded-lg" :style="{ backgroundColor: a11y.colors.bgDark }">
-                                    <h4 class="font-semibold text-lg mb-3" :style="{ color: a11y.colors.accent }">Инициатор проекта</h4>
+                            <div v-if="organizerContacts" class="lg:col-span-2">
+                                <div class="p-4 rounded-lg " >
+                                    <h4 class="font-heading font-semibold text-xl mb-3" :style="{ color: colors.accent, fontFamily: fonts.heading }">Инициатор проекта</h4>
                                     <div class="space-y-2 mb-4">
-                                        <div class="flex gap-2"> 
-                                            <p class="font-medium text-sm" :style="{ color: a11y.colors.white }" tabindex="0">{{ organizerContacts?.middlename }}</p>
-                                            <p class="font-medium text-sm" :style="{ color: a11y.colors.white }" tabindex="0">{{ organizerContacts?.name }}</p>
-                                            <p class="font-medium text-sm" :style="{ color: a11y.colors.white }" tabindex="0">{{ organizerContacts?.lastname }}</p>
+                                        <div class="flex gap-1" tabindex="0"> 
+                                            <p class="font-medium text-xl" :style="{ color: colors.brand }">{{ organizerContacts?.middlename }}</p>
+                                            <p class="font-medium text-xl" :style="{ color: colors.brand }">{{ organizerContacts?.name }}</p>
+                                            <p class="font-medium text-xl" :style="{ color: colors.brand }">{{ organizerContacts?.lastname }}</p>
                                         </div>
-                                        <p class="text-xs" :style="{ color: a11y.colors.white80 }" tabindex="0">{{ organizerContacts?.organization }}</p>
+                                        <p v-if="organizerContacts?.organization" class="text-base" tabindex="0">{{ organizerContacts?.organization }}</p>
                                     </div>
 
-                                    <div class="my-3" :style="{ borderTop: `1px solid ${a11y.colors.border}` }"></div>
+                                    <div v-if="organizerContacts?.email || organizerContacts?.phone" class="my-3 border-t" :style="{ borderColor: colors.divider }"></div>
 
-                                    <h4 class="font-semibold text-sm mb-3" :style="{ color: a11y.colors.accent }">Контакты</h4>
-                                    <div class="space-y-2">
-                                        <div class="flex items-start gap-2">
-                                            <Mail class="w-3 h-3 mt-0.5 flex-shrink-0" :style="{ color: a11y.colors.accent }" aria-hidden="true" />
+                                    <h4 class="font-heading font-semibold text-xl mb-3" :style="{ color: colors.accent, fontFamily: fonts.heading }">Контакты</h4>
+                                    <div class="space-y-3">
+                                        <div v-if="organizerContacts?.email" class="flex items-start gap-2">
+                                            <Mail class="w-5 h-5 mt-0.5 flex-shrink-0" :style="{ color: colors.accent }" aria-hidden="true" />
                                             <a 
-                                                :href="`mailto:${organizerContacts?.email}`" 
-                                                class="text-xs hover:opacity-80 transition-opacity break-words" 
-                                                :style="{ color: a11y.colors.white }" 
-                                                :aria-label="`Email: ${organizerContacts?.email}`"
+                                                :href="`mailto:${organizerContacts.email}`" 
+                                                class="text-xl hover:opacity-80 transition-opacity break-words focus:outline-none focus:ring-2 rounded-md px-1 inline-block"
+                                                :style="{ color: colors.brand, transition: transitions.fast }"
+                                                :aria-label="`Email: ${organizerContacts.email}`"
                                                 tabindex="0"
+                                                :styleFocus="{ ringColor: colors.accent }"
                                             >
-                                                {{ organizerContacts?.email }}
+                                                {{ organizerContacts.email }}
                                             </a>
                                         </div>
-                                        <div class="flex items-start gap-2">
-                                            <Phone class="w-3 h-3 mt-0.5 flex-shrink-0" :style="{ color: a11y.colors.accent }" aria-hidden="true" />
+                                        <div v-if="organizerContacts?.phone" class="flex items-start gap-2">
+                                            <Phone class="w-5 h-5 mt-0.5 flex-shrink-0" :style="{ color: colors.accent }" aria-hidden="true" />
                                             <a 
-                                                :href="`tel:${organizerContacts?.phone}`" 
-                                                class="text-xs hover:opacity-80 transition-opacity" 
-                                                :style="{ color: a11y.colors.white }" 
-                                                :aria-label="`Телефон: ${organizerContacts?.phone}`"
+                                                :href="`tel:${organizerContacts.phone}`" 
+                                                class="text-xl hover:opacity-80 transition-opacity focus:outline-none focus:ring-2 rounded-md px-1 inline-block"
+                                                :style="{ color: colors.brand, transition: transitions.fast }"
+                                                :aria-label="`Телефон: ${organizerContacts.phone}`"
                                                 tabindex="0"
+                                                :styleFocus="{ ringColor: colors.accent }"
                                             >
-                                                {{ organizerContacts?.phone }}
+                                                {{ organizerContacts.phone }}
                                             </a>
                                         </div>
                                     </div>
@@ -701,15 +772,9 @@ const buildRedPinIcon = (active = false) => {
             <!-- Остальной контент -->
             <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
                 <!-- Описание -->
-                <div 
-                    class="mb-6" 
-                    :style="{ border: `2px solid ${a11y.colors.border}`, borderRadius: '16px', padding: '20px', backgroundColor: a11y.colors.bgLight }"
-                    tabindex="0"
-                    role="region"
-                    aria-label="Описание проекта"
-                >
-                    <h2 class="text-xl font-medium mb-3" :style="{ color: a11y.colors.accent }">Описание</h2>
-                    <p class="leading-relaxed text-base" :style="{ color: a11y.colors.white }">
+                <div v-if="project.full_description || project.short_description" class="mb-6 rounded-2xl p-6 border-2 shadow-sm" :style="{ backgroundColor: colors.light, borderColor: colors.accent, boxShadow: shadows.sm }" tabindex="0" role="region" aria-label="Описание проекта">
+                    <h2 class="text-2xl font-heading font-semibold mb-3" :style="{ color: colors.accent, fontFamily: fonts.heading }">Описание</h2>
+                    <p class="leading-relaxed text-2xl" :style="{ color: colors.brand }">
                         {{ project.full_description || project.short_description }}
                     </p>
                 </div>
@@ -717,29 +782,29 @@ const buildRedPinIcon = (active = false) => {
                 <!-- Структура инвестиций -->
                 <div 
                     v-if="investments.length > 0" 
-                    class="mb-6" 
-                    :style="{ border: `2px solid ${a11y.colors.border}`, borderRadius: '16px', padding: '20px', backgroundColor: a11y.colors.bgLight }"
+                    class="mb-6 rounded-2xl p-6 border-2 shadow-sm overflow-x-auto"
+                    :style="{ backgroundColor: colors.light, borderColor: colors.accent, boxShadow: shadows.sm }"
                     tabindex="0"
                     role="region"
                     aria-label="Структура инвестиций"
                 >
-                    <h2 class="text-xl font-medium mb-4" :style="{ color: a11y.colors.accent }">Структура инвестиций</h2>
+                    <h2 class="text-2xl font-heading font-semibold mb-4" :style="{ color: colors.accent, fontFamily: fonts.heading }">Структура инвестиций</h2>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left" role="table" aria-label="Структура инвестиций по статьям расходов">
+                        <table class="w-full text-left min-w-[500px]" role="table" aria-label="Структура инвестиций по статьям расходов">
                             <thead>
-                                <tr :style="{ borderBottom: `2px solid ${a11y.colors.border}` }">
-                                    <th class="pb-2" :style="{ color: a11y.colors.accent }" scope="col">Статья расходов</th>
-                                    <th class="pb-2 text-right" :style="{ color: a11y.colors.accent }" scope="col">Сумма (₽)</th>
+                                <tr class="border-b-2" :style="{ borderColor: colors.accent }">
+                                    <th class="pb-2 font-semibold text-xl" :style="{ color: colors.accent }" scope="col">Статья расходов</th>
+                                    <th class="pb-2 text-right font-semibold text-xl" :style="{ color: colors.accent }" scope="col">Сумма (₽)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(investment, idx) in investments" :key="idx" :style="{ borderBottom: `1px solid ${a11y.colors.border}` }">
-                                    <td class="py-2" :style="{ color: a11y.colors.white }">{{ investment.item_name }}</td>
-                                    <td class="py-2 text-right" :style="{ color: a11y.colors.white }">{{ formatNumber(investment.amount) }} ₽</td>
+                                <tr v-for="(investment, idx) in investments" :key="idx" class="border-b" :style="{ borderColor: colors.accent + '30' }">
+                                    <td class="py-3 text-xl" :style="{ color: colors.brand }" tabindex="0">{{ investment.item_name }}</td>
+                                    <td class="py-3 text-right text-xl" :style="{ color: colors.brand }" tabindex="0">{{ formatNumber(investment.amount) }} ₽</td>
                                 </tr>
-                                <tr class="font-semibold" :style="{ borderTop: `2px solid ${a11y.colors.border}` }">
-                                    <td class="pt-2" :style="{ color: a11y.colors.accent }">ИТОГО:</td>
-                                    <td class="pt-2 text-right" :style="{ color: a11y.colors.accent }">
+                                <tr class="font-semibold" :style="{ backgroundColor: colors.white + '30' }">
+                                    <td class="pt-3 text-xl" :style="{ color: colors.accent }" tabindex="0">ИТОГО:</td>
+                                    <td class="pt-3 text-right text-xl" :style="{ color: colors.accent }" tabindex="0">
                                         {{ formatNumber(investments.reduce((sum, inv) => sum + (Number(inv.amount) || 0), 0)) }} ₽
                                     </td>
                                 </tr>
@@ -751,29 +816,29 @@ const buildRedPinIcon = (active = false) => {
                 <!-- Прогнозы -->
                 <div 
                     v-if="forecasts.length > 0" 
-                    class="mb-6" 
-                    :style="{ border: `2px solid ${a11y.colors.border}`, borderRadius: '16px', padding: '20px', backgroundColor: a11y.colors.bgLight }"
+                    class="mb-6 rounded-2xl p-6 border-2 shadow-sm overflow-x-auto"
+                    :style="{ backgroundColor: colors.light, borderColor: colors.accent, boxShadow: shadows.sm }"
                     tabindex="0"
                     role="region"
                     aria-label="Прогноз доходов и расходов"
                 >
-                    <h2 class="text-xl font-medium mb-4" :style="{ color: a11y.colors.accent }">Прогноз доходов и расходов</h2>
+                    <h2 class="text-2xl font-heading font-semibold mb-4" :style="{ color: colors.accent, fontFamily: fonts.heading }">Прогноз доходов и расходов</h2>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left" role="table" aria-label="Прогноз доходов и расходов по годам">
+                        <table class="w-full text-left min-w-[600px]" role="table" aria-label="Прогноз доходов и расходов по годам">
                             <thead>
-                                <tr :style="{ borderBottom: `2px solid ${a11y.colors.border}` }">
-                                    <th class="pb-2" :style="{ color: a11y.colors.accent }" scope="col">Год</th>
-                                    <th class="pb-2 text-right" :style="{ color: a11y.colors.accent }" scope="col">Доходы (₽)</th>
-                                    <th class="pb-2 text-right" :style="{ color: a11y.colors.accent }" scope="col">Расходы (₽)</th>
-                                    <th class="pb-2 text-right" :style="{ color: a11y.colors.accent }" scope="col">Прибыль (₽)</th>
+                                <tr class="border-b-2" :style="{ borderColor: colors.accent }">
+                                    <th class="pb-2 font-semibold text-xl" :style="{ color: colors.accent }" scope="col">Год</th>
+                                    <th class="pb-2 text-right font-semibold text-xl" :style="{ color: colors.accent }" scope="col">Доходы (₽)</th>
+                                    <th class="pb-2 text-right font-semibold text-xl" :style="{ color: colors.accent }" scope="col">Расходы (₽)</th>
+                                    <th class="pb-2 text-right font-semibold text-xl" :style="{ color: colors.accent }" scope="col">Прибыль (₽)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(forecast, idx) in forecasts" :key="idx" :style="{ borderBottom: `1px solid ${a11y.colors.border}` }">
-                                    <td class="py-2" :style="{ color: a11y.colors.white }">{{ forecast.year }}</td>
-                                    <td class="py-2 text-right" :style="{ color: a11y.colors.white }">{{ formatNumber(forecast.expected_revenue) }} ₽</td>
-                                    <td class="py-2 text-right" :style="{ color: a11y.colors.white }">{{ formatNumber(forecast.expected_expenses) }} ₽</td>
-                                    <td class="py-2 text-right" :style="{ color: a11y.colors.white }">{{ formatNumber((Number(forecast.expected_revenue) || 0) - (Number(forecast.expected_expenses) || 0)) }} ₽</td>
+                                <tr v-for="(forecast, idx) in forecasts" :key="idx" class="border-b" :style="{ borderColor: colors.accent + '30' }">
+                                    <td class="py-3 text-xl" :style="{ color: colors.brand }" tabindex="0">{{ forecast.year }}</td>
+                                    <td class="py-3 text-right text-xl" :style="{ color: colors.brand }" tabindex="0">{{ formatNumber(forecast.expected_revenue) }} ₽</td>
+                                    <td class="py-3 text-right text-xl" :style="{ color: colors.brand }" tabindex="0">{{ formatNumber(forecast.expected_expenses) }} ₽</td>
+                                    <td class="py-3 text-right text-xl" :style="{ color: colors.brand }" tabindex="0">{{ formatNumber((Number(forecast.expected_revenue) || 0) - (Number(forecast.expected_expenses) || 0)) }} ₽</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -781,10 +846,10 @@ const buildRedPinIcon = (active = false) => {
                 </div>
 
                 <!-- Карта -->
-                <div v-if="hasCoordinates" class="rounded-xl overflow-hidden" :style="{ border: `2px solid ${a11y.colors.border}`, backgroundColor: a11y.colors.bgLight }">
+                <div v-if="hasCoordinates" class="rounded-2xl overflow-hidden border-2 shadow-sm" :style="{ backgroundColor: colors.light, borderColor: colors.accent, boxShadow: shadows.sm }">
                     <div class="p-4 sm:p-5">
-                        <h2 class="text-xl font-medium mb-4" :style="{ color: a11y.colors.accent }">Расположение</h2>
-                        <div class="w-full h-[80vh] sm:h-[80vh] rounded-xl overflow-hidden" :style="{ border: `2px solid ${a11y.colors.border}` }">
+                        <h2 class="text-2xl font-heading font-semibold mb-4" :style="{ color: colors.accent, fontFamily: fonts.heading }">Расположение</h2>
+                        <div class="w-full h-[80vh] rounded-xl overflow-hidden border-2" :style="{ borderColor: colors.accent }">
                             <GoogleMap
                                 :api-key="api"
                                 class="w-full h-full"
@@ -801,7 +866,6 @@ const buildRedPinIcon = (active = false) => {
                                     }
                                 ]"
                             >
-                                <!-- Полигон границы Челябинской области -->
                                 <Polygon
                                     v-if="regionPolygon && regionPolygon.length > 0"
                                     :options="{
@@ -810,7 +874,6 @@ const buildRedPinIcon = (active = false) => {
                                     }"
                                 />
 
-                                <!-- Красный маркер как на странице проектов -->
                                 <Marker
                                     :options="{ 
                                         position: projectMarker.position,
@@ -821,7 +884,6 @@ const buildRedPinIcon = (active = false) => {
                                     @click="selectProject"
                                 />
 
-                                <!-- Кастомный popup на месте пина -->
                                 <CustomMarker
                                     v-if="selectedProjectId === props.project.id && hasCoordinates"
                                     :options="{
@@ -830,64 +892,90 @@ const buildRedPinIcon = (active = false) => {
                                     }"
                                 >
                                     <div class="relative mt-3">
-                                        <div
-                                            class="w-72 rounded-2xl overflow-hidden shadow-2xl border"
-                                            :style="{ backgroundColor: a11y.colors.cardBg, borderColor: a11y.colors.border }"
-                                            @click.stop
-                                        >
-                                            <div class="relative h-40" :style="{ backgroundColor: a11y.colors.cardBgSoft }">
-                                                <img
-                                                    v-if="project.photos?.length"
-                                                    :src="getProjectImage(project)"
+                                        <div class="w-80 rounded-2xl overflow-hidden shadow-2xl border-2" :style="{ borderColor: colors.accent, backgroundColor: colors.brand, boxShadow: shadows.xl }">
+                                            <!-- Изображение -->
+                                            <div class="relative h-36" :style="{ backgroundImage: `linear-gradient(to bottom right, ${colors.hover}30, ${colors.hover}10)` }">
+                                                <div v-if="imageLoading && !imageError && hasPhotos" class="absolute inset-0 flex items-center justify-center z-10" :style="{ backgroundColor: colors.brand + '80' }">
+                                                    <svg class="animate-spin w-6 h-6" :style="{ color: colors.accent }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+                                                </div>
+                                                
+                                                <img 
+                                                    v-if="hasPhotos && !imageError"
+                                                    :src="getProjectImage(project)" 
                                                     :alt="`Изображение проекта ${project.title}`"
                                                     class="w-full h-full object-cover"
                                                     loading="lazy"
+                                                    @load="handleImageLoad"
+                                                    @error="handleImageError"
                                                 />
-                                                <div
-                                                    v-else
-                                                    class="w-full h-full flex items-center justify-center"
-                                                    :style="{ backgroundColor: '#3f5f54' }"
-                                                >
-                                                    <img :src="defaultImage" class="w-24 opacity-90" alt="Изображение не загружено" />
+                                                
+                                                <div v-if="!hasPhotos || imageError" class="absolute inset-0 flex items-center justify-center" :style="{ backgroundColor: colors.hover }">
+                                                    <img :src="defaultImage" alt="Логотип проекта" class="w-[60%] h-[60%] object-contain opacity-60">
                                                 </div>
-
+                                                
                                                 <button
-                                                    class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/40 text-white hover:bg-black/55 transition-all duration-200 hover:scale-105 flex items-center justify-center"
+                                                    class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2"
+                                                    :style="{ backgroundColor: colors.brand + '99', color: colors.white, transition: transitions.normal }"
                                                     @click.stop="closeMarker"
+                                                    :styleFocus="{ ringColor: colors.accent }"
                                                     aria-label="Закрыть карточку проекта"
                                                 >
-                                                    <X class="w-4 h-4" />
+                                                    <X class="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
-
+                                            
+                                            <!-- Контент -->
                                             <div class="p-4">
-                                                <h3 class="text-lg font-bold mb-1 leading-tight line-clamp-2" :style="{ color: a11y.colors.accent }">
-                                                    {{ project.title }}
-                                                </h3>
-
-                                                <p class="text-sm mb-3 line-clamp-2" :style="{ color: a11y.colors.white80 }">
-                                                    {{ project.short_description?.slice(0, 95) || "Описание проекта отсутствует" }}
+                                                <div class="flex items-start justify-between gap-2 mb-2">
+                                                    <h3 class="text-base font-heading font-bold leading-tight line-clamp-2 flex-1" :style="{ color: colors.white, fontFamily: fonts.heading }">
+                                                        {{ project.title }}
+                                                    </h3>
+                                                </div>
+                                                
+                                                <p class="text-base mb-3 line-clamp-2" :style="{ color: colors.white80 }">
+                                                    {{ project.short_description?.slice(0, 80) || "Описание проекта отсутствует" }}
                                                 </p>
-
-                                                <div class="space-y-2 text-sm mb-3">
-                                                    <div v-if="project.total_investment" class="flex items-center justify-between">
-                                                        <span class="text-xs" :style="{ color: a11y.colors.white80 }">Инвестиции:</span>
-                                                        <span class="font-semibold" :style="{ color: a11y.colors.accent }">{{ formatNumber(project.total_investment) }} ₽</span>
+                                                
+                                                <!-- Прогресс сбора -->
+                                                <div class="mb-3">
+                                                    <div class="flex justify-between text-lg mb-1">
+                                                        <span :style="{ color: colors.white80 }">Собрано средств</span>
+                                                        <span class="font-semibold" :style="{ color: colors.white }">{{ Math.min(progress, 100).toFixed(0) }}%</span>
                                                     </div>
-                                                    <div v-if="project.address" class="flex items-start gap-1">
-                                                        <MapPin class="w-3 h-3 mt-0.5 flex-shrink-0" :style="{ color: a11y.colors.accent }" />
-                                                        <span class="text-xs line-clamp-2" :style="{ color: a11y.colors.white80 }">{{ project.address }}</span>
+                                                    <div class="w-full h-1.5 rounded-full overflow-hidden" :style="{ backgroundColor: colors.page }">
+                                                        <div class="h-full rounded-full transition-all" :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"></div>
                                                     </div>
                                                 </div>
-
-                                                <button
-                                                    class="w-full py-2.5 rounded-lg font-semibold transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
-                                                    :style="{ backgroundColor: '#35594d', color: a11y.colors.accent }"
-                                                    @click="goToProject(project.id)"
-                                                    :aria-label="`Подробнее о проекте ${project.title}`"
-                                                >
-                                                    Подробнее
-                                                </button>
+                                                
+                                                <!-- Инвестиции и адрес -->
+                                                <div class="space-y-2 text-base mb-3">
+                                                    <div v-if="project.total_investment" class="flex items-center justify-between">
+                                                        <div class="flex items-center gap-1.5" :style="{ color: colors.white80 }">
+                                                            <TrendingUp class="w-3.5 h-3.5" />
+                                                            <span>Инвестиции:</span>
+                                                        </div>
+                                                        <span class="font-semibold" :style="{ color: colors.white }">{{ formatNumber(project.total_investment) }} ₽</span>
+                                                    </div>
+                                                    <div v-if="project.count_new_job" class="flex items-center justify-between">
+                                                        <div class="flex items-center gap-1.5" :style="{ color: colors.white80 }">
+                                                            <Users class="w-3.5 h-3.5" />
+                                                            <span>Рабочих мест:</span>
+                                                        </div>
+                                                        <span class="font-semibold" :style="{ color: colors.white }">{{ formatNumber(project.count_new_job) }}</span>
+                                                    </div>
+                                                    <div v-if="project.address" class="flex items-start gap-1.5">
+                                                        <MapPin class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" :style="{ color: colors.white80 }" />
+                                                        <span class="text-base leading-relaxed line-clamp-2" :style="{ color: colors.white80 }">{{ project.address }}</span>
+                                                    </div>
+                                                    <div v-if="project.activity" class="flex items-center gap-1.5">
+                                                        <Briefcase class="w-3.5 h-3.5 flex-shrink-0" :style="{ color: colors.white80 }" />
+                                                        <span class="text-base" :style="{ color: colors.white80 }">{{ project.activity }}</span>
+                                                    </div>
+                                                </div>
+                                            
                                             </div>
                                         </div>
                                     </div>

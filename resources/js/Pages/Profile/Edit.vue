@@ -8,6 +8,11 @@ import { usePage } from '@inertiajs/vue3';
 import InfoProfile from '@/Components/Main/InfoProfile.vue';
 import TitlePage from '@/Layouts/TitlePage.vue';
 
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
+const colors = {
+    page: 'var(--color-page)',
+};
+
 const user = usePage().props.auth.user;
 
 const props = defineProps({
@@ -26,9 +31,6 @@ const props = defineProps({
         default: null,
     },
 });
-
-// Изменен цвет фона
-const mainColor = "#436343";
 </script>
 
 <template>
@@ -38,15 +40,17 @@ const mainColor = "#436343";
 
     <AuthenticatedLayout>
         <template #header>
-            <TitlePage value="Личный кабинет"></TitlePage>
+            <TitlePage value="Личный кабинет" />
         </template>
 
-        <div :style="{ backgroundColor: mainColor }" class="relative h-max z-0 mx-auto py-6 px-4 sm:px-10 lg:px-16">
-            <InfoProfile 
-                :user="user"
-                :favoriteProjects="favoriteProjects"
-                :myProjects="myProjects"
-            />
+        <div class="min-h-screen" :style="{ backgroundColor: colors.page }">
+            <div class="mx-auto py-6 px-4 sm:px-10 lg:px-16">
+                <InfoProfile 
+                    :user="user"
+                    :favoriteProjects="favoriteProjects"
+                    :myProjects="myProjects"
+                />
+            </div>
         </div>
     </AuthenticatedLayout>
 </template>

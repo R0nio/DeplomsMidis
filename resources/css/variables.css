@@ -1,0 +1,95 @@
+:root {
+    /* ===== ЦВЕТА — деловая постельная палитра ===== */
+
+    /* Основной бренд — глубокий синий, авторитет */
+    --color-brand: #144d68;
+
+    /* Тёмный акцент для навигации, футера */
+    --color-brand-dark: #072836;
+
+    /* Главный акцент — приглушённая бронза, выделяется */
+    --color-accent: #9c7948;
+
+    /* Фокус — усиленный акцент, чёткая обводка */
+    --color-focus: #A07D4F;
+
+    /* Hover — спокойный teal, не сливается с brand */
+    --color-hover: #3A7A89;
+
+    /* Фон страницы — тёплый светлый */
+    --color-page: #dbdad1;
+
+    /* Поверхности — чистый белый для карточек и форм */
+    --color-surface: #FFFFFF;
+
+    /* Светлая подложка — прохладная, чётко отделяется от page */
+    --color-light: #E4EBED;
+
+    /* Вторичная подложка — ещё светлее, для разделения секций */
+    --color-muted: #EDF1F3;
+
+    /* Основной текст — тёмный, контрастный */
+    --color-text: #102A36;
+
+    /* Вторичный текст — приглушённый, но читаемый */
+    --color-text-muted: #4A6169;
+
+    /* Очень мягкий текст — подписи, плейсхолдеры */
+    --color-text-soft: #6E8289;
+
+    /* Границы — чёткие, не размытые */
+    --color-border: #CBD8DB;
+
+    /* Разделители — светлее границ */
+    --color-divider: #D8E3E6;
+
+    /* Ошибки — деловой красный */
+    --color-error: #B91C1C;
+
+    /* Успех — спокойный зелёный */
+    --color-success: #1A6B45;
+
+    /* Информация — нейтральный синий */
+    --color-info: #1D6FA4;
+
+    --color-white: #FFFFFF;
+
+    /* ===== ТЕНИ ===== */
+    --shadow-sm: 0 1px 3px rgba(11, 51, 68, 0.07);
+    --shadow-md: 0 6px 16px -8px rgba(11, 51, 68, 0.22);
+    --shadow-lg: 0 16px 34px -18px rgba(11, 51, 68, 0.30);
+    --shadow-xl: 0 28px 60px -30px rgba(11, 51, 68, 0.40);
+
+    /* ===== ШРИФТЫ ===== */
+    /* --font-brand: 'Lighthaus', 'Oranienbaum', Georgia, serif;
+    --font-heading: 'Oranienbaum', Georgia, serif;
+    --font-body: 'CalvinoVar', Georgia, 'Times New Roman', serif; */
+
+    /* ===== РАЗМЕРЫ ШРИФТОВ — УВЕЛИЧЕННЫЕ ===== */
+    --text-xs:   1rem;      /* 16px — подписи, метки */
+    --text-sm:   1.125rem;  /* 18px — вторичный текст */
+    --text-base: 1.25rem;   /* 20px — основной текст */
+    --text-md:   1.375rem;  /* 22px — акцентированный текст */
+    --text-lg:   1.5rem;    /* 24px — важный текст */
+    --text-xl:   1.75rem;   /* 28px — подзаголовки */
+    --text-2xl:  2rem;      /* 32px — заголовки секций */
+    --text-3xl:  2.5rem;    /* 40px — крупные заголовки */
+    --text-4xl:  3.5rem;    /* 56px — Hero заголовки */
+
+    /* ===== LINE HEIGHT ===== */
+    --leading-tight:   1.2;
+    --leading-normal:  1.65;
+    --leading-relaxed: 1.75;
+
+    /* ===== РАДИУСЫ ===== */
+    --radius-sm:   0.375rem;
+    --radius-md:   0.5rem;
+    --radius-lg:   0.75rem;
+    --radius-xl:   1rem;
+    --radius-2xl:  1.5rem;
+
+    /* ===== АНИМАЦИИ ===== */
+    --transition-fast:   0.15s ease;
+    --transition-normal: 0.2s ease;
+    --transition-slow:   0.3s ease;
+}

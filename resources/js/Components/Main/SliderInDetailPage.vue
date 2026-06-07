@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
+import sliderFallback from "../../../images/LogoInvestProject.png";
 
 const props = defineProps({
     photos: {
@@ -54,12 +55,17 @@ const handleImageError = (index) => {
 
 const getImageSrc = (photo, index) => {
     if (imageError.value[index]) {
-        return '/images/placeholder.jpg';
+        return sliderFallback;
     }
     if (photo && photo.src) {
         return photo.src;
     }
-    return '/images/placeholder.jpg';
+    return sliderFallback;
+};
+
+// Проверка, является ли изображение заглушкой
+const isPlaceholder = (photo, index) => {
+    return !photo.src || photo.src === 'null' || photo.src === 'undefined' || imageError.value[index];
 };
 
 // Переход к проекту
@@ -101,7 +107,7 @@ onUnmounted(() => {
         ref="sliderRef"
     >
         <!-- Слайды -->
-        <div class="relative h-[500px] sm:h-[600px] md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden rounded-xl bg-gray-100">
+        <div class="relative h-[500px] sm:h-[600px] md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden rounded-xl bg-gradient-to-br from-hover/10 to-hover/5">
             <div 
                 v-for="(photo, index) in photos" 
                 :key="index"
@@ -118,15 +124,26 @@ onUnmounted(() => {
                     tabindex="0"
                     :aria-label="`Перейти к проекту, фото ${index + 1} из ${photos.length}`"
                 >
+                    <!-- Для обычных фото -->
                     <img 
+                        v-if="!isPlaceholder(photo, index)"
                         :src="getImageSrc(photo, index)"
                         @error="() => handleImageError(index)"
-                        class="w-full h-full transition-transform duration-300"
-                        :class="(!photo.src || photo.src === 'null' || photo.src === 'undefined' || imageError[index]) ? 'object-contain' : 'object-cover'"
-                        :style="(!photo.src || photo.src === 'null' || photo.src === 'undefined' || imageError[index]) ? 'max-width: 100%; max-height: 100%; width: auto; height: auto;' : ''"
+                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         :alt="photo.alt || `Фото проекта ${index + 1}`"
                         loading="lazy"
                     >
+                    <!-- Для заглушки (логотипа) -->
+                    <div 
+                        v-else
+                        class="flex items-center justify-center w-full h-full bg-brand"
+                    >
+                        <img 
+                            :src="sliderFallback"
+                            alt="Логотип проекта"
+                            class="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] md:max-w-[180px] md:max-h-[180px] object-contain opacity-60"
+                        >
+                    </div>
                 </div>
             </div>
         </div>
@@ -137,7 +154,7 @@ onUnmounted(() => {
                 v-for="(photo, index) in photos" 
                 :key="index"
                 type="button" 
-                class="rounded-full w-2.5 h-2.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#F8D794]"
+                class="rounded-full w-2.5 h-2.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent"
                 :class="index === currentSlide ? 'bg-white w-4 h-2.5' : 'bg-white/50 hover:bg-white/80'"
                 :aria-current="index === currentSlide ? 'true' : 'false'"
                 :aria-label="`Перейти к слайду ${index + 1}`"
@@ -168,7 +185,7 @@ onUnmounted(() => {
         <button 
             v-if="photos.length > 1"
             type="button"
-            class="absolute rounded-xl top-0 end-0 z-30 flex items-center justify-center h-full px-3 cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-300 "
+            class="absolute rounded-xl top-0 end-0 z-30 flex items-center justify-center h-full px-3 cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-300"
             @click="nextSlide"
             @keydown.enter="nextSlide"
             aria-label="Следующий слайд"
@@ -188,6 +205,7 @@ onUnmounted(() => {
 [data-carousel-item] {
     transition: opacity 0.5s ease-in-out;
 }
+
 /* Адаптивные кнопки на мобильных */
 @media (max-width: 640px) {
     button span {

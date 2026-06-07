@@ -5,18 +5,23 @@ import axios from 'axios';
 import slider3 from "../../../images/LogoInvestProject.png";
 import favoriteActiveIcon from "../../../images/FavoriteActivity.png";
 
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
 const colors = {
-    bgPage: '#436343',
-    bgLight: '#809076',
-    bgDark: '#284139',
-    bgImage: '#4a7a6a',
-    accent: '#F8D794',
-    border: '#886830',
-    textLight: '#e8f0ee',
-    textDark: '#111A19',
-    white: '#ffffff',
-    white80: 'rgba(255, 255, 255, 0.8)',
+    brand: 'var(--color-brand)',
+    accent: 'var(--color-accent)',
+    hover: 'var(--color-hover)',
+    white: 'var(--color-white)',
+    page: 'var(--color-page)',
+    white70: 'rgba(255, 255, 255, 0.7)',
     white60: 'rgba(255, 255, 255, 0.6)',
+};
+
+const fonts = {
+    heading: 'var(--font-heading)',
+};
+
+const transitions = {
+    normal: 'var(--transition-normal)',
 };
 
 const props = defineProps({
@@ -30,19 +35,29 @@ const page = usePage();
 const userRole = computed(() => page.props.auth?.user?.role ?? null);
 const user = computed(() => page.props.auth?.user ?? null);
 
-// Изображение
+const imageLoading = ref(true);
 const imageError = ref(false);
-const handleImageError = () => { imageError.value = true; };
 
-const isPlaceholder = computed(() => currentImage.value === slider3 || imageError.value);
+const hasPhotos = computed(() => {
+    return props.project.photos && props.project.photos.length > 0;
+});
 
-const currentImage = computed(() => {
+const getProjectImage = () => {
     if (imageError.value) return slider3;
-    if (props.project?.photos && props.project.photos.length > 0) {
-        return `/storage/${props.project.photos[0].photo_path}`;
+    if (hasPhotos.value) {
+        const photoPath = props.project.photos[0].photo_path;
+        if (photoPath && photoPath.startsWith('/')) return photoPath;
+        return `/storage/${photoPath}`;
     }
     return slider3;
-});
+};
+
+const handleImageLoad = () => { imageLoading.value = false; };
+const handleImageError = (event) => {
+    imageError.value = true;
+    imageLoading.value = false;
+    event.target.src = slider3;
+};
 
 const formatNumber = (number) => {
     if (!number) return '0';
@@ -53,152 +68,97 @@ const goToProject = () => {
     router.visit(route('projects.show', props.project.id));
 };
 
-// Для избранных всегда true
 const isFavorite = ref(true);
 
-// Удаление из избранного
 const toggleFavorite = async (event) => {
     event.preventDefault();
     event.stopPropagation();
-
-    if (!confirm('Удалить проект из избранного?')) {
-        return;
-    }
-
+    if (!confirm('Удалить проект из избранного?')) return;
     try {
         const response = await axios.post(route('favorites.toggle', props.project.id));
-        if (response.data.success) {
-            router.reload();
-        }
+        if (response.data.success) router.reload();
     } catch (error) {
         console.error('Ошибка при удалении из избранного:', error);
     }
 };
 
-// Прогресс сбора
 const progress = computed(() => {
     const collected = Number(props.project.collected_total_investment) || 0;
     const total = Number(props.project.total_investment) || 1;
     return (collected / total) * 100;
 });
 
-// Категории (первые 2)
 const firstCategories = computed(() => {
     if (!props.project.category) return [];
     try {
-        const cats = Array.isArray(props.project.category)
-            ? props.project.category
-            : JSON.parse(props.project.category);
+        const cats = Array.isArray(props.project.category) ? props.project.category : JSON.parse(props.project.category);
         return cats.slice(0, 2);
-    } catch {
-        return [];
-    }
+    } catch { return []; }
 });
 </script>
 
 <template>
     <article 
-        class="h-full flex flex-col rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl group relative"
-        :style="{ backgroundColor: colors.bgDark, border: `1px solid ${colors.border}` }"
-        :aria-label="`Карточка проекта: ${project.title}`"
+        class="h-full flex flex-col rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl group relative cursor-pointer"
+        :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, transition: transitions.normal }"
+        @click="goToProject"
+        @keydown.enter="goToProject"
+        @keydown.space.prevent="goToProject"
+        role="button"
+        tabindex="0"
+        :aria-label="`Карточка проекта: ${project.title}. Нажмите для подробностей`"
     >
-        <!-- Кнопка удаления из избранного (угол карточки) -->
-        <div class="absolute top-3 right-3 z-10">
+        <!-- Кнопка избранного -->
+        <div class="absolute top-3 right-3 z-10" @click.stop>
             <button 
-                @click.stop="toggleFavorite"
+                @click="toggleFavorite" 
                 class="cursor-pointer p-2 rounded-full transition-all hover:scale-110"
-                :style="{ backgroundColor: colors.bgDark, border: `1px solid ${colors.border}` }"
-                :aria-label="`Удалить проект ${project.title} из избранного`"
+                :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}` }"
+                :aria-label="`Удалить проект ${project.title} из избранного`" 
                 title="Удалить из избранного"
             >
-                <img 
-                    :src="favoriteActiveIcon" 
-                    alt="" 
-                    class="w-5 h-5"
-                    aria-hidden="true"
-                >
+                <img :src="favoriteActiveIcon" alt="" class="w-5 h-5" aria-hidden="true">
             </button>
         </div>
 
-        <!-- Изображение -->
-        <div 
-            @click="goToProject"
-            @keydown.enter="goToProject"
-            @keydown.space.prevent="goToProject"
-            class="aspect-video w-full overflow-hidden cursor-pointer"
-            role="button"
-            tabindex="0"
-            :aria-label="`Перейти к проекту ${project.title}`"
-        >
+        <!-- Блок с изображением -->
+        <div class="relative aspect-video w-full overflow-hidden" :style="{ backgroundImage: `linear-gradient(to bottom right, ${colors.hover}30, ${colors.hover}10)` }">
+            <div v-if="imageLoading && !imageError && hasPhotos" class="absolute inset-0 flex items-center justify-center z-10" :style="{ backgroundColor: colors.brand + '80' }">
+                <svg class="animate-spin w-6 h-6" :style="{ color: colors.accent }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            
             <img 
-                :src="currentImage"
-                @error="handleImageError"
-                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                v-if="hasPhotos && !imageError"
+                :src="getProjectImage()" 
                 :alt="`Изображение проекта ${project.title}`"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
+                @load="handleImageLoad"
+                @error="handleImageError"
             >
+            
+            <div v-if="!hasPhotos || imageError" class="absolute inset-0 flex items-center justify-center" :style="{ backgroundColor: colors.hover }">
+                <img :src="slider3" alt="Логотип проекта" class="w-[60%] h-[60%] object-contain opacity-60">
+            </div>
         </div>
 
         <!-- Контент -->
-        <div 
-            class="p-4 flex flex-col gap-3 cursor-pointer"
-            @click="goToProject"
-            @keydown.enter="goToProject"
-            @keydown.space.prevent="goToProject"
-            role="button"
-            tabindex="0"
-            :aria-label="`Подробнее о проекте ${project.title}`"
-        >
-            <!-- Категории -->
+        <div class="p-4 flex flex-col gap-3">
             <div class="flex flex-wrap gap-2">
-                <span 
-                    v-for="cat in firstCategories" 
-                    :key="cat"
-                    class="px-2 py-0.5 text-xs font-medium rounded-full"
-                    :style="{ backgroundColor: colors.bgLight, color: colors.white }"
-                >
-                    {{ cat }}
-                </span>
+                <span v-for="cat in firstCategories" :key="cat" class="px-2 py-0.5 text-base font-medium rounded-full" :style="{ backgroundColor: colors.accent, color: colors.white }">{{ cat }}</span>
             </div>
-
-            <!-- Название -->
-            <h3 class="font-semibold text-base line-clamp-2" :style="{ color: colors.white }">
-                {{ project.title }}
-            </h3>
-
-            <!-- Адрес -->
-            <p class="text-xs line-clamp-1" :style="{ color: colors.white80 }">
-                {{ project.address || 'Адрес не указан' }}
-            </p>
-
-            <!-- Прогресс -->
+            <h3 class="font-heading font-semibold text-base line-clamp-2" :style="{ color: colors.white, fontFamily: fonts.heading }">{{ project.title }}</h3>
+            <p class="text-base line-clamp-1" :style="{ color: colors.white }">{{ project.address || 'Адрес не указан' }}</p>
             <div>
-                <div class="flex justify-between text-xs mb-1">
-                    <span :style="{ color: colors.white80 }">Собрано</span>
-                    <span class="font-semibold" :style="{ color: colors.accent }">{{ Math.min(progress, 100).toFixed(0) }}%</span>
-                </div>
-                <div class="w-full h-2 rounded-full overflow-hidden" :style="{ backgroundColor: colors.border }">
-                    <div 
-                        class="h-full rounded-full transition-all"
-                        :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"
-                    ></div>
-                </div>
+                <div class="flex justify-between text-base mb-1"><span :style="{ color: colors.white }">Собрано</span><span class="font-semibold" :style="{ color: colors.page }">{{ Math.min(progress, 100).toFixed(0) }}%</span></div>
+                <div class="w-full h-2 rounded-full overflow-hidden" :style="{ backgroundColor: colors.page }"><div class="h-full rounded-full transition-all" :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"></div></div>
             </div>
-
-            <!-- Показатели -->
-            <div class="grid grid-cols-2 gap-3 text-sm pt-1">
-                <div>
-                    <p class="text-xs" :style="{ color: colors.white80 }">Требуется</p>
-                    <p class="font-semibold text-sm" :style="{ color: colors.white }">
-                        {{ (Number(project.total_investment) / 1000000).toFixed(1) }} млн ₽
-                    </p>
-                </div>
-                <div>
-                    <p class="text-xs" :style="{ color: colors.white80 }">Рабочих мест</p>
-                    <p class="font-semibold text-sm" :style="{ color: colors.white }">
-                        {{ project.count_new_job || '—' }}
-                    </p>
-                </div>
+            <div class="grid grid-cols-2 gap-3 text-base pt-1">
+                <div><p class="text-base" :style="{ color: colors.white }">Требуется</p><p class="font-semibold text-base" :style="{ color: colors.white }">{{ (Number(project.total_investment) / 1000000).toFixed(1) }} млн ₽</p></div>
+                <div><p class="text-base" :style="{ color: colors.white }">Рабочих мест</p><p class="font-semibold text-base" :style="{ color: colors.white }">{{ project.count_new_job || '—' }}</p></div>
             </div>
         </div>
     </article>

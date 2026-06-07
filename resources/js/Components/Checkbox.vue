@@ -1,34 +1,38 @@
 <script setup>
 import { computed } from 'vue';
 
-const emit = defineEmits(['update:checked']);
+// ===== ЦВЕТА КОМПОНЕНТА =====
+const colors = {
+    light: 'var(--color-light)',
+    accent: 'var(--color-accent)',
+    focus: 'var(--color-focus)',
+    focusRing: 'var(--color-focus-ring)',
+};
 
 const props = defineProps({
     checked: {
-        type: [Array, Boolean],
-        required: true,
-    },
-    value: {
-        default: null,
+        type: Boolean,
+        default: false,
     },
 });
 
-const proxyChecked = computed({
-    get() {
-        return props.checked;
-    },
+const emit = defineEmits(['update:checked']);
 
-    set(val) {
-        emit('update:checked', val);
-    },
+const model = computed({
+    get: () => props.checked,
+    set: (value) => emit('update:checked', value),
 });
 </script>
 
 <template>
     <input
         type="checkbox"
-        :value="value"
-        v-model="proxyChecked"
-        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+        v-model="model"
+        class="rounded focus:ring-2 h-4 w-4"
+        :style="{ 
+            borderColor: colors.light, 
+            accentColor: colors.accent,
+            ringColor: colors.focus
+        }"
     />
 </template>

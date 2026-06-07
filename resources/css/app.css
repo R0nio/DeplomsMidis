@@ -1,45 +1,46 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-/* Стили для доступности */
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-}
+@import './variables.css';
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
-.skip-to-main {
-    position: absolute;
-    top: -40px;
-    left: 0;
-    background: #F8D794;
-    color: #284139;
-    padding: 8px 16px;
-    text-decoration: none;
-    z-index: 1001;
-}
+/* Подключение шрифтов */
+@import url('https://fonts.googleapis.com/css2?family=Oranienbaum&display=swap');
 
-.skip-to-main:focus {
-    top: 0;
-}
-
-/* Фокус с клавиатуры */
-*:focus-visible {
-    outline: 3px solid #F8D794 !important;
-    outline-offset: 2px !important;
-    border-radius: 4px !important;
-}
-
-/* Шрифт для дислексиков */
 @font-face {
-    font-family: 'OpenDyslexic';
-    src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/otf/OpenDyslexic-Regular.otf') format('opentype');
+    font-family: 'Lighthaus';
+    src: url('/fonts/Lighthaus.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'CalvinoVar';
+    src: url('/fonts/CalvinoVar.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Применение глобальных шрифтов */
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-page);
+    color: var(--color-brand);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+}
+
+/* Утилиты для Tailwind */
+@layer utilities {
+    .text-brand { color: var(--color-brand); }
+    .text-accent { color: var(--color-accent); }
+    .bg-brand { background-color: var(--color-brand); }
+    .bg-accent { background-color: var(--color-accent); }
+    .bg-light { background-color: var(--color-light); }
+    .bg-page { background-color: var(--color-page); }
+    .border-accent { border-color: var(--color-accent); }
+    .border-hover { border-color: var(--color-hover); }
 }

@@ -11,6 +11,38 @@ import { MaskInput } from 'vue-mask-next';
 import { ref, watch } from 'vue';
 import logo from "../../../images/LogoInvestProject.png";
 
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
+const colors = {
+    brand: 'var(--color-brand)',
+    brandDark: 'var(--color-brand-dark)',
+    accent: 'var(--color-accent)',
+    hover: 'var(--color-hover)',
+    page: 'var(--color-page)',
+    surface: 'var(--color-surface)',
+    light: 'var(--color-light)',
+    white: 'var(--color-white)',
+    white80: 'rgba(255, 255, 255, 0.8)',
+    white10: 'rgba(255, 255, 255, 0.1)',
+    error: 'var(--color-error)',
+    success: 'var(--color-success)',
+    text: 'var(--color-text)',
+    textMuted: 'var(--color-text-muted)',
+    textSoft: 'var(--color-text-soft)',
+};
+
+const fonts = {
+    heading: 'var(--font-heading)',
+    body: 'var(--font-body)',
+};
+
+const shadows = {
+    xl: 'var(--shadow-xl)',
+};
+
+const transitions = {
+    normal: 'var(--transition-normal)',
+};
+
 const form = useForm({
     name: '',
     middlename: '',
@@ -25,11 +57,9 @@ const form = useForm({
     acceptPersonalDate: false,
 });
 
-// Состояние валидации телефона
 const isPhoneValid = ref(true);
 const phoneError = ref('');
 
-// Валидация телефона
 const validatePhone = (phone) => {
     if (!phone) {
         isPhoneValid.value = false;
@@ -37,7 +67,6 @@ const validatePhone = (phone) => {
         return false;
     }
     
-    // Проверка формата +7 (XXX) XXX-XX-XX
     const phoneRegex = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
     if (!phoneRegex.test(phone)) {
         isPhoneValid.value = false;
@@ -45,7 +74,6 @@ const validatePhone = (phone) => {
         return false;
     }
     
-    // Проверка что все цифры введены (нет символов _)
     if (phone.includes('_')) {
         isPhoneValid.value = false;
         phoneError.value = 'Пожалуйста, заполните все цифры номера телефона';
@@ -57,13 +85,11 @@ const validatePhone = (phone) => {
     return true;
 };
 
-// Следим за изменением номера телефона
 watch(() => form.number, (newValue) => {
     validatePhone(newValue);
 });
 
 const submit = () => {
-    // Валидация телефона перед отправкой
     if (!validatePhone(form.number)) {
         return;
     }
@@ -74,9 +100,8 @@ const submit = () => {
 };
 
 const roleOptions = [
-    { value: '', label: 'Выберите роль' },
     { value: 'Investor', label: 'Инвестор' },
-    { value: 'Organisator', label: 'Организатор (Инициатор проекта)' },
+    { value: 'Organisator', label: 'Инициатор' },
 ];
 </script>
 
@@ -86,16 +111,15 @@ const roleOptions = [
             <meta name="description" content="Регистрация на инвестиционной платформе InvestProject">
         </Head>
 
-        <!-- Контейнер с двумя колонками -->
-        <div class="flex flex-col lg:flex-row min-h-[700px] lg:min-h-[800px] rounded-2xl overflow-hidden" :style="{ backgroundColor: '#284139', border: `2px solid #886830` }">
+        <div class="flex flex-col lg:flex-row min-h-[700px] lg:min-h-[800px] rounded-2xl overflow-hidden shadow-xl" :style="{ backgroundColor: colors.surface, border: `1px solid ${colors.hover}`, boxShadow: shadows.xl }">
             
             <!-- Левая колонка - форма регистрации -->
-            <div class="w-full lg:w-1/2 p-6 lg:p-8 overflow-y-auto" role="main" aria-labelledby="register-title">
+            <div class="w-full lg:w-1/2 p-6 lg:p-8 overflow-y-auto" :style="{ backgroundColor: colors.light }" role="main" aria-labelledby="register-title">
                 <form @submit.prevent="submit" class="flex flex-col gap-4" aria-label="Форма регистрации">
                     <h1 
                         id="register-title" 
-                        class="text-center text-3xl font-bold mb-4" 
-                        style="color: #F8D794"
+                        class="text-center text-3xl lg:text-4xl font-heading font-bold mb-2"
+                        :style="{ color: colors.brand, fontFamily: fonts.heading }"
                         tabindex="0"
                         role="heading"
                         aria-level="1"
@@ -103,20 +127,18 @@ const roleOptions = [
                         Регистрация
                     </h1>
                     
-                    <!-- Строка ФИО (Фамилия, Имя, Отчество в одну строку) -->
+                    <!-- ФИО в одну строку -->
                     <div>
-                        <InputLabel value="ФИО" style="color: #F8D794" />
+                        <InputLabel value="ФИО" />
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-1">
                             <div>
                                 <TextInput
-                                    id="middlename"
                                     type="text"
                                     placeholder="Фамилия"
                                     class="block w-full"
                                     v-model="form.middlename"
                                     required
-                                    autocomplete="family-name"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                                    :class="{ 'border-red-500': form.errors.middlename }"
                                     aria-label="Введите вашу фамилию"
                                     aria-required="true"
                                     :aria-invalid="!!form.errors.middlename"
@@ -125,14 +147,12 @@ const roleOptions = [
                             </div>
                             <div>
                                 <TextInput
-                                    id="name"
                                     type="text"
                                     placeholder="Имя"
                                     class="block w-full"
                                     v-model="form.name"
                                     required
-                                    autocomplete="given-name"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                                    :class="{ 'border-red-500': form.errors.name }"
                                     aria-label="Введите ваше имя"
                                     aria-required="true"
                                     :aria-invalid="!!form.errors.name"
@@ -141,13 +161,11 @@ const roleOptions = [
                             </div>
                             <div>
                                 <TextInput
-                                    id="lastname"
                                     type="text"
                                     placeholder="Отчество"
                                     class="block w-full"
                                     v-model="form.lastname"
-                                    autocomplete="additional-name"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                                    :class="{ 'border-red-500': form.errors.lastname }"
                                     aria-label="Введите ваше отчество"
                                     :aria-invalid="!!form.errors.lastname"
                                 />
@@ -156,20 +174,18 @@ const roleOptions = [
                         </div>
                     </div>
 
-                    <!-- Строка Email и Телефон в одну строку -->
+                    <!-- Email и телефон в одну строку -->
                     <div>
-                        <InputLabel value="Контактные данные" style="color: #F8D794" />
+                        <InputLabel value="Контактные данные" />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
                             <div>
                                 <TextInput
-                                    id="email"
                                     type="email"
                                     placeholder="Электронная почта"
                                     class="block w-full"
                                     v-model="form.email"
                                     required
-                                    autocomplete="email"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                                    :class="{ 'border-red-500': form.errors.email }"
                                     aria-label="Введите ваш email"
                                     aria-required="true"
                                     :aria-invalid="!!form.errors.email"
@@ -177,19 +193,26 @@ const roleOptions = [
                                 <InputError class="mt-1" :message="form.errors.email" role="alert" />
                             </div>
                             <div>
-                                <MaskInput 
-                                    v-model="form.number" 
+                                <MaskInput
+                                    v-model="form.number"
                                     mask="+7 (###) ###-##-##"
                                     placeholder="+7 (___) ___-__-__"
                                     required
-                                    class="mt-1 block w-full h-12 rounded-xl"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white;"
-                                    :class="{ 'border-red-500': !isPhoneValid && form.number }"
+                                    class="block w-full h-12 rounded-xl px-4 shadow-sm transition-all duration-200 outline-none"
+                                    :style="{ 
+                                        border: `1px solid ${colors.light}`, 
+                                        backgroundColor: colors.page, 
+                                        color: colors.brand,
+                                        transition: transitions.normal
+                                    }"
+                                    :class="{
+                                        'ring-2 ring-red-400': (!isPhoneValid && form.number) || form.errors.number,
+                                    }"
                                     aria-label="Введите номер телефона в формате +7 (XXX) XXX-XX-XX"
                                     aria-required="true"
                                     :aria-invalid="!isPhoneValid"
                                 />
-                                <p v-if="phoneError && form.number" class="text-red-500 text-xs mt-1" role="alert">
+                                <p v-if="phoneError && form.number" class="text-xs mt-1" :style="{ color: colors.error }" role="alert">
                                     {{ phoneError }}
                                 </p>
                                 <InputError class="mt-1" :message="form.errors.number" role="alert" />
@@ -199,15 +222,14 @@ const roleOptions = [
 
                     <!-- Логин -->
                     <div>
-                        <InputLabel for="login" value="Логин" style="color: #F8D794" />
+                        <InputLabel for="login" value="Логин" />
                         <TextInput
                             id="login"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.login"
                             required
-                            autocomplete="username"
-                            style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                            :class="{ 'border-red-500': form.errors.login }"
                             aria-label="Придумайте логин"
                             aria-required="true"
                             :aria-invalid="!!form.errors.login"
@@ -217,15 +239,14 @@ const roleOptions = [
 
                     <!-- Роль -->
                     <div>
-                        <InputLabel for="role" value="Ваша роль" style="color: #F8D794" />
+                        <InputLabel for="role" value="Ваша роль" />
                         <Select
                             id="role"
-                            class="mt-1 block w-full rounded-xl"
+                            class="mt-1 block w-full rounded-lg"
                             v-model="form.role"
                             :options="roleOptions"
                             required
-                            style="background-color: #1a2d24; border: 2px solid #886830; color: white;"
-                            aria-label="Выберите вашу роль на платформе"
+                            aria-label="Выберите вашу роль на платформе 1 Инвестор 2 Инициатор"
                             aria-required="true"
                             :aria-invalid="!!form.errors.role"
                         />
@@ -234,14 +255,13 @@ const roleOptions = [
 
                     <!-- Название организации (только для организатора) -->
                     <div v-if="form.role === 'Organisator'">
-                        <InputLabel for="organization_name" value="Название организации" style="color: #F8D794" />
+                        <InputLabel for="organization_name" value="Название организации" />
                         <TextInput
                             id="organization_name"
                             type="text"
                             class="mt-1 block w-full"
                             v-model="form.organization_name"
-                            autocomplete="organization"
-                            style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                            :class="{ 'border-red-500': form.errors.organization_name }"
                             aria-label="Введите название вашей организации"
                             :aria-invalid="!!form.errors.organization_name"
                         />
@@ -250,18 +270,16 @@ const roleOptions = [
 
                     <!-- Пароль и подтверждение в одну строку -->
                     <div>
-                        <InputLabel value="Пароль" style="color: #F8D794" />
+                        <InputLabel value="Пароль" />
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
                             <div>
                                 <TextInput
-                                    id="password"
                                     type="password"
                                     placeholder="Пароль"
                                     class="block w-full"
                                     v-model="form.password"
                                     required
-                                    autocomplete="new-password"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                                    :class="{ 'border-red-500': form.errors.password }"
                                     aria-label="Придумайте пароль"
                                     aria-required="true"
                                     :aria-invalid="!!form.errors.password"
@@ -270,14 +288,12 @@ const roleOptions = [
                             </div>
                             <div>
                                 <TextInput
-                                    id="password_confirmation"
                                     type="password"
                                     placeholder="Подтвердите пароль"
                                     class="block w-full"
                                     v-model="form.password_confirmation"
                                     required
-                                    autocomplete="new-password"
-                                    style="background-color: #1a2d24; border: 2px solid #886830; color: white; border-radius: 12px;"
+                                    :class="{ 'border-red-500': form.errors.password_confirmation }"
                                     aria-label="Повторите пароль"
                                     aria-required="true"
                                     :aria-invalid="!!form.errors.password_confirmation"
@@ -289,124 +305,68 @@ const roleOptions = [
 
                     <!-- Согласие -->
                     <div class="mt-2">
-                        <label class="flex items-center cursor-pointer" aria-label="Согласие на обработку персональных данных">
+                        <label class="flex items-center cursor-pointer gap-2" aria-label="Согласие на обработку персональных данных">
                             <Checkbox 
                                 name="acceptPersonalDate" 
                                 v-model:checked="form.acceptPersonalDate" 
                                 required 
-                                style="border-color: #886830"
                                 aria-required="true"
                             />
-                            <span class="ms-2 text-sm" style="color: #F8D794">Согласие на обработку персональных данных</span>
+                            <span class="text-sm" :style="{ color: colors.textMuted }">Согласие на обработку персональных данных</span>
                         </label>
                         <InputError class="mt-2" :message="form.errors.acceptPersonalDate" role="alert" />
                     </div>
 
-                    <div class="mt-4 flex flex-col">
-                        <PrimaryButton
-                            class="w-full flex justify-center py-3"
-                            :class="{ 'opacity-50': form.processing }"
-                            :disabled="form.processing || !isPhoneValid"
-                            style="background-color: #809076; border: 2px solid #886830; color: white; border-radius: 12px;"
-                            aria-label="Зарегистрироваться"
-                            :aria-disabled="form.processing || !isPhoneValid"
+                    <PrimaryButton
+                        class="w-full flex justify-center py-3 px-4 font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 mt-4"
+                        :class="{ 'opacity-50': form.processing }"
+                        :disabled="form.processing || !isPhoneValid"
+                        aria-label="Зарегистрироваться"
+                        :aria-disabled="form.processing || !isPhoneValid"
+                    >
+                        <span v-if="!form.processing">Зарегистрироваться</span>
+                        <span v-else class="flex items-center justify-center gap-2">
+                            <svg class="animate-spin h-5 w-5" :style="{ color: colors.white }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Регистрация...
+                        </span>
+                    </PrimaryButton>
+                    
+                    <p class="text-center text-sm" :style="{ color: colors.textMuted }">
+                        Уже зарегистрированы?
+                        <Link
+                            :href="route('login')"
+                            class="font-semibold transition-colors"
+                            :style="{ color: colors.accent }"
+                            @mouseenter="$event.target.style.color = colors.hover"
+                            @mouseleave="$event.target.style.color = colors.accent"
+                            aria-label="Перейти к авторизации"
                         >
-                            <span v-if="!form.processing">Зарегистрироваться</span>
-                            <span v-else class="flex items-center gap-2">
-                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Регистрация...
-                            </span>
-                        </PrimaryButton>
-                        
-                        <p class="text-center text-sm mt-3" style="color: #F8D794">
-                            Уже зарегистрированы?
-                            <Link
-                                :href="route('login')"
-                                class="font-semibold hover:opacity-80 transition-colors underline"
-                                style="color: #F8D794"
-                                aria-label="Перейти к авторизации"
-                            >
-                                Войти
-                            </Link>
-                        </p>
-                    </div>
+                            Войти
+                        </Link>
+                    </p>
                 </form>
             </div>
 
-            <!-- Правая колонка - логотип и информация -->
-            <div 
-                class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col items-center justify-center text-center"
-                :style="{ backgroundColor: '#1a2d24' }"
-                role="complementary"
-                aria-labelledby="brand-title"
-            >
-                <img 
-                    :src="logo" 
-                    alt="Логотип InvestProject - инвестиционная платформа" 
-                    class="w-48 lg:w-64 mb-6"
-                    aria-describedby="logo-description"
-                >
-                <h2 
-                    id="brand-title" 
-                    class="text-2xl lg:text-3xl font-bold mb-3" 
-                    style="color: #F8D794"
-                    tabindex="0"
-                    role="heading"
-                    aria-level="2"
-                >
-                    InvestProject
-                </h2>
-                <p 
-                    class="text-base lg:text-lg mb-4" 
-                    style="color: #e8f0ee"
-                    tabindex="0"
-                >
-                    Инвестиционная платформа для поиска проектов
-                </p>
+            <!-- Правая колонка - брендинг -->
+            <div class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col items-center justify-center text-center" :style="{ backgroundColor: colors.brand }" role="complementary" aria-labelledby="brand-title">
+                <div class="backdrop-blur-sm rounded-2xl p-8" :style="{ backgroundColor: colors.white10 }">
+                    <img 
+                        :src="logo" 
+                        alt="Логотип InvestProject - инвестиционная платформа" 
+                        class="w-48 lg:w-64 mb-6 mx-auto"
+                        aria-describedby="logo-description"
+                    >
+                    <h2 id="brand-title" class="text-3xl lg:text-4xl font-heading font-bold mb-3" :style="{ color: colors.white, fontFamily: fonts.heading }" tabindex="0" role="heading" aria-level="2">
+                        InvestProject
+                    </h2>
+                    <p class="text-base lg:text-lg" :style="{ color: colors.white80 }">
+                        Инвестиционная платформа для поиска проектов
+                    </p>
+                </div>
             </div>
         </div>
     </GuestLayout>
 </template>
-
-<style scoped>
-.animate-spin {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* Стили для скролла в левой колонке */
-.overflow-y-auto::-webkit-scrollbar {
-    width: 8px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-track {
-    background: #1a2d24;
-    border-radius: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #886830;
-    border-radius: 4px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #F8D794;
-}
-
-/* Стили для плейсхолдера */
-input::placeholder, .mask-input::placeholder {
-    color: #809076;
-    opacity: 0.7;
-}
-</style>

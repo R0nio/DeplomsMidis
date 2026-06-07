@@ -8,6 +8,34 @@ import { FwbSelect, FwbInput, FwbButton } from 'flowbite-vue';
 import SearchInput from "@/Components/Main/SearchInput.vue";
 import Paginate from "@/Components/Main/paginate.vue";
 
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
+const colors = {
+    brand: 'var(--color-brand)',
+    brandDark: 'var(--color-brand-dark)',
+    accent: 'var(--color-accent)',
+    hover: 'var(--color-hover)',
+    light: 'var(--color-light)',
+    muted: 'var(--color-muted)',
+    border: 'var(--color-border)',
+    white: 'var(--color-white)',
+    white80: 'rgba(255, 255, 255, 0.8)',
+    white60: 'rgba(255, 255, 255, 0.6)',
+    text: 'var(--color-text)',
+    textMuted: 'var(--color-text-muted)',
+};
+
+const fonts = {
+    heading: 'var(--font-heading)',
+};
+
+const shadows = {
+    sm: 'var(--shadow-sm)',
+};
+
+const transitions = {
+    normal: 'var(--transition-normal)',
+};
+
 const props = defineProps({
     user: {
         type: Object,
@@ -22,137 +50,82 @@ const props = defineProps({
         default: null,
     },
 });
-const colors = {
-    bgDark: '#284139',
-    bgLight: '#809076',
-    accent: '#F8D794',
-    border: '#886830',
-    white: '#ffffff',
-    white80: 'rgba(255, 255, 255, 0.8)',
-};
 
 const isFavoriteFiltering = ref(false);
 const isMyProjectsFiltering = ref(false);
 const srAnnouncement = ref('');
 
-/**
- * Объявление результатов для screen readers
- * @param {string} section 
- * @param {number} count 
- */
 const announceResults = (section, count) => {
     const word = count === 1 ? 'проект' : count < 5 ? 'проекта' : 'проектов';
     const sectionName = section === 'favorite' ? 'избранных' : 'ваших';
-    
-    setTimeout(() => {
-        srAnnouncement.value = '';
-    }, 3000);
+    srAnnouncement.value = `Найдено ${count} ${word} ${sectionName}`;
+    setTimeout(() => { srAnnouncement.value = ''; }, 3000);
 };
 
 const favoriteCurrentPage = ref(1);
 const myProjectsCurrentPage = ref(1);
-const itemsPerPage = 9; // 3x3 сетка
+const itemsPerPage = 9;
 
-const resetFavoritePage = () => {
-    favoriteCurrentPage.value = 1;
-};
-
-const resetMyProjectsPage = () => {
-    myProjectsCurrentPage.value = 1;
-};
+const resetFavoritePage = () => { favoriteCurrentPage.value = 1; };
+const resetMyProjectsPage = () => { myProjectsCurrentPage.value = 1; };
 
 const getLevenshteinDistance = (a, b) => {
     if (a.length === 0) return b.length;
     if (b.length === 0) return a.length;
-    
     const matrix = [];
-    for (let i = 0; i <= b.length; i++) {
-        matrix[i] = [i];
-    }
-    for (let j = 0; j <= a.length; j++) {
-        matrix[0][j] = j;
-    }
+    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
     for (let i = 1; i <= b.length; i++) {
         for (let j = 1; j <= a.length; j++) {
             const cost = a[j - 1] === b[i - 1] ? 0 : 1;
-            matrix[i][j] = Math.min(
-                matrix[i - 1][j] + 1,
-                matrix[i][j - 1] + 1,
-                matrix[i - 1][j - 1] + cost
-            );
+            matrix[i][j] = Math.min(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j - 1] + cost);
         }
     }
     return matrix[b.length][a.length];
 };
 
-/**
- * Проверка похожести слов
- */
 const isSimilarWord = (word1, word2) => {
     if (word1 === word2) return true;
     if (word1.includes(word2) || word2.includes(word1)) return true;
-    
     const maxLength = Math.max(word1.length, word2.length);
     const distance = getLevenshteinDistance(word1, word2);
     const similarity = (maxLength - distance) / maxLength;
-    
     return similarity > 0.7;
 };
 
-/**
- * Проверка соответствия поисковому запросу
- */
 const matchesSearch = (project, searchTerm) => {
     if (!searchTerm) return true;
-    
     const searchLower = searchTerm.toLowerCase().trim();
     if (searchLower === '') return true;
-    
     const title = (project.title || '').toLowerCase();
     const address = (project.address || '').toLowerCase();
-    
     if (title.includes(searchLower)) return true;
     if (address.includes(searchLower)) return true;
-    
     const titleWords = title.split(/\s+/);
     const addressWords = address.split(/\s+/);
     const searchWords = searchLower.split(/\s+/);
-    
     for (const searchWord of searchWords) {
         if (searchWord.length < 3) continue;
-        
         for (const titleWord of titleWords) {
             if (titleWord.length < 3) continue;
             if (isSimilarWord(titleWord, searchWord)) return true;
         }
-        
         for (const addressWord of addressWords) {
             if (addressWord.length < 3) continue;
             if (isSimilarWord(addressWord, searchWord)) return true;
         }
     }
-    
     return false;
 };
 
-/**
- * Проверка соответствия категории
- */
 const matchesCategory = (project, selectedCategory) => {
     if (!selectedCategory) return true;
     try {
-        const projectCats = Array.isArray(project.category) 
-            ? project.category 
-            : JSON.parse(project.category || '[]');
+        const projectCats = Array.isArray(project.category) ? project.category : JSON.parse(project.category || '[]');
         return projectCats.includes(selectedCategory);
-    } catch(e) {
-        return false;
-    }
+    } catch(e) { return false; }
 };
 
-/**
- * Проверка соответствия срока реализации
- */
 const matchesDateRealise = (project, selectedDateRealise) => {
     if (!selectedDateRealise) return true;
     const months = Number(project.number_date_realise);
@@ -165,6 +138,9 @@ const matchesDateRealise = (project, selectedDateRealise) => {
     }
 };
 
+// ==========================================
+// ИЗБРАННЫЕ ПРОЕКТЫ
+// ==========================================
 const favoriteSearchQuery = ref('');
 const favoriteSumFrom = ref('');
 const favoriteSumBefore = ref('');
@@ -175,44 +151,28 @@ const favoriteSelectedTypeBuild = ref('');
 const favoriteSelectedCategory = ref('');
 const favoriteSelectedDateRealise = ref('');
 
-// Временные значения для debounce
 const favoriteSumFromInput = ref('');
 const favoriteSumBeforeInput = ref('');
 const favoriteJobsFromInput = ref('');
 
-// Debounce для избранных
-let favoriteSumFromTimeout = null;
-let favoriteSumBeforeTimeout = null;
-let favoriteJobsFromTimeout = null;
+let favoriteSumFromTimeout = null, favoriteSumBeforeTimeout = null, favoriteJobsFromTimeout = null;
 
 watch(favoriteSumFromInput, (newValue) => {
     clearTimeout(favoriteSumFromTimeout);
     isFavoriteFiltering.value = true;
-    favoriteSumFromTimeout = setTimeout(() => {
-        favoriteSumFrom.value = newValue;
-        isFavoriteFiltering.value = false;
-    }, 500);
+    favoriteSumFromTimeout = setTimeout(() => { favoriteSumFrom.value = newValue; isFavoriteFiltering.value = false; }, 500);
 });
-
 watch(favoriteSumBeforeInput, (newValue) => {
     clearTimeout(favoriteSumBeforeTimeout);
     isFavoriteFiltering.value = true;
-    favoriteSumBeforeTimeout = setTimeout(() => {
-        favoriteSumBefore.value = newValue;
-        isFavoriteFiltering.value = false;
-    }, 500);
+    favoriteSumBeforeTimeout = setTimeout(() => { favoriteSumBefore.value = newValue; isFavoriteFiltering.value = false; }, 500);
 });
-
 watch(favoriteJobsFromInput, (newValue) => {
     clearTimeout(favoriteJobsFromTimeout);
     isFavoriteFiltering.value = true;
-    favoriteJobsFromTimeout = setTimeout(() => {
-        favoriteJobsFrom.value = newValue;
-        isFavoriteFiltering.value = false;
-    }, 500);
+    favoriteJobsFromTimeout = setTimeout(() => { favoriteJobsFrom.value = newValue; isFavoriteFiltering.value = false; }, 500);
 });
 
-// Динамические опции для избранных
 const favoriteIndustries = computed(() => {
     if (!props.favoriteProjects) return [{ value: '', name: 'Все отрасли' }];
     const unique = [...new Set(props.favoriteProjects.map(p => p.activity).filter(Boolean))];
@@ -237,9 +197,7 @@ const favoriteAllCategories = computed(() => {
     props.favoriteProjects.forEach(project => {
         if (project.category) {
             try {
-                const cats = Array.isArray(project.category) 
-                    ? project.category 
-                    : JSON.parse(project.category);
+                const cats = Array.isArray(project.category) ? project.category : JSON.parse(project.category);
                 cats.forEach(cat => catsSet.add(cat));
             } catch(e) {}
         }
@@ -255,9 +213,6 @@ const favoriteDateRealiseOptions = [
     { value: '36+', name: 'более 36 месяцев' }
 ];
 
-/**
- * ТОЧНАЯ фильтрация избранных проектов
- */
 const exactFilteredFavoriteProjects = computed(() => {
     if (!props.favoriteProjects) return [];
     return props.favoriteProjects.filter(project => {
@@ -274,29 +229,16 @@ const exactFilteredFavoriteProjects = computed(() => {
     });
 });
 
-/**
- * ПОХОЖИЕ избранные проекты
- */
 const similarFavoriteProjects = computed(() => {
     if (exactFilteredFavoriteProjects.value.length > 0 || !props.favoriteProjects) return [];
-    
-    // Показываем все проекты если ничего не найдено
     return props.favoriteProjects;
 });
 
-/**
- * Итоговые избранные проекты
- */
 const displayFavoriteProjects = computed(() => {
-    if (exactFilteredFavoriteProjects.value.length > 0) {
-        return exactFilteredFavoriteProjects.value;
-    }
+    if (exactFilteredFavoriteProjects.value.length > 0) return exactFilteredFavoriteProjects.value;
     return similarFavoriteProjects.value;
 });
 
-/**
- * Пагинация избранных
- */
 const paginatedFavoriteProjects = computed(() => {
     const start = (favoriteCurrentPage.value - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -307,15 +249,9 @@ const favoriteTotalPages = computed(() => Math.ceil(displayFavoriteProjects.valu
 const favoriteProjectsCount = computed(() => displayFavoriteProjects.value.length);
 
 const hasFavoriteFilters = computed(() => {
-    return favoriteSearchQuery.value || 
-           favoriteSumFrom.value || 
-           favoriteSumBefore.value || 
-           favoriteJobsFrom.value ||
-           favoriteSelectedIndustry.value || 
-           favoriteSelectedOwnership.value || 
-           favoriteSelectedTypeBuild.value ||
-           favoriteSelectedCategory.value ||
-           favoriteSelectedDateRealise.value;
+    return favoriteSearchQuery.value || favoriteSumFrom.value || favoriteSumBefore.value || favoriteJobsFrom.value ||
+        favoriteSelectedIndustry.value || favoriteSelectedOwnership.value || favoriteSelectedTypeBuild.value ||
+        favoriteSelectedCategory.value || favoriteSelectedDateRealise.value;
 });
 
 const clearFavoriteFilters = () => {
@@ -332,35 +268,28 @@ const clearFavoriteFilters = () => {
     favoriteSelectedCategory.value = '';
     favoriteSelectedDateRealise.value = '';
     resetFavoritePage();
-    
     srAnnouncement.value = 'Фильтры избранных проектов сброшены';
-    setTimeout(() => srAnnouncement.value = '', 2000);
+    setTimeout(() => { srAnnouncement.value = ''; }, 2000);
 };
 
 const applyFavoriteFiltersManually = () => {
     favoriteSumFrom.value = favoriteSumFromInput.value;
     favoriteSumBefore.value = favoriteSumBeforeInput.value;
     favoriteJobsFrom.value = favoriteJobsFromInput.value;
-    
     srAnnouncement.value = 'Фильтры избранных проектов применены';
-    setTimeout(() => srAnnouncement.value = '', 2000);
+    setTimeout(() => { srAnnouncement.value = ''; }, 2000);
 };
 
 const goToFavoritePage = (page) => {
     if (page >= 1 && page <= favoriteTotalPages.value && page !== favoriteCurrentPage.value) {
         favoriteCurrentPage.value = page;
-        nextTick(() => {
-            announceResults('favorite', favoriteProjectsCount.value);
-        });
+        nextTick(() => announceResults('favorite', favoriteProjectsCount.value));
     }
 };
 
-// Watch для избранных
 const handleFavoriteFilterChange = () => {
     resetFavoritePage();
-    nextTick(() => {
-        announceResults('favorite', favoriteProjectsCount.value);
-    });
+    nextTick(() => announceResults('favorite', favoriteProjectsCount.value));
 };
 
 watch(favoriteSearchQuery, handleFavoriteFilterChange);
@@ -373,7 +302,9 @@ watch(favoriteSelectedTypeBuild, handleFavoriteFilterChange);
 watch(favoriteSelectedCategory, handleFavoriteFilterChange);
 watch(favoriteSelectedDateRealise, handleFavoriteFilterChange);
 
-
+// ==========================================
+// МОИ ПРОЕКТЫ
+// ==========================================
 const myProjectsSearchQuery = ref('');
 const myProjectsSumFrom = ref('');
 const myProjectsSumBefore = ref('');
@@ -385,44 +316,28 @@ const myProjectsSelectedCategory = ref('');
 const myProjectsSelectedDateRealise = ref('');
 const myProjectsSelectedStatus = ref('');
 
-// Временные значения для debounce
 const myProjectsSumFromInput = ref('');
 const myProjectsSumBeforeInput = ref('');
 const myProjectsJobsFromInput = ref('');
 
-// Debounce для моих проектов
-let myProjectsSumFromTimeout = null;
-let myProjectsSumBeforeTimeout = null;
-let myProjectsJobsFromTimeout = null;
+let myProjectsSumFromTimeout = null, myProjectsSumBeforeTimeout = null, myProjectsJobsFromTimeout = null;
 
 watch(myProjectsSumFromInput, (newValue) => {
     clearTimeout(myProjectsSumFromTimeout);
     isMyProjectsFiltering.value = true;
-    myProjectsSumFromTimeout = setTimeout(() => {
-        myProjectsSumFrom.value = newValue;
-        isMyProjectsFiltering.value = false;
-    }, 500);
+    myProjectsSumFromTimeout = setTimeout(() => { myProjectsSumFrom.value = newValue; isMyProjectsFiltering.value = false; }, 500);
 });
-
 watch(myProjectsSumBeforeInput, (newValue) => {
     clearTimeout(myProjectsSumBeforeTimeout);
     isMyProjectsFiltering.value = true;
-    myProjectsSumBeforeTimeout = setTimeout(() => {
-        myProjectsSumBefore.value = newValue;
-        isMyProjectsFiltering.value = false;
-    }, 500);
+    myProjectsSumBeforeTimeout = setTimeout(() => { myProjectsSumBefore.value = newValue; isMyProjectsFiltering.value = false; }, 500);
 });
-
 watch(myProjectsJobsFromInput, (newValue) => {
     clearTimeout(myProjectsJobsFromTimeout);
     isMyProjectsFiltering.value = true;
-    myProjectsJobsFromTimeout = setTimeout(() => {
-        myProjectsJobsFrom.value = newValue;
-        isMyProjectsFiltering.value = false;
-    }, 500);
+    myProjectsJobsFromTimeout = setTimeout(() => { myProjectsJobsFrom.value = newValue; isMyProjectsFiltering.value = false; }, 500);
 });
 
-// Динамические опции для моих проектов
 const myProjectsIndustries = computed(() => {
     if (!props.myProjects) return [{ value: '', name: 'Все отрасли' }];
     const unique = [...new Set(props.myProjects.map(p => p.activity).filter(Boolean))];
@@ -447,9 +362,7 @@ const myProjectsAllCategories = computed(() => {
     props.myProjects.forEach(project => {
         if (project.category) {
             try {
-                const cats = Array.isArray(project.category) 
-                    ? project.category 
-                    : JSON.parse(project.category);
+                const cats = Array.isArray(project.category) ? project.category : JSON.parse(project.category);
                 cats.forEach(cat => catsSet.add(cat));
             } catch(e) {}
         }
@@ -471,9 +384,6 @@ const myProjectsStatusOptions = computed(() => {
     return [{ value: '', name: 'Все статусы' }, ...unique.map(item => ({ value: item, name: item }))];
 });
 
-/**
- * ТОЧНАЯ фильтрация моих проектов
- */
 const exactFilteredMyProjects = computed(() => {
     if (!props.myProjects) return [];
     return props.myProjects.filter(project => {
@@ -491,29 +401,16 @@ const exactFilteredMyProjects = computed(() => {
     });
 });
 
-/**
- * ПОХОЖИЕ мои проекты
- */
 const similarMyProjects = computed(() => {
     if (exactFilteredMyProjects.value.length > 0 || !props.myProjects) return [];
-    
-    // Показываем все проекты если ничего не найдено
     return props.myProjects;
 });
 
-/**
- * Итоговые мои проекты
- */
 const displayMyProjects = computed(() => {
-    if (exactFilteredMyProjects.value.length > 0) {
-        return exactFilteredMyProjects.value;
-    }
+    if (exactFilteredMyProjects.value.length > 0) return exactFilteredMyProjects.value;
     return similarMyProjects.value;
 });
 
-/**
- * Пагинация моих проектов
- */
 const paginatedMyProjects = computed(() => {
     const start = (myProjectsCurrentPage.value - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -524,16 +421,9 @@ const myProjectsTotalPages = computed(() => Math.ceil(displayMyProjects.value.le
 const myProjectsCount = computed(() => displayMyProjects.value.length);
 
 const hasMyProjectsFilters = computed(() => {
-    return myProjectsSearchQuery.value || 
-           myProjectsSumFrom.value || 
-           myProjectsSumBefore.value || 
-           myProjectsJobsFrom.value ||
-           myProjectsSelectedIndustry.value || 
-           myProjectsSelectedOwnership.value || 
-           myProjectsSelectedTypeBuild.value ||
-           myProjectsSelectedCategory.value ||
-           myProjectsSelectedDateRealise.value ||
-           myProjectsSelectedStatus.value;
+    return myProjectsSearchQuery.value || myProjectsSumFrom.value || myProjectsSumBefore.value || myProjectsJobsFrom.value ||
+        myProjectsSelectedIndustry.value || myProjectsSelectedOwnership.value || myProjectsSelectedTypeBuild.value ||
+        myProjectsSelectedCategory.value || myProjectsSelectedDateRealise.value || myProjectsSelectedStatus.value;
 });
 
 const clearMyProjectsFilters = () => {
@@ -551,35 +441,28 @@ const clearMyProjectsFilters = () => {
     myProjectsSelectedDateRealise.value = '';
     myProjectsSelectedStatus.value = '';
     resetMyProjectsPage();
-    
     srAnnouncement.value = 'Фильтры ваших проектов сброшены';
-    setTimeout(() => srAnnouncement.value = '', 2000);
+    setTimeout(() => { srAnnouncement.value = ''; }, 2000);
 };
 
 const applyMyProjectsFiltersManually = () => {
     myProjectsSumFrom.value = myProjectsSumFromInput.value;
     myProjectsSumBefore.value = myProjectsSumBeforeInput.value;
     myProjectsJobsFrom.value = myProjectsJobsFromInput.value;
-    
     srAnnouncement.value = 'Фильтры ваших проектов применены';
-    setTimeout(() => srAnnouncement.value = '', 2000);
+    setTimeout(() => { srAnnouncement.value = ''; }, 2000);
 };
 
 const goToMyProjectsPage = (page) => {
     if (page >= 1 && page <= myProjectsTotalPages.value && page !== myProjectsCurrentPage.value) {
         myProjectsCurrentPage.value = page;
-        nextTick(() => {
-            announceResults('myProjects', myProjectsCount.value);
-        });
+        nextTick(() => announceResults('myProjects', myProjectsCount.value));
     }
 };
 
-// Watch для моих проектов
 const handleMyProjectsFilterChange = () => {
     resetMyProjectsPage();
-    nextTick(() => {
-        announceResults('myProjects', myProjectsCount.value);
-    });
+    nextTick(() => announceResults('myProjects', myProjectsCount.value));
 };
 
 watch(myProjectsSearchQuery, handleMyProjectsFilterChange);
@@ -597,299 +480,138 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
 <template>
     <div class="mx-auto py-6 pb-0 px-4 sm:px-10 lg:px-16">
         <!-- Скрытая область для объявлений screen reader -->
-        <div 
-            role="status" 
-            aria-live="polite" 
-            aria-atomic="true"
-            class="sr-only"
-        >
-            {{ srAnnouncement }}
-        </div>
+        <div role="status" aria-live="polite" aria-atomic="true" class="sr-only">{{ srAnnouncement }}</div>
 
-        <!-- Админ видит данные по центру, остальные - в левой колонке -->
+        <!-- Админ видит данные по центру -->
         <div v-if="user.role === 'Admin'" class="flex flex-col items-center justify-center">
-            <!-- Данные администратора по центру -->
             <section aria-labelledby="user-data-title" class="w-full max-w-2xl mx-auto mb-8">
-                <div 
-                    class="flex flex-col gap-4 pb-4"
-                    :style="{ borderBottom: `2px solid ${colors.border}` }"
-                >
-                    <h1 
-                        id="user-data-title" 
-                        class="text-2xl sm:text-3xl text-center font-bold mb-2 focus:outline-none rounded-lg p-1" 
-                        :style="{ color: colors.accent }"
-                        tabindex="0"
-                    >
-                        Ваши данные
-                    </h1>
+                <div class="flex flex-col gap-4 pb-4 border-b-2" :style="{ borderColor: colors.accent }">
+                    <h1 id="user-data-title" class="text-2xl sm:text-3xl text-center font-heading font-bold mb-2" :style="{ color: colors.brand, fontFamily: fonts.heading }" tabindex="0">Ваши данные</h1>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- ФИО -->
                         <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">ФИО</h2>
-                            <div 
-                                class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                            >
+                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                                 <p class="truncate">{{ `${user.middlename || ''} ${user.name || ''} ${user.lastname || ''}`.trim() || '—' }}</p>
                             </div>
                         </div>
                         
-                        <!-- Логин (если есть) -->
                         <div v-if="user.login" tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Логин</h2>
-                            <div 
-                                class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                            >
+                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                                 <p class="truncate">{{ user.login }}</p>
                             </div>
                         </div>
                         
-                        <!-- Почта -->
                         <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Электронная почта</h2>
-                            <div 
-                                class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                            >
+                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                                 <p class="truncate">{{ user.email || '—' }}</p>
                             </div>
                         </div>
                         
-                        <!-- Телефон -->
                         <div v-if="user.number" tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Телефон</h2>
-                            <div 
-                                class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                            >
+                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                                 <p class="truncate">{{ user.number }}</p>
                             </div>
                         </div>
                         
-                        <!-- Роль -->
-                        <div class="md:col-span-2 focus:outline-none rounded-lg p-1" tabindex="0" >
+                        <div class="md:col-span-2 focus:outline-none rounded-lg p-1" tabindex="0">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Роль</h2>
-                            <div 
-                                class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                                :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                            >
-                                <p class="flex items-center gap-2">
-                                    {{ user.role === 'Admin' ? 'Администратор' : user.role }}
-                                </p>
+                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
+                                <p class="flex items-center gap-2">{{ user.role === 'Admin' ? 'Администратор' : user.role }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
             
-            <!-- Для админа показываем избранное? Или мои проекты? -->
             <div class="w-full">
-                <!-- Админ видит избранные проекты (если есть) -->
-                <section v-if="favoriteProjects && favoriteProjects.length > 0" aria-labelledby="favorites-title" class="w-full mb-8">
+                <section v-if="favoriteProjects && favoriteProjects.length > 0" class="w-full mb-8">
                     <div class="flex flex-col gap-4">
-                        <h1 
-                            id="favorites-title" 
-                            class="text-xl sm:text-2xl lg:text-3xl text-center font-medium focus:outline-none rounded-lg p-1" 
-                            :style="{ color: colors.accent }"
-                            tabindex="0"
-                        >
-                            Избранные проекты
-                        </h1>
-                        
+                        <h1 class="text-2xl sm:text-2xl lg:text-3xl text-center font-heading font-medium" :style="{ color: colors.brandDark, fontFamily: fonts.heading }" tabindex="0">Избранные проекты</h1>
                         <div class="grid md:grid-cols-2 2xl:grid-cols-3 grid-cols-1 gap-6">
-                            <FavoriteCard 
-                                v-for="project in favoriteProjects.slice(0, 6)" 
-                                :key="project.id"
-                                :project="project"
-                            />
+                            <FavoriteCard v-for="project in favoriteProjects.slice(0, 6)" :key="project.id" :project="project" />
                         </div>
                     </div>
                 </section>
                 
-                <!-- Админ видит все проекты -->
-                <section v-if="myProjects && myProjects.length > 0" aria-labelledby="all-projects-title">
-                    <h1 
-                        id="all-projects-title" 
-                        class="text-xl sm:text-2xl lg:text-3xl text-center font-medium focus:outline-none rounded-lg p-1 mb-4" 
-                        :style="{ color: colors.accent }"
-                        tabindex="0"
-                    >
-                        Все проекты
-                    </h1>
-                    
+                <section v-if="myProjects && myProjects.length > 0">
+                    <h1 class="text-2xl sm:text-2xl lg:text-3xl text-center font-heading font-medium mb-4" :style="{ color: colors.accent, fontFamily: fonts.heading }" tabindex="0">Все проекты</h1>
                     <div class="grid md:grid-cols-2 2xl:grid-cols-3 grid-cols-1 gap-6">
-                        <MyProject 
-                            v-for="project in myProjects.slice(0, 6)" 
-                            :key="project.id"
-                            :project="project"
-                        />
+                        <MyProject v-for="project in myProjects.slice(0, 6)" :key="project.id" :project="project" />
                     </div>
                 </section>
             </div>
         </div>
         
-        <!-- Обычный пользователь (не админ) видит данные в левой колонке -->
+        <!-- Обычный пользователь (не админ) -->
         <div v-else class="flex xl:flex-row flex-col gap-8">
             <!-- Левая колонка - данные пользователя -->
             <section aria-labelledby="user-data-title" class="w-full xl:w-[400px]">
-                <div 
-                    class="flex flex-col gap-4 xl:pr-8 pb-4 max-xl:pb-10"
-                    :class="'xl:border-r-2 max-xl:border-b-2'"
-                    :style="{ borderColor: colors.border }"
-                >
-                    <h1 
-                        id="user-data-title" 
-                        class="text-2xl sm:text-3xl text-center font-bold mb-2 focus:outline-none rounded-lg p-1" 
-                        :style="{ color: colors.accent }"
-                        tabindex="0"
-                    >
-                        Ваши данные
-                    </h1>
+                <div class="flex flex-col gap-4 xl:pr-8 pb-4 max-xl:pb-10 xl:border-r-2 max-xl:border-b-2" :style="{ borderColor: colors.border }">
+                    <h1 id="user-data-title" class="text-2xl sm:text-3xl text-center font-heading font-bold mb-2" :style="{ color: colors.brand, fontFamily: fonts.heading }" tabindex="0">Ваши данные</h1>
                     
-                    <!-- ФИО -->
                     <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">ФИО</h2>
-                        <div 
-                            class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                        >
+                        <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                             <p class="truncate">{{ `${user.middlename || ''} ${user.name || ''} ${user.lastname || ''}`.trim() || '—' }}</p>
                         </div>
                     </div>
                     
-                    <!-- Логин (если есть) -->
                     <div v-if="user.login" tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Логин</h2>
-                        <div 
-                            class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                        >
+                        <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                             <p class="truncate">{{ user.login }}</p>
                         </div>
                     </div>
                     
-                    <!-- Почта -->
                     <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Электронная почта</h2>
-                        <div 
-                            class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                        >
+                        <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                             <p class="truncate">{{ user.email || '—' }}</p>
                         </div>
                     </div>
                     
-                    <!-- Телефон -->
                     <div v-if="user.number" tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Телефон</h2>
-                        <div 
-                            class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                        >
+                        <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                             <p class="truncate">{{ user.number }}</p>
                         </div>
                     </div>
                     
-                    <!-- Роль -->
                     <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Роль</h2>
-                        <div 
-                            class="text-base p-3 w-full rounded-xl flex justify-center items-center"
-                            :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}`, color: colors.white }"
-                        >
-                            <p v-if="user.role === 'Investor'" class="flex items-center gap-2">
-                                Инвестор
-                            </p>
-                            <p v-else-if="user.role === 'Organisator'" class="flex items-center gap-2">
-                                Инициатор
-                            </p>
-                            <p v-else class="flex items-center gap-2">
-                                {{ user.role }}
-                            </p>
+                        <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
+                            <p v-if="user.role === 'Investor'" class="flex items-center gap-2">Инвестор</p>
+                            <p v-else-if="user.role === 'Organisator'" class="flex items-center gap-2">Инициатор</p>
+                            <p v-else>{{ user.role }}</p>
                         </div>
                     </div>
                 </div>
             </section>
             
             <!-- Избранные проекты (Инвестор) -->
-            <section v-if="user.role === 'Investor'" aria-labelledby="favorites-title" class="w-full">
+            <section v-if="user.role === 'Investor'" class="w-full">
                 <div class="flex flex-col gap-4">
-                    <h1 
-                        id="favorites-title" 
-                        class="text-xl sm:text-2xl lg:text-3xl mx-auto font-medium focus:outline-none rounded-lg p-1" 
-                        :style="{ color: colors.accent }"
-                        tabindex="0"
-                    >
-                        Избранные проекты
-                    </h1>
+                    <h1 class="text-2xl sm:text-2xl lg:text-3xl text-center font-heading font-medium" :style="{ color: colors.brandDark, fontFamily: fonts.heading }" tabindex="0">Избранные проекты</h1>
 
-                    <!-- Фильтры для избранных -->
-                    <div 
-                        v-if="favoriteProjects && favoriteProjects.length > 0" 
-                        class="rounded-lg p-4" 
-                        :style="{ backgroundColor: colors.bgLight, border: `2px solid ${colors.border}` }"
-                        :aria-busy="isFavoriteFiltering"
-                    >
-                        <!-- Поиск + кнопки -->
+                    <div v-if="favoriteProjects && favoriteProjects.length > 0" class="rounded-lg p-4" :style="{ backgroundColor: colors.light, border: `1px solid ${colors.accent}` }">
                         <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                            <div class="flex-1 w-full">
-                                <SearchInput 
-                                    v-model="favoriteSearchQuery" 
-                                    placeholder="Поиск по названию или адресу..." 
-                                    class="w-full"
-                                    aria-label="Поиск в избранных проектах"
-                                />
-                            </div>
+                            <div class="flex-1 w-full"><SearchInput v-model="favoriteSearchQuery" placeholder="Поиск по названию или адресу..." class="w-full" /></div>
                             <div class="flex h-[45px] gap-2 w-full sm:w-auto">
-                                <fwb-button 
-                                    @click="applyFavoriteFiltersManually"
-                                    color="default"
-                                    size="sm"
-                                    aria-label="Применить фильтры"
-                                >
-                                    Применить
-                                </fwb-button>
-                                <fwb-button 
-                                    @click="clearFavoriteFilters"
-                                    color="light"
-                                    size="sm"
-                                    :class="{ 'opacity-50': !hasFavoriteFilters }"
-                                    :disabled="!hasFavoriteFilters"
-                                    :aria-label="hasFavoriteFilters ? 'Сбросить фильтры' : 'Нет активных фильтров'"
-                                >
-                                    Сбросить
-                                </fwb-button>
+                                <fwb-button @click="applyFavoriteFiltersManually" color="default" size="sm" class="bg-accent text-white hover:bg-hover">Применить</fwb-button>
+                                <fwb-button @click="clearFavoriteFilters" color="light" size="sm" :class="{ 'opacity-50': !hasFavoriteFilters }" :disabled="!hasFavoriteFilters" class="bg-light text-brand border border-accent hover:bg-hover/10">Сбросить</fwb-button>
                             </div>
                         </div>
                         
-                        <!-- Числовые поля -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                            <fwb-input 
-                                v-model="favoriteSumFromInput" 
-                                placeholder="Сумма от (₽)" 
-                                type="number" 
-                                size="sm"
-                                aria-label="Минимальная сумма инвестиций"
-                            />
-                            <fwb-input 
-                                v-model="favoriteSumBeforeInput" 
-                                placeholder="Сумма до (₽)" 
-                                type="number" 
-                                size="sm"
-                                aria-label="Максимальная сумма инвестиций"
-                            />
-                            <fwb-input 
-                                v-model="favoriteJobsFromInput" 
-                                placeholder="Рабочих мест от" 
-                                type="number" 
-                                size="sm"
-                                aria-label="Минимальное количество рабочих мест"
-                            />
+                            <fwb-input v-model="favoriteSumFromInput" placeholder="Сумма от (₽)" type="number" size="sm" />
+                            <fwb-input v-model="favoriteSumBeforeInput" placeholder="Сумма до (₽)" type="number" size="sm" />
+                            <fwb-input v-model="favoriteJobsFromInput" placeholder="Рабочих мест от" type="number" size="sm" />
                         </div>
                         
-                        <!-- Выпадающие фильтры -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                             <fwb-select v-model="favoriteSelectedCategory" :options="favoriteAllCategories" placeholder="Категория" size="sm" />
                             <fwb-select v-model="favoriteSelectedDateRealise" :options="favoriteDateRealiseOptions" placeholder="Срок реализации" size="sm" />
@@ -897,171 +619,76 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                             <fwb-select v-model="favoriteSelectedOwnership" :options="favoriteOwnerships" placeholder="Собственность" size="sm" />
                         </div>
 
-                        <!-- Активные фильтры (чипсы) -->
                         <div v-if="hasFavoriteFilters" class="mt-4 flex flex-wrap gap-2">
-                            <span class="text-sm font-semibold mr-2" :style="{ color: colors.accent }" aria-hidden="true">
-                                Активные фильтры:
-                            </span>
-                            
-                            <span v-if="favoriteSearchQuery" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span class="text-sm font-semibold mr-2" :style="{ color: colors.brand }">Активные фильтры:</span>
+                            <span v-if="favoriteSearchQuery" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Поиск: "{{ favoriteSearchQuery }}"
-                                <button @click="favoriteSearchQuery = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSearchQuery = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteSelectedCategory" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteSelectedCategory" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Категория: {{ favoriteSelectedCategory }}
-                                <button @click="favoriteSelectedCategory = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSelectedCategory = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteSelectedDateRealise" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteSelectedDateRealise" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Срок: {{ favoriteDateRealiseOptions.find(o => o.value === favoriteSelectedDateRealise)?.name }}
-                                <button @click="favoriteSelectedDateRealise = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSelectedDateRealise = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteSumFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteSumFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Сумма от: {{ Number(favoriteSumFrom).toLocaleString('ru-RU') }} ₽
-                                <button @click="favoriteSumFrom = ''; favoriteSumFromInput = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSumFrom = ''; favoriteSumFromInput = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteSumBefore" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteSumBefore" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Сумма до: {{ Number(favoriteSumBefore).toLocaleString('ru-RU') }} ₽
-                                <button @click="favoriteSumBefore = ''; favoriteSumBeforeInput = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSumBefore = ''; favoriteSumBeforeInput = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteJobsFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteJobsFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Рабочих мест от: {{ favoriteJobsFrom }}
-                                <button @click="favoriteJobsFrom = ''; favoriteJobsFromInput = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteJobsFrom = ''; favoriteJobsFromInput = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteSelectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteSelectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Отрасль: {{ favoriteSelectedIndustry }}
-                                <button @click="favoriteSelectedIndustry = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSelectedIndustry = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="favoriteSelectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="favoriteSelectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Собственность: {{ favoriteSelectedOwnership }}
-                                <button @click="favoriteSelectedOwnership = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="favoriteSelectedOwnership = ''" class="hover:text-accent">×</button>
                             </span>
                         </div>
                     </div>
 
-                    <!-- Если нет избранных -->
-                    <div 
-                        v-if="!paginatedFavoriteProjects || paginatedFavoriteProjects.length === 0" 
-                        class="text-center py-12 rounded-xl"
-                        :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}` }"
-                        role="status"
-                        aria-live="polite"
-                        tabindex="0"
-                    >
-                        <p class="text-white text-lg sm:text-xl">
-                            {{ favoriteProjects && favoriteProjects.length > 0 ? 'Попробуйте изменить параметры фильтрации' : 'У вас пока нет избранных проектов' }}
-                        </p>
+                    <div v-if="!paginatedFavoriteProjects || paginatedFavoriteProjects.length === 0" class="text-center py-12 rounded-xl" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}` }" role="status" tabindex="0">
+                        <p class="text-white text-lg">{{ favoriteProjects && favoriteProjects.length > 0 ? 'Попробуйте изменить параметры фильтрации' : 'У вас пока нет избранных проектов' }}</p>
                     </div>
 
-                    <!-- Список избранных -->
                     <div v-else>
-                        <div 
-                            class="w-full grid md:grid-cols-2 2xl:grid-cols-3 grid-cols-1 gap-6 mx-auto" 
-                            role="list" 
-                            aria-label="Список избранных проектов"
-                        >
-                            <FavoriteCard 
-                                v-for="project in paginatedFavoriteProjects" 
-                                :key="project.id"
-                                :project="project"
-                                role="listitem"
-                            />
+                        <div class="w-full grid md:grid-cols-2 2xl:grid-cols-3 grid-cols-1 gap-6">
+                            <FavoriteCard v-for="project in paginatedFavoriteProjects" :key="project.id" :project="project" />
                         </div>
-
-                        <Paginate
-                            v-if="favoriteTotalPages > 1 && paginatedFavoriteProjects.length > 0"
-                            :current-page="favoriteCurrentPage"
-                            :total-pages="favoriteTotalPages"
-                            @update:page="goToFavoritePage"
-                            aria-label="Пагинация избранных проектов"
-                        />
+                        <Paginate v-if="favoriteTotalPages > 1" :current-page="favoriteCurrentPage" :total-pages="favoriteTotalPages" @update:page="goToFavoritePage" />
                     </div>
                 </div>
             </section>
             
             <!-- Мои проекты (Организатор) -->
-            <section v-else-if="user.role === 'Organisator'" aria-labelledby="my-projects-title" class="w-full">
+            <section v-else-if="user.role === 'Organisator'" class="w-full">
                 <div class="flex flex-col gap-4">
-                    <h1 
-                        id="my-projects-title" 
-                        class="text-xl sm:text-2xl lg:text-3xl mx-auto font-medium focus:outline-none rounded-lg p-1" 
-                        :style="{ color: colors.accent }"
-                        tabindex="0"
-                    >
-                        Мои проекты
-                    </h1>
+                    <h1 class="text-2xl sm:text-2xl lg:text-3xl text-center font-heading font-medium" :style="{ color: colors.brandDark, fontFamily: fonts.heading }" tabindex="0">Мои проекты</h1>
 
-                    <!-- Фильтры для моих проектов -->
-                    <div 
-                        v-if="myProjects && myProjects.length > 0" 
-                        class="rounded-lg p-4" 
-                        :style="{ backgroundColor: colors.bgLight, border: `2px solid ${colors.border}` }"
-                        :aria-busy="isMyProjectsFiltering"
-                    >
-                        <!-- Поиск + кнопки -->
+                    <div v-if="myProjects && myProjects.length > 0" class="rounded-lg p-4" :style="{ backgroundColor: colors.light, border: `1px solid ${colors.accent}` }">
                         <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                            <div class="flex-1 w-full">
-                                <SearchInput 
-                                    v-model="myProjectsSearchQuery" 
-                                    placeholder="Поиск по названию или адресу..." 
-                                    class="w-full"
-                                    aria-label="Поиск в моих проектах"
-                                />
-                            </div>
+                            <div class="flex-1 w-full"><SearchInput v-model="myProjectsSearchQuery" placeholder="Поиск по названию или адресу..." class="w-full" /></div>
                             <div class="flex h-[45px] gap-2 w-full sm:w-auto">
-                                <fwb-button 
-                                    @click="applyMyProjectsFiltersManually"
-                                    color="default"
-                                    size="sm"
-                                    aria-label="Применить фильтры"
-                                >
-                                    Применить
-                                </fwb-button>
-                                <fwb-button 
-                                    @click="clearMyProjectsFilters"
-                                    color="light"
-                                    size="sm"
-                                    :class="{ 'opacity-50': !hasMyProjectsFilters }"
-                                    :disabled="!hasMyProjectsFilters"
-                                    :aria-label="hasMyProjectsFilters ? 'Сбросить фильтры' : 'Нет активных фильтров'"
-                                >
-                                    Сбросить
-                                </fwb-button>
+                                <fwb-button @click="applyMyProjectsFiltersManually" color="default" size="sm" class="bg-accent text-white hover:bg-hover">Применить</fwb-button>
+                                <fwb-button @click="clearMyProjectsFilters" color="light" size="sm" :class="{ 'opacity-50': !hasMyProjectsFilters }" :disabled="!hasMyProjectsFilters" class="bg-light text-brand border border-accent hover:bg-hover/10">Сбросить</fwb-button>
                             </div>
                         </div>
                         
-                        <!-- Числовые поля -->
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
-                            <fwb-input 
-                                v-model="myProjectsSumFromInput" 
-                                placeholder="Сумма от (₽)" 
-                                type="number" 
-                                size="sm"
-                                aria-label="Минимальная сумма инвестиций"
-                            />
-                            <fwb-input 
-                                v-model="myProjectsSumBeforeInput" 
-                                placeholder="Сумма до (₽)" 
-                                type="number" 
-                                size="sm"
-                                aria-label="Максимальная сумма инвестиций"
-                            />
-                            <fwb-input 
-                                v-model="myProjectsJobsFromInput" 
-                                placeholder="Рабочих мест от" 
-                                type="number" 
-                                size="sm"
-                                aria-label="Минимальное количество рабочих мест"
-                            />
+                            <fwb-input v-model="myProjectsSumFromInput" placeholder="Сумма от (₽)" type="number" size="sm" />
+                            <fwb-input v-model="myProjectsSumBeforeInput" placeholder="Сумма до (₽)" type="number" size="sm" />
+                            <fwb-input v-model="myProjectsJobsFromInput" placeholder="Рабочих мест от" type="number" size="sm" />
                         </div>
                         
-                        <!-- Выпадающие фильтры -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
                             <fwb-select v-model="myProjectsSelectedCategory" :options="myProjectsAllCategories" placeholder="Категория" size="sm" />
                             <fwb-select v-model="myProjectsSelectedDateRealise" :options="myProjectsDateRealiseOptions" placeholder="Срок реализации" size="sm" />
@@ -1070,100 +697,60 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                             <fwb-select v-model="myProjectsSelectedStatus" :options="myProjectsStatusOptions" placeholder="Статус" size="sm" />
                         </div>
 
-                        <!-- Активные фильтры (чипсы) -->
                         <div v-if="hasMyProjectsFilters" class="mt-4 flex flex-wrap gap-2">
-                            <span class="text-sm font-semibold mr-2" :style="{ color: colors.accent }" aria-hidden="true">
-                                Активные фильтры:
-                            </span>
-                            
-                            <span v-if="myProjectsSearchQuery" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span class="text-sm font-semibold mr-2" :style="{ color: colors.brand }">Активные фильтры:</span>
+                            <span v-if="myProjectsSearchQuery" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Поиск: "{{ myProjectsSearchQuery }}"
-                                <button @click="myProjectsSearchQuery = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSearchQuery = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSelectedCategory" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSelectedCategory" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Категория: {{ myProjectsSelectedCategory }}
-                                <button @click="myProjectsSelectedCategory = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSelectedCategory = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSelectedDateRealise" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSelectedDateRealise" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Срок: {{ myProjectsDateRealiseOptions.find(o => o.value === myProjectsSelectedDateRealise)?.name }}
-                                <button @click="myProjectsSelectedDateRealise = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSelectedDateRealise = ''" class="hover:text-accent">×</button>
                             </span>
-
-                            <span v-if="myProjectsSelectedStatus" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSelectedStatus" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Статус: {{ myProjectsSelectedStatus }}
-                                <button @click="myProjectsSelectedStatus = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSelectedStatus = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSumFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSumFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Сумма от: {{ Number(myProjectsSumFrom).toLocaleString('ru-RU') }} ₽
-                                <button @click="myProjectsSumFrom = ''; myProjectsSumFromInput = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSumFrom = ''; myProjectsSumFromInput = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSumBefore" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSumBefore" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Сумма до: {{ Number(myProjectsSumBefore).toLocaleString('ru-RU') }} ₽
-                                <button @click="myProjectsSumBefore = ''; myProjectsSumBeforeInput = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSumBefore = ''; myProjectsSumBeforeInput = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsJobsFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsJobsFrom" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Рабочих мест от: {{ myProjectsJobsFrom }}
-                                <button @click="myProjectsJobsFrom = ''; myProjectsJobsFromInput = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsJobsFrom = ''; myProjectsJobsFromInput = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSelectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSelectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Отрасль: {{ myProjectsSelectedIndustry }}
-                                <button @click="myProjectsSelectedIndustry = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSelectedIndustry = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSelectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSelectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Собственность: {{ myProjectsSelectedOwnership }}
-                                <button @click="myProjectsSelectedOwnership = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSelectedOwnership = ''" class="hover:text-accent">×</button>
                             </span>
-                            
-                            <span v-if="myProjectsSelectedTypeBuild" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.bgDark, color: colors.white, border: `1px solid ${colors.border}` }">
+                            <span v-if="myProjectsSelectedTypeBuild" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
                                 Вид строительства: {{ myProjectsSelectedTypeBuild }}
-                                <button @click="myProjectsSelectedTypeBuild = ''" class="hover:text-red-600" :style="{ color: colors.accent }">×</button>
+                                <button @click="myProjectsSelectedTypeBuild = ''" class="hover:text-accent">×</button>
                             </span>
                         </div>
                     </div>
 
-                    <!-- Если нет проектов -->
-                    <div 
-                        v-if="!paginatedMyProjects || paginatedMyProjects.length === 0" 
-                        class="text-center py-12 rounded-xl"
-                        :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}` }"
-                        role="status"
-                        aria-live="polite"
-                        tabindex="0"
-                    >
-                        <p class="text-white text-lg sm:text-xl">
-                            {{ myProjects && myProjects.length > 0 ? 'Попробуйте изменить параметры фильтрации' : 'У вас нет созданных проектов' }}
-                        </p>
+                    <div v-if="!paginatedMyProjects || paginatedMyProjects.length === 0" class="text-center py-12 rounded-xl" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}` }" role="status" tabindex="0">
+                        <p class="text-white text-lg">{{ myProjects && myProjects.length > 0 ? 'Попробуйте изменить параметры фильтрации' : 'У вас нет созданных проектов' }}</p>
                     </div>
 
-                    <!-- Список моих проектов -->
                     <div v-else>
-                        <div 
-                            class="w-full grid md:grid-cols-2 2xl:grid-cols-3 grid-cols-1 gap-6 mx-auto" 
-                            role="list" 
-                            aria-label="Список моих проектов"
-                        >
-                            <MyProject 
-                                v-for="project in paginatedMyProjects" 
-                                :key="project.id"
-                                :project="project"
-                                role="listitem"
-                            />
+                        <div class="w-full grid md:grid-cols-2 2xl:grid-cols-3 grid-cols-1 gap-6">
+                            <MyProject v-for="project in paginatedMyProjects" :key="project.id" :project="project" />
                         </div>
-
-                        <Paginate
-                            v-if="myProjectsTotalPages > 1 && paginatedMyProjects.length > 0"
-                            :current-page="myProjectsCurrentPage"
-                            :total-pages="myProjectsTotalPages"
-                            @update:page="goToMyProjectsPage"
-                            aria-label="Пагинация моих проектов"
-                        />
+                        <Paginate v-if="myProjectsTotalPages > 1" :current-page="myProjectsCurrentPage" :total-pages="myProjectsTotalPages" @update:page="goToMyProjectsPage" />
                     </div>
                 </div>
             </section>

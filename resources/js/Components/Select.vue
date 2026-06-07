@@ -1,30 +1,71 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
+const colors = {
+    brand: 'var(--color-brand)',
+    accent: 'var(--color-accent)',
+    hover: 'var(--color-hover)',
+    light: 'var(--color-light)',
+    page: 'var(--color-page)',
+    text: 'var(--color-text)',
+    textSoft: 'var(--color-text-soft)',
+    focusRing: 'var(--color-focus-ring)',
+};
+
+const transitions = {
+    normal: 'var(--transition-normal)',
+};
+
+const shadows = {
+    sm: 'var(--shadow-sm)',
+};
 
 const model = defineModel({
     type: String,
     required: true,
 });
 
-const input = ref(null);
-
-onMounted(() => {
-    if (input.value.hasAttribute('autofocus')) {
-        input.value.focus();
+defineProps({
+    options: {
+        type: Array,
+        required: true,
+    },
+    placeholder: {
+        type: String,
+        default: 'Выберите вашу роль'
     }
 });
-
-defineExpose({ focus: () => input.value.focus() });
 </script>
 
 <template>
     <select
-        class="rounded-md shadow-sm border-none focus:border-blue-200 focus:ring-blue-200  bg-[#E8E8E8] h-12"
         v-model="model"
-        ref="input"
+        class="h-12 w-full rounded-xl px-4 shadow-sm transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-60 appearance-none cursor-pointer"
+        :style="{ 
+            border: `1px solid ${colors.light}`, 
+            backgroundColor: colors.page, 
+            color: colors.brand,
+            transition: transitions.normal,
+            boxShadow: shadows.sm
+        }"
     >
-    <option value="">Выберите роль</option>
-    <option value="Investor">Инвестор</option>
-    <option value="Organisator">Организатор</option>
+        <option disabled value="">{{ placeholder }}</option>
+        <option 
+            v-for="option in options" 
+            :key="option.value" 
+            :value="option.value"
+        >
+            {{ option.label }}
+        </option>
     </select>
 </template>
+
+<style scoped>
+select:focus {
+    border-color: var(--color-accent);
+    ring: 2px solid var(--color-focus-ring);
+    outline: none;
+}
+select::placeholder {
+    color: var(--color-text-soft);
+}
+</style>

@@ -35,10 +35,6 @@ Route::get('/projects', [ProjectController::class, 'index'])->name('projects');
 
 Route::get('/map', [ProjectController::class, 'map'])->name('mapProject');
 
-Route::get('/contact', function(){
-return Inertia::render('Contact');
-})->name('contact');
-
 Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
 
 Route::middleware('auth')->group(function () {

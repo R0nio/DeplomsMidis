@@ -1,6 +1,45 @@
 <script setup>
 import { ref, onMounted, onUnmounted, onBeforeUnmount, watch, nextTick } from 'vue';
 
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
+const colors = {
+    brand: 'var(--color-brand)',
+    brandDark: 'var(--color-brand-dark)',
+    accent: 'var(--color-accent)',
+    hover: 'var(--color-hover)',
+    page: 'var(--color-page)',
+    surface: 'var(--color-surface)',
+    light: 'var(--color-light)',
+    white: 'var(--color-white)',
+    white80: 'rgba(255, 255, 255, 0.8)',
+};
+
+const fonts = {
+    heading: 'var(--font-heading)',
+    body: 'var(--font-body)',
+};
+
+const transitions = {
+    fast: 'var(--transition-fast)',
+    normal: 'var(--transition-normal)',
+    slow: 'var(--transition-slow)',
+};
+
+const shadows = {
+    sm: 'var(--shadow-sm)',
+    md: 'var(--shadow-md)',
+    lg: 'var(--shadow-lg)',
+    xl: 'var(--shadow-xl)',
+};
+
+const radius = {
+    sm: 'var(--radius-sm)',
+    md: 'var(--radius-md)',
+    lg: 'var(--radius-lg)',
+    xl: 'var(--radius-xl)',
+    '2xl': 'var(--radius-2xl)',
+};
+
 const isOpen = ref(false);
 
 const settings = ref({
@@ -25,7 +64,6 @@ let focusTimeout = null;
 let selectionTimeout = null;
 let lastSelectedText = '';
 
-// Ссылка на корневой элемент компонента
 const wrapperRef = ref(null);
 
 const saveSettingsToLocalStorage = () => {
@@ -547,11 +585,9 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Используем rem и наследование от глобальных настроек */
 .accessibility-wrapper {
     position: relative;
     display: inline-block;
-    /* Наследуем размер шрифта от родителя */
     font-size: 1rem;
 }
 
@@ -560,28 +596,28 @@ onUnmounted(() => {
     align-items: center;
     gap: 0.5rem;
     padding: 0.5rem 1rem;
-    background: #284139;
-    border: 2px solid #886830;
+    background: var(--color-brand);
+    border: 2px solid var(--color-white);
     border-radius: 40px;
-    color: #F8D794;
+    color: var(--color-white);
     cursor: pointer;
-    transition: all 0.3s;
-    /* Используем rem вместо px */
-    font-size: 1.25rem;
+    transition: all var(--transition-slow);
+    font-size: 0.875rem;
 }
 
 .accessibility-btn:hover {
-    background: #1a2d24;
+    background: var(--color-light);
+    color: var(--color-accent);
     transform: scale(1.02);
 }
 
 .accessibility-btn.active {
-    background: #F8D794;
-    color: #284139;
+    background: var(--color-accent);
+    color: var(--color-brand);
 }
 
 .btn-arrow {
-    transition: transform 0.3s;
+    transition: transform var(--transition-slow);
     width: 0.875rem;
     height: 0.875rem;
 }
@@ -592,7 +628,7 @@ onUnmounted(() => {
 
 .speaking-indicator {
     animation: pulse 1s infinite;
-    font-size: 1rem;
+    font-size: 0.75rem;
 }
 
 @keyframes pulse {
@@ -605,12 +641,14 @@ onUnmounted(() => {
     top: 100%;
     right: 0;
     margin-top: 0.625rem;
-    width: 23.75rem;
+    width: 22rem;
     max-width: calc(100vw - 1.25rem);
-    background: #809076;
-    border: 2px solid #886830;
-    border-radius: 1rem;
+    background: var(--color-white);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--radius-xl);
     z-index: 1000;
+    box-shadow: var(--shadow-lg);
+    font-size: 1rem;
 }
 
 .panel-header {
@@ -618,25 +656,32 @@ onUnmounted(() => {
     justify-content: space-between;
     align-items: center;
     padding: 0.75rem 1rem;
-    background: #284139;
-    border-bottom: 1px solid #886830;
-    border-radius: 1rem 1rem 0 0;
+    background: var(--color-brand);
+    border-bottom: 2px solid var(--color-accent);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .panel-header h3 {
     margin: 0;
-    color: #F8D794;
+    color: var(--color-white);
     font-size: 1.25rem;
+    font-family: var(--font-heading);
 }
 
 .reset-btn {
-    padding: 0.5rem 1.25rem;
-    background: #f44336;
-    border: none;
-    border-radius: 0.5rem;
-    color: white;
+    padding: 0.375rem 0.875rem;
+    background: var(--color-page);
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-md);
+    color: var(--color-brand);
     cursor: pointer;
-    font-size: 1.25rem;
+    font-size: 1rem;
+    transition: all var(--transition-fast);
+}
+
+.reset-btn:hover {
+    background: var(--color-accent);
+    color: var(--color-white);
 }
 
 .panel-body {
@@ -644,9 +689,9 @@ onUnmounted(() => {
 }
 
 .main-switch {
-    background: #284139;
+    background: var(--color-light);
     padding: 0.75rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-lg);
     margin-bottom: 1rem;
 }
 
@@ -660,7 +705,7 @@ onUnmounted(() => {
     align-items: center;
     margin-bottom: 1rem;
     flex-wrap: wrap;
-    gap: 0.625rem;
+    gap: 0.5rem;
 }
 
 .setting-info {
@@ -671,18 +716,19 @@ onUnmounted(() => {
 
 .setting-name {
     font-weight: 600;
-    color: #F8D794;
-    font-size: 1.125rem;
+    color: var(--color-brand);
+    font-size: 1.25rem;
+    font-family: var(--font-heading);
 }
 
 .setting-desc {
-    font-size: 0.875rem;
-    color: #e8f0ee;
+    font-size: 1rem;
+    color: var(--color-hover);
 }
 
 .divider {
     height: 1px;
-    background: #886830;
+    background: var(--color-light);
     margin: 1rem 0;
 }
 
@@ -694,13 +740,17 @@ onUnmounted(() => {
 
 .font-btn, .line-btn, .letter-btn, .color-btn {
     padding: 0.375rem 0.75rem;
-    background: #284139;
-    border: 1px solid #886830;
-    border-radius: 0.5rem;
-    color: white;
+    background: var(--color-brand);
+    border: 1px solid var(--color-hover);
+    border-radius: var(--radius-md);
+    color: var(--color-white);
     cursor: pointer;
     font-size: 1rem;
-    transition: all 0.2s;
+    transition: all var(--transition-fast);
+}
+
+.font-btn:hover, .line-btn:hover, .letter-btn:hover, .color-btn:hover {
+    background: var(--color-hover);
 }
 
 .font-btn:disabled {
@@ -709,23 +759,24 @@ onUnmounted(() => {
 }
 
 .font-value {
-    color: white;
+    color: var(--color-brand);
     font-weight: bold;
-    min-width: 3.125rem;
+    min-width: 3rem;
     text-align: center;
     font-size: 1.5rem;
 }
 
 .line-btn.active, .letter-btn.active, .color-btn.active {
-    background: #F8D794;
-    color: #284139;
+    background: var(--color-accent);
+    color: var(--color-brand);
+    border-color: var(--color-accent);
 }
 
 .switch {
     position: relative;
     display: inline-block;
-    width: 3.125rem;
-    height: 1.5rem;
+    width: 2.75rem;
+    height: 1.375rem;
 }
 
 .switch input {
@@ -741,36 +792,37 @@ onUnmounted(() => {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #284139;
-    transition: 0.3s;
-    border-radius: 1.5rem;
-    border: 1px solid #886830;
+    background-color: var(--color-light);
+    transition: var(--transition-fast);
+    border-radius: 1.375rem;
+    border: 1px solid var(--color-hover);
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 1.125rem;
-    width: 1.125rem;
-    left: 0.1875rem;
+    height: 1rem;
+    width: 1rem;
+    left: 0.125rem;
     bottom: 0.125rem;
-    background-color: white;
-    transition: 0.3s;
+    background-color: var(--color-brand);
+    transition: var(--transition-fast);
     border-radius: 50%;
 }
 
 input:checked + .slider {
-    background-color: #F8D794;
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
 }
 
 input:checked + .slider:before {
-    transform: translateX(1.5rem);
-    background-color: #284139;
+    transform: translateX(1.375rem);
+    background-color: var(--color-white);
 }
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-    transition: all 0.2s ease;
+    transition: all var(--transition-normal);
 }
 
 .dropdown-enter-from,
@@ -779,7 +831,6 @@ input:checked + .slider:before {
     transform: translateY(-0.5rem);
 }
 
-/* Медиа-запросы тоже используют rem */
 @media (max-width: 48rem) {
     .accessibility-panel {
         position: fixed;
@@ -796,19 +847,6 @@ input:checked + .slider:before {
     
     .accessibility-btn {
         padding: 0.625rem;
-    }
-    
-    .setting-name, .setting-desc, .reset-btn, .panel-header h3 {
-        font-size: 1rem;
-    }
-    
-    .font-value {
-        font-size: 1.25rem;
-    }
-    
-    .font-btn, .line-btn, .letter-btn, .color-btn {
-        font-size: 0.875rem;
-        padding: 0.25rem 0.5rem;
     }
 }
 </style>

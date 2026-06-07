@@ -1,6 +1,29 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
+const colors = {
+    brand: 'var(--color-brand)',
+    brandDark: 'var(--color-brand-dark)',
+    accent: 'var(--color-accent)',
+    hover: 'var(--color-hover)',
+    surface: 'var(--color-surface)',
+    border: 'var(--color-border)',
+    white: 'var(--color-white)',
+};
+
+const shadows = {
+    lg: 'var(--shadow-lg)',
+};
+
+const radius = {
+    xl: 'var(--radius-xl)',
+};
+
+const transitions = {
+    normal: 'var(--transition-normal)',
+};
+
 const props = defineProps({
     align: {
         type: String,
@@ -12,7 +35,7 @@ const props = defineProps({
     },
     contentClasses: {
         type: String,
-        default: 'py-1 bg-[#284139] border border-[#886830] rounded-xl',
+        default: 'py-1 rounded-xl bg-brand border border-border',
     },
 });
 
@@ -50,13 +73,14 @@ const open = ref(false);
             <slot name="trigger" />
         </div>
 
-        <!-- Full Screen Dropdown Overlay -->
+        <!-- Затемнение фона -->
         <div
             v-show="open"
             class="fixed inset-0 z-40"
             @click="open = false"
         ></div>
 
+        <!-- Выпадающее меню - убрал style="display: none" -->
         <Transition
             enter-active-class="transition ease-out duration-200"
             enter-from-class="opacity-0 scale-95"
@@ -66,10 +90,10 @@ const open = ref(false);
             leave-to-class="opacity-0 scale-95"
         >
             <div
-                v-show="open"
+                v-if="open"
                 class="absolute z-50 mt-2 rounded-xl shadow-lg"
                 :class="[widthClass, alignmentClasses]"
-                style="display: none"
+                :style="{ boxShadow: shadows.lg }"
                 @click="open = false"
             >
                 <div
