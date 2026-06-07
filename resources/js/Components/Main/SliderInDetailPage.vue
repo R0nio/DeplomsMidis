@@ -13,6 +13,8 @@ const props = defineProps({
 const currentSlide = ref(0);
 const autoPlayInterval = ref(null);
 const sliderRef = ref(null);
+const imageLoaded = ref({});
+const imageDimensions = ref({});
 
 // Переключение слайдов
 const nextSlide = () => {
@@ -34,9 +36,11 @@ const goToSlide = (index) => {
 // Автопрокрутка
 const startAutoPlay = () => {
     if (autoPlayInterval.value) clearInterval(autoPlayInterval.value);
-    autoPlayInterval.value = setInterval(() => {
-        nextSlide();
-    }, 5000);
+    if (props.photos.length > 1) {
+        autoPlayInterval.value = setInterval(() => {
+            nextSlide();
+        }, 5000);
+    }
 };
 
 const stopAutoPlay = () => {
@@ -53,6 +57,17 @@ const handleImageError = (index) => {
     imageError.value[index] = true;
 };
 
+const handleImageLoad = (index, event) => {
+    imageLoaded.value[index] = true;
+    const img = event.target;
+    // Сохраняем пропорции изображения
+    imageDimensions.value[index] = {
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        isPortrait: img.naturalHeight > img.naturalWidth
+    };
+};
+
 const getImageSrc = (photo, index) => {
     if (imageError.value[index]) {
         return sliderFallback;
@@ -66,6 +81,38 @@ const getImageSrc = (photo, index) => {
 // Проверка, является ли изображение заглушкой
 const isPlaceholder = (photo, index) => {
     return !photo.src || photo.src === 'null' || photo.src === 'undefined' || imageError.value[index];
+};
+
+// Определяем класс для изображения в зависимости от пропорций
+const getImageClass = (index) => {
+    if (imageError.value[index]) return 'object-contain';
+    if (!imageDimensions.value[index]) return 'object-cover';
+    
+    const dims = imageDimensions.value[index];
+    // Если портретное изображение (выше, чем шире) или слишком вытянутое
+    if (dims.isPortrait || (dims.height / dims.width > 1.2)) {
+        return 'object-contain';
+    }
+    return 'object-cover';
+};
+
+// Стили для контейнера изображения
+const getContainerStyle = (index) => {
+    if (imageError.value[index] || !imageDimensions.value[index]) {
+        return {};
+    }
+    
+    const dims = imageDimensions.value[index];
+    // Для портретных изображений центрируем и добавляем фон
+    if (dims.isPortrait || (dims.height / dims.width > 1.2)) {
+        return {
+            backgroundColor: 'var(--color-brand)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        };
+    }
+    return {};
 };
 
 // Переход к проекту
@@ -107,7 +154,7 @@ onUnmounted(() => {
         ref="sliderRef"
     >
         <!-- Слайды -->
-        <div class="relative h-[500px] sm:h-[600px] md:h-[600px] lg:h-[700px] xl:h-[800px] overflow-hidden rounded-xl bg-gradient-to-br from-hover/10 to-hover/5">
+        <div class="relative h-[400px] sm:h-[500px] md:h-[650px] lg:h-[750px] xl:h-[900px] overflow-hidden rounded-xl bg-gradient-to-br from-hover/10 to-hover/5">
             <div 
                 v-for="(photo, index) in photos" 
                 :key="index"
@@ -116,7 +163,8 @@ onUnmounted(() => {
                 :aria-hidden="currentSlide !== index"
             >
                 <div 
-                    class="w-full h-full cursor-pointer flex items-center justify-center overflow-hidden"
+                    class="w-full h-full cursor-pointer overflow-hidden"
+                    :style="getContainerStyle(index)"
                     @click="goToProject(photo.id)"
                     @keydown.enter="goToProject(photo.id)"
                     @keydown.space.prevent="goToProject(photo.id)"
@@ -128,20 +176,26 @@ onUnmounted(() => {
                     <img 
                         v-if="!isPlaceholder(photo, index)"
                         :src="getImageSrc(photo, index)"
-                        @error="() => handleImageError(index)"
-                        class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        :class="[
+                            'w-full h-full transition-transform duration-300 group-hover:scale-105',
+                            getImageClass(index)
+                        ]"
+                        :style="getImageClass(index) === 'object-contain' ? 'object-position: center;' : ''"
                         :alt="photo.alt || `Фото проекта ${index + 1}`"
                         loading="lazy"
+                        @load="(event) => handleImageLoad(index, event)"
+                        @error="() => handleImageError(index)"
                     >
                     <!-- Для заглушки (логотипа) -->
                     <div 
                         v-else
-                        class="flex items-center justify-center w-full h-full bg-brand"
+                        class="flex items-center justify-center w-full h-full"
+                        :style="{ backgroundColor: 'var(--color-brand)' }"
                     >
                         <img 
                             :src="sliderFallback"
                             alt="Логотип проекта"
-                            class="max-w-[120px] max-h-[120px] sm:max-w-[150px] sm:max-h-[150px] md:max-w-[180px] md:max-h-[180px] object-contain opacity-60"
+                            class="max-w-[40%] max-h-[40%] sm:max-w-[35%] sm:max-h-[35%] object-contain opacity-60"
                         >
                     </div>
                 </div>
@@ -154,8 +208,8 @@ onUnmounted(() => {
                 v-for="(photo, index) in photos" 
                 :key="index"
                 type="button" 
-                class="rounded-full w-2.5 h-2.5 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent"
-                :class="index === currentSlide ? 'bg-white w-4 h-2.5' : 'bg-white/50 hover:bg-white/80'"
+                class="rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent"
+                :class="index === currentSlide ? 'bg-white w-6 h-2' : 'bg-white/50 hover:bg-white/80 w-2 h-2'"
                 :aria-current="index === currentSlide ? 'true' : 'false'"
                 :aria-label="`Перейти к слайду ${index + 1}`"
                 @click="goToSlide(index)"
@@ -202,7 +256,7 @@ onUnmounted(() => {
 
 <style scoped>
 /* Анимация для слайдов */
-[data-carousel-item] {
+.absolute {
     transition: opacity 0.5s ease-in-out;
 }
 
@@ -217,5 +271,14 @@ onUnmounted(() => {
         width: 20px;
         height: 20px;
     }
+    
+    .absolute {
+        transition: opacity 0.3s ease-in-out;
+    }
+}
+
+/* Для изображений с object-contain добавляем мягкий фон */
+img[class*="object-contain"] {
+    background-color: var(--color-brand);
 }
 </style>
