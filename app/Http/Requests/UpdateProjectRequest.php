@@ -46,11 +46,11 @@ class UpdateProjectRequest extends FormRequest
 
             // Новый формат прогнозов по годам
             'revenues' => ['nullable', 'array'],
-            'revenues.*.year' => ['required_with:revenues.*.amount', 'integer', 'min:1', 'max:100'],
+            'revenues.*.year' => ['required_with:revenues.*.amount', 'integer', 'min:1'],
             'revenues.*.amount' => ['required_with:revenues.*.year', 'numeric', 'min:0'],
 
             'yearly_expenses' => ['nullable', 'array'],
-            'yearly_expenses.*.year' => ['required_with:yearly_expenses.*.amount', 'integer', 'min:1', 'max:100'],
+            'yearly_expenses.*.year' => ['required_with:yearly_expenses.*.amount', 'integer', 'min:1'],
             'yearly_expenses.*.amount' => ['required_with:yearly_expenses.*.year', 'numeric', 'min:0'],
         ];
     }

@@ -293,7 +293,7 @@ const submit = () => {
                             <InputError class="mt-2" :message="form.errors.collected_total_investment" role="alert" />
                         </div>
                         <div>
-                            <InputLabel for="number_date_realise" value="Срок окупаемости (мес.)" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="number_date_realise" value="Срок реализации (мес.)" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="number_date_realise" type="number" class="block w-full rounded-lg" v-model="form.number_date_realise" placeholder="24" />
                             <InputError class="mt-2" :message="form.errors.number_date_realise" role="alert" />
                         </div>
