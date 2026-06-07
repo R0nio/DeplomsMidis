@@ -54,7 +54,6 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('aaaaaaaa')
         ]);
 
-        // ==================== ПРОЕКТЫ ====================
 
         // 1. Лыжероллерная трасса
         $project1 = Project::create([
@@ -436,26 +435,5 @@ class DatabaseSeeder extends Seeder
                 'project_id' => $projectId,
             ]);
         }
-        
-        // Избранные для админа
-        Favorite::create([
-            'user_id' => $investor->id,
-            'project_id' => $project1->id,
-        ]);
-        
-        // Избранные для организатора
-        Favorite::create([
-            'user_id' => $investor->id,
-            'project_id' => $project2->id,
-        ]);
-        
-        Favorite::create([
-            'user_id' => $investor->id,
-            'project_id' => $project5->id,
-        ]);
-        Favorite::create([
-            'user_id' => $investor->id,
-            'project_id' => $project9->id,
-        ]);
     }
 }

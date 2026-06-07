@@ -1,5 +1,6 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import { router } from '@inertiajs/vue3';
 import Dropdown from "@/Components/Dropdown.vue";
 import DropdownLink from "@/Components/DropdownLink.vue";
 import NavLink from "@/Components/NavLink.vue";
@@ -19,125 +20,157 @@ const showingNavigationDropdown = ref(false);
 const closeMobileMenu = () => {
     showingNavigationDropdown.value = false;
 };
+
+// Останавливаем речь при навигации Inertia
+const stopSpeech = () => {
+    if (window.speechSynthesis) {
+        try {
+            window.speechSynthesis.cancel();
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.pause();
+                window.speechSynthesis.cancel();
+            }
+        } catch (error) {
+            console.error('Error stopping speech:', error);
+        }
+    }
+    
+    if (typeof window.__accessibilityCleanup === 'function') {
+        window.__accessibilityCleanup();
+    }
+};
+
+onMounted(() => {
+    // Слушаем события Inertia для остановки речи
+    router.on('start', () => {
+        stopSpeech();
+        closeMobileMenu();
+        
+    });
+    
+    router.on('finish', () => {
+        setTimeout(() => {
+            const saved = localStorage.getItem('accessibilitySettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    if (!settings.speakMode) {
+                        stopSpeech();
+                    }
+                } catch (e) {}
+            }
+        }, 100);
+    });
+});
 </script>
 
 <template>
     <div>
         <div :style="{ backgroundColor: mainColor }" class="min-h-screen flex flex-col">
             <nav 
-                :style="{ backgroundColor: NavColor, borderBottom: `4px solid ${borderColor}` }" 
+                :style="{ backgroundColor: NavColor, borderBottom: `4px solid ${borderColor}` }"
                 class="fixed top-0 left-0 right-0 z-50 rounded-b-[32px] shadow-lg"
                 role="navigation"
                 aria-label="Главная навигация"
-            >
+                >
                 <div class="w-full px-4 sm:px-6 lg:px-8">
-                    <div class="flex items-center justify-between h-20 lg:h-24">
-                        
-                        <!-- Логотип -->
-                        <div class="flex-shrink-0">
-                            <Link :href="route('dashboard')" class="flex items-center" aria-label="На главную">
-                                <img class="h-16 w-auto lg:h-20 object-contain" :src="logo" alt="Логотип InvestProject - инвестиционная платформа">
-                            </Link>
-                        </div>
+                    <div class="relative flex items-center justify-between h-20 lg:h-24">
+                    <!-- Лого -->
+                    <div class="flex-shrink-0 w-40 sm:w-48">
+                        <Link :href="route('dashboard')" class="flex items-center" aria-label="На главную">
+                        <img class="h-16 lg:h-20 w-auto object-contain" :src="logo" alt="Логотип InvestProject - инвестиционная платформа" />
+                        </Link>
+                    </div>
 
-                        <!-- Десктопная навигация -->
-                        <div class="hidden lg:flex lg:items-center lg:space-x-2">
-                            <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                Главная
-                            </NavLink>
-                            <NavLink :href="route('projects')" :active="route().current('projects')">
-                                Проекты
-                            </NavLink>
-                            <NavLink :href="route('mapProject')" :active="route().current('mapProject')">
-                                Карта проектов
-                            </NavLink>
-                            
-                            <template v-if="$page.props.auth && $page.props.auth.user">
-                                <div v-if="$page.props.auth.user.role === 'Organisator'">
-                                    <NavLink :href="route('create')" :active="route().current('create')" class="mr-2">
-                                        Создать проект
-                                    </NavLink>
-                                    <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">
-                                        Мои проекты
-                                    </NavLink>
+                    <!-- Центр меню: всегда центр экрана (desktop) -->
+                    <div class="hidden xl:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 z-10 max-w-[52vw] overflow-x-auto whitespace-nowrap">
+                        <NavLink :href="route('dashboard')" :active="route().current('dashboard')">Главная</NavLink>
+                        <NavLink :href="route('projects')" :active="route().current('projects')">Проекты</NavLink>
+                        <NavLink :href="route('mapProject')" :active="route().current('mapProject')">Карта проектов</NavLink>
+
+                        <template v-if="$page.props.auth && $page.props.auth.user">
+                        <template v-if="$page.props.auth.user.role === 'Organisator'">
+                            <NavLink :href="route('create')" :active="route().current('create')">Создать проект</NavLink>
+                            <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">Мои проекты</NavLink>
+                        </template>
+                        <template v-if="$page.props.auth.user.role === 'Investor'">
+                            <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">Избранное</NavLink>
+                        </template>
+                        </template>
+                    </div>
+
+                    <!-- Правая зона: helper + auth/burger -->
+                    <div class="flex items-center gap-2 sm:gap-3 shrink-0 relative z-[60] min-w-max">
+                        <AccessibilityHelper class="shrink-0" />
+
+                        <!-- Desktop auth -->
+                        <div class="hidden xl:block">
+                        <template v-if="$page.props.auth && $page.props.auth.user">
+                            <Dropdown align="right" width="48">
+                            <template #trigger>
+                                <button
+                                class="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 hover:bg-white/20 transition-colors min-w-[180px]"
+                                aria-label="Меню пользователя"
+                                >
+                                <div class="text-left flex-1 min-w-0">
+                                    <div class="text-sm font-medium text-white truncate">
+                                    {{ $page.props.auth.user.name }} {{ $page.props.auth.user.lastname }}
+                                    </div>
+                                    <div class="text-xs text-white/80">
+                                    {{ $page.props.auth.user.role === 'Investor' ? 'Инвестор' : ($page.props.auth.user.role === 'Organisator' ? 'Инициатор' : 'Администратор') }}
+                                    </div>
                                 </div>
-                                <div v-if="$page.props.auth.user.role === 'Investor'">
-                                    <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">
-                                        Избранное
-                                    </NavLink>
-                                </div>
-                            </template>
-                        </div>
-
-                        <!-- Правая часть с доступностью и профилем -->
-                        <div class="hidden lg:flex lg:items-center lg:space-x-4">
-                            <AccessibilityHelper />
-                            <template v-if="$page.props.auth.user">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <button 
-                                            class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-full px-5 py-2.5 hover:bg-white/20 transition-colors"
-                                            aria-label="Меню пользователя"
-                                            :aria-expanded="false"
-                                        >
-                                            <div class="text-left">
-                                                <div class="text-base font-medium text-white">
-                                                    {{ $page.props.auth.user.name }} {{ $page.props.auth.user.lastname }}
-                                                </div>
-                                                <div class="text-sm text-white/80">
-                                                    {{ $page.props.auth.user.role === 'Investor' ? 'Инвестор' : ($page.props.auth.user.role === 'Organisator' ? 'Организатор' : 'Администратор') }}
-                                                </div>
-                                            </div>
-                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </button>
-                                    </template>
-                                    <template #content>
-                                        <div class="py-1">
-                                            <DropdownLink :href="route('profile.edit')" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
-                                                Личный кабинет
-                                            </DropdownLink>
-                                            <DropdownLink :href="route('logout')" method="post" as="button" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left">
-                                                Выйти
-                                            </DropdownLink>
-                                        </div>
-                                    </template>
-                                </Dropdown>
-                            </template>
-                            <template v-else>
-                                <Link :href="route('login')" class="px-5 py-2.5 rounded-xl text-white hover:bg-white/10 border-2 border-[#886830] text-base">
-                                    Войти
-                                </Link>
-                                <Link :href="route('register')" :style="{ backgroundColor: accentColor, color: NavColor }" class="px-5 py-2.5 rounded-xl font-medium hover:opacity-90 transition-opacity text-base">
-                                    Регистрация
-                                </Link>
-                            </template>
-                        </div>
-
-                        <!-- Мобильное меню (бургер) -->
-                        <div class="lg:hidden flex items-center gap-2">
-                            <AccessibilityHelper />
-                            <button 
-                                @click="showingNavigationDropdown = !showingNavigationDropdown" 
-                                class="text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
-                                aria-label="Меню"
-                                :aria-expanded="showingNavigationDropdown"
-                            >
-                                <svg class="h-7 w-7" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path :class="{ 'hidden': showingNavigationDropdown, 'inline-flex': !showingNavigationDropdown }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                                    <path :class="{ 'hidden': !showingNavigationDropdown, 'inline-flex': showingNavigationDropdown }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <svg class="w-4 h-4 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
-                                <span class="sr-only">{{ showingNavigationDropdown ? 'Закрыть меню' : 'Открыть меню' }}</span>
-                            </button>
+                                </button>
+                            </template>
+                            <template #content>
+                                <div class="py-1">
+                                <DropdownLink :href="route('profile.edit')" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
+                                    Личный кабинет
+                                </DropdownLink>
+                                <DropdownLink :href="route('logout')" method="post" as="button" class="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 w-full text-left">
+                                    Выйти
+                                </DropdownLink>
+                                </div>
+                            </template>
+                            </Dropdown>
+                        </template>
+
+                        <template v-else>
+                            <div class="flex gap-2">
+                            <Link :href="route('login')" class="px-4 py-2 rounded-xl text-white hover:bg-white/10 border-2 border-[#886830] text-sm whitespace-nowrap">
+                                Войти
+                            </Link>
+                            <Link :href="route('register')" :style="{ backgroundColor: accentColor, color: NavColor }" class="px-4 py-2 rounded-xl font-medium hover:opacity-90 transition-opacity text-sm whitespace-nowrap">
+                                Регистрация
+                            </Link>
+                            </div>
+                        </template>
                         </div>
+
+                        <!-- Mobile burger -->
+                        <button
+                        @click="showingNavigationDropdown = !showingNavigationDropdown"
+                        class="xl:hidden text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                        aria-label="Меню"
+                        :aria-expanded="showingNavigationDropdown"
+                        >
+                        <svg class="h-7 w-7" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <path :class="{ hidden: showingNavigationDropdown, 'inline-flex': !showingNavigationDropdown }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            <path :class="{ hidden: !showingNavigationDropdown, 'inline-flex': showingNavigationDropdown }" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        <span class="sr-only">{{ showingNavigationDropdown ? 'Закрыть меню' : 'Открыть меню' }}</span>
+                        </button>
+                    </div>
                     </div>
                 </div>
                 
                 <!-- Мобильное выпадающее меню -->
                 <div 
                     :class="showingNavigationDropdown ? 'block' : 'hidden'" 
-                    class="lg:hidden border-t" 
+                    class="xl:hidden border-t" 
                     :style="{ borderColor: borderColor }"
                     role="menu"
                     aria-label="Мобильное меню"
@@ -171,7 +204,7 @@ const closeMobileMenu = () => {
                             <div class="border-t pt-3 mt-3" :style="{ borderColor: borderColor }">
                                 <div class="px-4 py-2 mb-2">
                                     <div class="text-white font-medium">{{ $page.props.auth.user.name }} {{ $page.props.auth.user.lastname }}</div>
-                                    <div class="text-white/70 text-sm">{{ $page.props.auth.user.role === 'Investor' ? 'Инвестор' : ($page.props.auth.user.role === 'Organisator' ? 'Организатор' : 'Администратор') }}</div>
+                                    <div class="text-white/70 text-sm">{{ $page.props.auth.user.role === 'Investor' ? 'Инвестор' : ($page.props.auth.user.role === 'Organisator' ? 'Инициатор' : 'Администратор') }}</div>
                                 </div>
                                 <ResponsiveNavLink class="mb-3" :href="route('profile.edit')" @click="closeMobileMenu">
                                     Личный кабинет
@@ -182,7 +215,7 @@ const closeMobileMenu = () => {
                             </div>
                         </template>
                         <template v-else>
-                            <div class="pt-3 space-y-2">
+                            <div class="flex gap-2  ">
                                 <Link :href="route('login')" class="block w-full text-center px-4 py-2.5 rounded-xl text-white border hover:bg-white/10 transition-colors" :style="{ borderColor: borderColor }" @click="closeMobileMenu">
                                     Войти
                                 </Link>
@@ -195,12 +228,13 @@ const closeMobileMenu = () => {
                 </div>
             </nav>
 
+
             <!-- Отступ для фиксированного хедера -->
             <div class="pt-20 lg:pt-24"></div>
 
             <!-- Page Heading -->
             <header :style="{ backgroundColor: mainColor }" class="flex-shrink-0" v-if="$slots.header">
-                <div class="mx-auto pt-6 px-10 text-lg max-sm:px-4 xl:px-16 lg:px-16">
+                <div class="mx-auto py-6 pb-0 px-4 sm:px-10 lg:px-16">
                     <slot name="header" />
                 </div>
             </header>
@@ -231,33 +265,114 @@ const closeMobileMenu = () => {
 
                         <div class="flex-1">
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-8 text-center lg:text-left">
-                                <div>
+                                <!-- Навигация -->
+                                <div tabindex="0" role="region" aria-label="Навигация по сайту" class="focus:outline-none rounded-lg p-1">
                                     <h3 class="text-white font-semibold mb-4 text-lg" :style="{ color: accentColor }">Навигация</h3>
                                     <ul class="space-y-3" aria-label="Разделы сайта">
-                                        <li><Link :href="route('dashboard')" class="text-white/70 hover:text-white transition-colors text-base">Главная</Link></li>
-                                        <li><Link :href="route('projects')" class="text-white/70 hover:text-white transition-colors text-base">Проекты</Link></li>
-                                        <li><Link :href="route('mapProject')" class="text-white/70 hover:text-white transition-colors text-base">Карта проектов</Link></li>
+                                        <li>
+                                            <Link 
+                                                :href="route('dashboard')" 
+                                                class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                tabindex="0"
+                                            >
+                                                Главная
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link 
+                                                :href="route('projects')" 
+                                                class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                tabindex="0"
+                                            >
+                                                Проекты
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link 
+                                                :href="route('mapProject')" 
+                                                class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                tabindex="0"
+                                            >
+                                                Карта проектов
+                                            </Link>
+                                        </li>
                                     </ul>
                                 </div>
-                                <div>
+
+                                <!-- Для пользователей -->
+                                <div tabindex="0" role="region" aria-label="Пользовательское меню" class="focus:outline-none rounded-lg p-1">
                                     <h3 class="text-white font-semibold mb-4 text-lg" :style="{ color: accentColor }">Для пользователей</h3>
                                     <ul class="space-y-3" aria-label="Пользовательское меню">
                                         <template v-if="$page.props.auth && $page.props.auth.user">
-                                            <li><Link :href="route('profile.edit')" class="text-white/70 hover:text-white transition-colors text-base">Личный кабинет</Link></li>
-                                            <li v-if="$page.props.auth.user.role === 'Organisator'"><Link :href="route('create')" class="text-white/70 hover:text-white transition-colors text-base">Создать проект</Link></li>
-                                            <li><Link :href="route('logout')" method="post" as="button" class="text-white/70 hover:text-white transition-colors text-base">Выйти</Link></li>
+                                            <li>
+                                                <Link 
+                                                    :href="route('profile.edit')" 
+                                                    class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                    tabindex="0"
+                                                >
+                                                    Личный кабинет
+                                                </Link>
+                                            </li>
+                                            <li v-if="$page.props.auth.user.role === 'Organisator'">
+                                                <Link 
+                                                    :href="route('create')" 
+                                                    class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                    tabindex="0"
+                                                >
+                                                    Создать проект
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link 
+                                                    :href="route('logout')" 
+                                                    method="post" 
+                                                    as="button" 
+                                                    class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                    tabindex="0"
+                                                >
+                                                    Выйти
+                                                </Link>
+                                            </li>
                                         </template>
                                         <template v-else>
-                                            <li><Link :href="route('login')" class="text-white/70 hover:text-white transition-colors text-base">Войти</Link></li>
-                                            <li><Link :href="route('register')" class="text-white/70 hover:text-white transition-colors text-base">Регистрация</Link></li>
+                                            <li>
+                                                <Link 
+                                                    :href="route('login')" 
+                                                    class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                    tabindex="0"
+                                                >
+                                                    Войти
+                                                </Link>
+                                            </li>
+                                            <li>
+                                                <Link 
+                                                    :href="route('register')" 
+                                                    class="text-white/70 hover:text-white transition-colors text-base focus:outline-none rounded-md px-1"
+                                                    tabindex="0"
+                                                >
+                                                    Регистрация
+                                                </Link>
+                                            </li>
                                         </template>
                                     </ul>
                                 </div>
-                                <div>
+
+                                <!-- Контакты -->
+                                <div tabindex="0" role="region" aria-label="Контактная информация" class="focus:outline-none rounded-lg p-1">
                                     <h3 class="text-white font-semibold mb-4 text-lg" :style="{ color: accentColor }">Контакты</h3>
                                     <ul class="space-y-3" aria-label="Контактная информация">
-                                        <li class="text-white/70 text-base">Email: info@investproject.ru</li>
-                                        <li class="text-white/70 text-base">Телефон: +7 (932) 207-30-74</li>
+                                        <li 
+                                            class="text-white/70 text-base focus:outline-none rounded-md px-1"
+                                            tabindex="0"
+                                        >
+                                            Email: info@investproject.ru
+                                        </li>
+                                        <li 
+                                            class="text-white/70 text-base focus:outline-none rounded-md px-1"
+                                            tabindex="0"
+                                        >
+                                            Телефон: +7 (932) 207-30-74
+                                        </li>
                                     </ul>
                                 </div>
                             </div>

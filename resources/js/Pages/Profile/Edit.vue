@@ -6,6 +6,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import { Head } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import InfoProfile from '@/Components/Main/InfoProfile.vue';
+import TitlePage from '@/Layouts/TitlePage.vue';
 
 const user = usePage().props.auth.user;
 
@@ -37,9 +38,7 @@ const mainColor = "#436343";
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-3xl font-semibold leading-tight" :style="{ color: '#F8D794' }">
-                Личный кабинет
-            </h2>
+            <TitlePage value="Личный кабинет"></TitlePage>
         </template>
 
         <div :style="{ backgroundColor: mainColor }" class="relative h-max z-0 mx-auto py-6 px-4 sm:px-10 lg:px-16">

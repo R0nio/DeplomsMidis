@@ -32,12 +32,10 @@ const props = defineProps({
 });
 
 const page = usePage();
-
-// Роль пользователя
 const userRole = computed(() => page.props.auth?.user?.role ?? null);
 const user = computed(() => page.props.auth?.user ?? null);
 
-// Проверка, находится ли проект в избранном
+// Проверка избранного
 const checkIsFavorited = () => {
     if (!props.isFavorited) return false;
     if (Array.isArray(props.isFavorited)) {
@@ -46,10 +44,8 @@ const checkIsFavorited = () => {
     return Boolean(props.isFavorited);
 };
 
-// Состояние избранного
 const isFavorite = ref(checkIsFavorited());
 
-// Переключение избранного
 const toggleFavorite = async (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -64,14 +60,13 @@ const toggleFavorite = async (event) => {
 
     try {
         const response = await axios.post(route('favorites.toggle', props.project.id));
-        
         if (response.data.success) {
             isFavorite.value = response.data.isFavorited;
         } else {
             isFavorite.value = previousState;
         }
     } catch (error) {
-        console.error('Ошибка при добавлении в избранное:', error);
+        console.error('Ошибка:', error);
         isFavorite.value = previousState;
         if (error.response?.status === 401) {
             alert('Необходимо авторизоваться');
@@ -79,45 +74,51 @@ const toggleFavorite = async (event) => {
     }
 };
 
-// Состояние ошибки загрузки изображения
+// Изображение
 const imageError = ref(false);
+const handleImageError = () => { imageError.value = true; };
 
-// Обработчик ошибки загрузки
-const handleImageError = () => {
-    imageError.value = true;
-};
+const isPlaceholder = computed(() => currentImage.value === slider3 || imageError.value);
 
-// Проверка, является ли изображение заглушкой
-const isPlaceholder = computed(() => {
-    return currentImage.value === slider3 || imageError.value;
-});
-
-// Текущее изображение с обработкой ошибок
 const currentImage = computed(() => {
-    if (imageError.value) {
-        return slider3;
-    }
-    
+    if (imageError.value) return slider3;
     if (props.project?.photos && props.project.photos.length > 0) {
         return `/storage/${props.project.photos[0].photo_path}`;
     }
-    
     return slider3;
 });
 
-// Форматирование чисел
 const formatNumber = (number) => {
     if (!number) return '0';
     return Number(number).toLocaleString('ru-RU');
 };
 
-// Перейти к проекту
 const goToProject = () => {
     router.visit(route('projects.show', props.project.id));
 };
 
+// Прогресс сбора
+const progress = computed(() => {
+    const collected = Number(props.project.collected_total_investment) || 0;
+    const total = Number(props.project.total_investment) || 1;
+    return (collected / total) * 100;
+});
+
+// Категории (первые 2)
+const firstCategories = computed(() => {
+    if (!props.project.category) return [];
+    try {
+        const cats = Array.isArray(props.project.category)
+            ? props.project.category
+            : JSON.parse(props.project.category);
+        return cats.slice(0, 2);
+    } catch {
+        return [];
+    }
+});
+
 // Для админки
-const selectedStatus = ref(props.project?.status || '');
+const selectedStatus = ref(props.project.status);
 const statusOptions = [
     { value: 'На модерации', label: 'На модерации' },
     { value: 'Одобрен', label: 'Одобрен' },
@@ -144,17 +145,79 @@ const changeStatus = async () => {
 
 <template>
     <article 
-        class="w-full h-[450px] sm:h-[500px] lg:h-[550px] flex flex-col rounded-2xl relative overflow-hidden transition-all duration-300 group"
-        :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}` }"
+        class="h-full flex flex-col rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl group relative"
+        :style="{ backgroundColor: colors.bgDark, border: `1px solid ${colors.border}` }"
         :aria-label="`Карточка проекта: ${project.title}`"
     >
-        <!-- Изображение проекта -->
+        <!-- Правая верхняя панель для админа -->
+        <div v-if="userRole === 'Admin'" class="absolute top-2 right-2 z-20 flex items-center gap-2">
+            <!-- Статус модерации -->
+            <div 
+                v-if="project.is_moderated === true" 
+                class="px-2 py-1 rounded-lg text-xs text-center whitespace-nowrap"
+                style="background-color: #4caf50; color: white"
+            >
+                Прошла модерацию
+            </div>
+            <div 
+                v-else-if="project.is_moderated === false" 
+                class="px-2 py-1 rounded-lg text-xs text-center whitespace-nowrap"
+                style="background-color: #f44336; color: white"
+            >
+                Не прошла модерацию
+            </div>
+            <div 
+                v-else 
+                class="px-2 py-1 rounded-lg text-xs text-center whitespace-nowrap"
+                :style="{ backgroundColor: colors.bgLight, color: colors.white }"
+            >
+                Ожидает модерации
+            </div>
+            
+            <!-- Выбор статуса -->
+            <select 
+                v-model="selectedStatus"
+                @change="changeStatus"
+                class="px-2 py-1 rounded-lg text-xs focus:outline-none cursor-pointer"
+                :style="{ backgroundColor: colors.bgLight, color: colors.white, border: `1px solid ${colors.border}` }"
+                @click.stop
+                aria-label="Изменить статус проекта"
+            >
+                <option disabled value="">Статус</option>
+                <option 
+                    v-for="option in statusOptions" 
+                    :key="option.value"
+                    :value="option.value"
+                >
+                    {{ option.label }}
+                </option>
+            </select>
+        </div>
+
+        <!-- Кнопка избранного для инвестора -->
+        <div v-if="user && userRole === 'Investor'" class="absolute top-2 right-2 z-20">
+            <button 
+                @click.stop="toggleFavorite"
+                class="cursor-pointer p-1.5 sm:p-2 rounded-full transition-all hover:scale-110"
+                :style="{ backgroundColor: colors.bgDark, border: `1px solid ${colors.border}` }"
+                :title="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+                :aria-label="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
+            >
+                <img 
+                    :src="isFavorite ? favoriteActiveIcon : favoriteIcon" 
+                    alt="" 
+                    class="w-4 h-4 sm:w-5 sm:h-5"
+                    aria-hidden="true"
+                >
+            </button>
+        </div>
+
+        <!-- Изображение -->
         <div 
             @click="goToProject"
             @keydown.enter="goToProject"
             @keydown.space.prevent="goToProject"
-            class="flex-1 cursor-pointer flex items-center justify-center overflow-hidden rounded-t-xl"
-            :style="{ backgroundColor: colors.bgImage }"
+            class="aspect-video w-full overflow-hidden cursor-pointer"
             role="button"
             tabindex="0"
             :aria-label="`Перейти к проекту ${project.title}`"
@@ -162,103 +225,89 @@ const changeStatus = async () => {
             <img 
                 :src="currentImage"
                 @error="handleImageError"
-                class="transition-transform duration-300 group-hover:scale-105"
-                :class="isPlaceholder ? 'object-contain' : 'object-cover w-full h-full'"
-                :style="isPlaceholder ? 'max-width: 100%; max-height: 100%; width: auto; height: auto;' : ''"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 :alt="`Изображение проекта ${project.title}`"
                 loading="lazy"
             >
         </div>
-        
-        <!-- избранное -->
-        <div class="absolute top-3 right-3 z-10">
-            <div v-if="user && userRole === 'Investor'">    
-                <button 
-                    @click="toggleFavorite"
-                    class="cursor-pointer bg-white/40 p-2 rounded-xl"
-                    :title="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
-                    :aria-label="isFavorite ? 'Удалить из избранного' : 'Добавить в избранное'"
-                    :aria-pressed="isFavorite"
+
+        <!-- Контент -->
+        <div 
+            class="p-3 sm:p-4 flex flex-col gap-2 cursor-pointer"
+            @click="goToProject"
+            @keydown.enter="goToProject"
+            @keydown.space.prevent="goToProject"
+            role="button"
+            tabindex="0"
+            :aria-label="`Подробнее о проекте ${project.title}`"
+        >
+            <!-- Категории -->
+            <div class="flex flex-wrap gap-1">
+                <span 
+                    v-for="cat in firstCategories" 
+                    :key="cat"
+                    class="px-2 py-0.5 text-xs font-medium rounded-full"
+                    :style="{ backgroundColor: colors.bgLight, color: colors.white }"
                 >
-                    <img 
-                        :src="isFavorite ? favoriteActiveIcon : favoriteIcon" 
-                        alt="" 
-                        class="w-10 h-10"
-                        aria-hidden="true"
-                    >
-                </button>
+                    {{ cat }}
+                </span>
             </div>
-        </div>
-        
-        <!-- Нижняя панель с информацией -->
-        <div class="rounded-b-xl flex-shrink-0" :style="{ backgroundColor: colors.bgLight }">
-            <div class="p-3 sm:p-4">
-                <!-- Информация о проекте -->
-                <div class="grid grid-cols-1 gap-x-4 gap-y-2 text-lg sm:text-xl lg:text-xl">
-                    <p class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Название:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ project.title }}</span>
-                    </p>
-                    
-                    <p v-if="project.number_date_realise" class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Срок:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ project.number_date_realise }} мес.</span>
-                    </p>
-                    
-                    <p v-if="project.total_investment" class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Инвестиции:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ formatNumber(project.total_investment) }} ₽</span>
-                    </p>
-                    
-                    <p v-if="project.type_build" class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Собственность:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ project.type_build }}</span>
+
+            <!-- Название -->
+            <h3 class="font-semibold text-sm sm:text-base line-clamp-2" :style="{ color: colors.white }">
+                {{ project.title }}
+            </h3>
+
+            <!-- Адрес -->
+            <p class="text-xs line-clamp-1" :style="{ color: colors.white80 }">
+                {{ project.address || 'Адрес не указан' }}
+            </p>
+
+            <!-- Прогресс -->
+            <div class="mt-1">
+                <div class="flex justify-between text-xs mb-1">
+                    <span :style="{ color: colors.white80 }">Собрано</span>
+                    <span class="font-semibold" :style="{ color: colors.accent }">{{ Math.min(progress, 100).toFixed(0) }}%</span>
+                </div>
+                <div class="w-full h-1.5 rounded-full overflow-hidden" :style="{ backgroundColor: colors.border }">
+                    <div 
+                        class="h-full rounded-full transition-all"
+                        :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- Показатели -->
+            <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+                <div>
+                    <p class="text-xs" :style="{ color: colors.white80 }">Требуется</p>
+                    <p class="font-semibold text-xs" :style="{ color: colors.white }">
+                        {{ (Number(project.total_investment) / 1000000).toFixed(1) }} млн ₽
                     </p>
                 </div>
-
-                <!-- Админ панель -->
-                <div v-if="userRole === 'Admin'" class="flex flex-col sm:flex-row gap-2 mt-3 pt-3" :style="{ borderTop: `1px solid ${colors.border}` }">
-                    <select 
-                        v-model="selectedStatus"
-                        @change="changeStatus"
-                        class="px-2 py-1.5 rounded-lg border focus:outline-none text-sm"
-                        :style="{ borderColor: colors.border, backgroundColor: colors.bgDark, color: colors.white }"
-                        aria-label="Изменить статус проекта"
-                    >
-                        <option disabled value="">Изменить статус</option>
-                        <option 
-                            v-for="option in statusOptions"     
-                            :key="option.value"
-                            :value="option.value"
-                        >
-                            {{ option.label }}
-                        </option>
-                    </select>
-
-                    <div 
-                        v-if="project.is_moderated === true" 
-                        class="px-2 py-1.5 rounded-lg text-xs text-center whitespace-nowrap"
-                        style="background-color: #4caf50; color: white"
-                        role="status"
-                        aria-label="Проект прошёл модерацию"
-                    >
-                        Прошла модерацию
-                    </div>
-                    <div 
-                        v-else-if="project.is_moderated === false" 
-                        class="px-2 py-1.5 rounded-lg text-xs text-center whitespace-nowrap"
-                        style="background-color: #f44336; color: white"
-                        role="alert"
-                        aria-label="Проект не прошёл модерацию"
-                    >
-                        Не прошла модерацию
-                    </div>
+                <div>
+                    <p class="text-xs" :style="{ color: colors.white80 }">Рабочих мест</p>
+                    <p class="font-semibold text-xs" :style="{ color: colors.white }">
+                        {{ project.count_new_job || '—' }}
+                    </p>
                 </div>
             </div>
         </div>
     </article>
 </template>
+
+<style scoped>
+.line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+</style>

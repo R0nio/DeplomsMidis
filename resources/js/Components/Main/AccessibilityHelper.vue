@@ -1,10 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, onBeforeUnmount, watch, nextTick } from 'vue';
 
-// Состояние меню
 const isOpen = ref(false);
 
-// Настройки
 const settings = ref({
     fontSize: 100,
     lineHeight: 1.5,
@@ -17,10 +15,8 @@ const settings = ref({
     speakSelectedText: true
 });
 
-// Флаг для предотвращения озвучивания при выключенном режиме
-let isSpeechActive = false;
+const isInitialized = ref(false);
 
-// Синтез речи
 let synth = null;
 let isSpeaking = ref(false);
 let availableVoices = ref([]);
@@ -29,7 +25,9 @@ let focusTimeout = null;
 let selectionTimeout = null;
 let lastSelectedText = '';
 
-// Функция для сохранения настроек в localStorage
+// Ссылка на корневой элемент компонента
+const wrapperRef = ref(null);
+
 const saveSettingsToLocalStorage = () => {
     localStorage.setItem('accessibilitySettings', JSON.stringify(settings.value));
 };
@@ -54,8 +52,10 @@ const getVoice = () => {
 };
 
 const speak = (text, priority = false) => {
-    // Главная проверка - если режим озвучки выключен, ничего не озвучиваем
-    if (!settings.value.speakMode) return;
+    if (!settings.value.speakMode) {
+        stopSpeaking();
+        return;
+    }
     if (!synth && !initSpeech()) return;
     if (!text || text.length === 0) return;
     
@@ -75,44 +75,68 @@ const speak = (text, priority = false) => {
         if (voice) utterance.voice = voice;
         
         isSpeaking.value = true;
-        utterance.onend = () => { isSpeaking.value = false; };
-        utterance.onerror = () => { isSpeaking.value = false; };
+        utterance.onend = () => { 
+            isSpeaking.value = false;
+            if (!settings.value.speakMode) {
+                synth.cancel();
+            }
+        };
+        utterance.onerror = () => { 
+            isSpeaking.value = false;
+            synth.cancel();
+        };
         synth.speak(utterance);
     } catch (error) {
         console.error('Speech error:', error);
         isSpeaking.value = false;
+        stopSpeaking();
     }
 };
 
 const stopSpeaking = () => {
     if (synth) { 
-        synth.cancel(); 
+        try {
+            synth.cancel();
+            if (synth.speaking) {
+                synth.pause();
+                synth.cancel();
+            }
+        } catch (error) {
+            console.error('Error stopping speech:', error);
+        }
         isSpeaking.value = false; 
     }
 };
 
-// ========== УДАЛЕНИЕ ВСЕХ СЛУШАТЕЛЕЙ ==========
 const removeAllListeners = () => {
-    document.body.removeEventListener('focus', handleFocus, true);
-    document.removeEventListener('mouseup', handleTextSelection);
+    try {
+        document.body.removeEventListener('focus', handleFocus, true);
+        document.removeEventListener('mouseup', handleTextSelection);
+    } catch (error) {
+        console.error('Error removing listeners:', error);
+    }
 };
 
-// ========== ДОБАВЛЕНИЕ СЛУШАТЕЛЕЙ ==========
 const addAllListeners = () => {
-    if (settings.value.speakOnFocus) {
-        document.body.addEventListener('focus', handleFocus, true);
-    }
-    if (settings.value.speakSelectedText) {
-        document.addEventListener('mouseup', handleTextSelection);
+    removeAllListeners();
+    
+    try {
+        if (settings.value.speakOnFocus) {
+            document.body.addEventListener('focus', handleFocus, true);
+        }
+        if (settings.value.speakSelectedText) {
+            document.addEventListener('mouseup', handleTextSelection);
+        }
+    } catch (error) {
+        console.error('Error adding listeners:', error);
     }
 };
 
-// ========== ОЗВУЧИВАНИЕ ПРИ ФОКУСЕ (TAB) ==========
 const getElementDescription = (element) => {
     let text = element.getAttribute('aria-label') || 
-               element.getAttribute('alt') || 
-               element.getAttribute('title') ||
-               element.getAttribute('placeholder');
+            element.getAttribute('alt') || 
+            element.getAttribute('title') ||
+            element.getAttribute('placeholder');
     
     if (!text && element.innerText && element.innerText.trim().length < 100) {
         text = element.innerText.trim();
@@ -123,41 +147,52 @@ const getElementDescription = (element) => {
 };
 
 const handleFocus = (event) => {
-    // Двойная проверка - если режим выключен, не озвучиваем
     if (!settings.value.speakMode || !settings.value.speakOnFocus) return;
     const element = event.target;
     if (lastFocusedElement === element) return;
     lastFocusedElement = element;
     
     if (focusTimeout) clearTimeout(focusTimeout);
+    stopSpeaking();
+    
     focusTimeout = setTimeout(() => {
+        if (!settings.value.speakMode || !settings.value.speakOnFocus) return;
         const description = getElementDescription(element);
-        if (description) speak(description, false);
-    }, 50);
+        if (description) speak(description, true);
+    }, 150);
 };
 
-// ========== ОЗВУЧИВАНИЕ ВЫДЕЛЕННОГО ТЕКСТА ==========
 const handleTextSelection = () => {
-    // Двойная проверка - если режим выключен, не озвучиваем
-    if (!settings.value.speakMode || !settings.value.speakSelectedText) return;
+    if (!settings.value.speakMode || !settings.value.speakSelectedText) {
+        stopSpeaking();
+        return;
+    }
     
     if (selectionTimeout) clearTimeout(selectionTimeout);
     
     selectionTimeout = setTimeout(() => {
+        if (!settings.value.speakMode || !settings.value.speakSelectedText) {
+            stopSpeaking();
+            return;
+        }
+        
         const selection = window.getSelection();
         const selectedText = selection.toString().trim();
         
         if (selectedText && selectedText !== lastSelectedText && selectedText.length > 3 && selectedText.length < 300) {
             lastSelectedText = selectedText;
-            if (synth?.speaking) synth.cancel();
-            setTimeout(() => speak(selectedText, true), 50);
+            stopSpeaking();
+            setTimeout(() => {
+                if (settings.value.speakMode && settings.value.speakSelectedText) {
+                    speak(selectedText, true);
+                }
+            }, 50);
         } else if (!selectedText) {
             lastSelectedText = '';
         }
     }, 80);
 };
 
-// ========== ВИЗУАЛЬНЫЕ НАСТРОЙКИ ==========
 const applySettings = () => {
     const root = document.documentElement;
     root.style.fontSize = `${settings.value.fontSize}%`;
@@ -178,6 +213,17 @@ const applySettings = () => {
 };
 
 const resetSettings = () => {
+    stopSpeaking();
+    
+    if (focusTimeout) {
+        clearTimeout(focusTimeout);
+        focusTimeout = null;
+    }
+    if (selectionTimeout) {
+        clearTimeout(selectionTimeout);
+        selectionTimeout = null;
+    }
+    
     settings.value = {
         fontSize: 100,
         lineHeight: 1.5,
@@ -190,104 +236,214 @@ const resetSettings = () => {
         speakSelectedText: true
     };
     
-    // Удаляем все слушатели при сбросе
     removeAllListeners();
-    
-    // Останавливаем речь
-    stopSpeaking();
+    lastSelectedText = '';
+    lastFocusedElement = null;
     
     applySettings();
+    
+    setTimeout(() => stopSpeaking(), 50);
 };
 
 const changeFontSize = (value) => {
     settings.value.fontSize = Math.min(200, Math.max(50, value));
     applySettings();
-    speak(`Размер шрифта ${settings.value.fontSize} процентов`, true);
+    if (settings.value.speakMode) {
+        speak(`Размер шрифта ${settings.value.fontSize} процентов`, true);
+    }
 };
 
-// ========== ОТДЕЛЬНЫЕ WATCH ДЛЯ КАЖДОГО ПОЛЯ ==========
-watch(() => settings.value.fontSize, () => saveSettingsToLocalStorage());
-watch(() => settings.value.lineHeight, () => saveSettingsToLocalStorage());
-watch(() => settings.value.letterSpacing, () => saveSettingsToLocalStorage());
-watch(() => settings.value.highContrast, () => saveSettingsToLocalStorage());
-watch(() => settings.value.grayscale, () => saveSettingsToLocalStorage());
-watch(() => settings.value.invertColors, () => saveSettingsToLocalStorage());
+watch(() => settings.value.fontSize, () => {
+    if (isInitialized.value) saveSettingsToLocalStorage();
+});
+watch(() => settings.value.lineHeight, () => {
+    if (isInitialized.value) saveSettingsToLocalStorage();
+});
+watch(() => settings.value.letterSpacing, () => {
+    if (isInitialized.value) saveSettingsToLocalStorage();
+});
+watch(() => settings.value.highContrast, () => {
+    if (isInitialized.value) saveSettingsToLocalStorage();
+});
+watch(() => settings.value.grayscale, () => {
+    if (isInitialized.value) saveSettingsToLocalStorage();
+});
+watch(() => settings.value.invertColors, () => {
+    if (isInitialized.value) saveSettingsToLocalStorage();
+});
 
-// Главный watch для speakMode - управляет включением/выключением всей озвучки
-watch(() => settings.value.speakMode, (newVal) => {
-    saveSettingsToLocalStorage();
+watch(() => settings.value.speakMode, (newVal, oldVal) => {
     
-    if (newVal) {
-        // Включаем режим озвучки
+    if (isInitialized.value) {
+        saveSettingsToLocalStorage();
+    }
+    
+    if (newVal === true) {
+        stopSpeaking();
         initSpeech();
         addAllListeners();
-        speak('Режим озвучки включен', true);
-    } else {
-        // Выключаем режим озвучки - удаляем все слушатели и останавливаем речь
-        removeAllListeners();
+        
+        if (isInitialized.value && oldVal === false) {
+            speak('Режим озвучки включен', true);
+        }
+    } else if (newVal === false) {
         stopSpeaking();
-        // Сбрасываем последний выделенный текст
+        
+        if (focusTimeout) {
+            clearTimeout(focusTimeout);
+            focusTimeout = null;
+        }
+        if (selectionTimeout) {
+            clearTimeout(selectionTimeout);
+            selectionTimeout = null;
+        }
+        
+        removeAllListeners();
         lastSelectedText = '';
         lastFocusedElement = null;
+        
+        setTimeout(() => {
+            if (!settings.value.speakMode) {
+                stopSpeaking();
+            }
+        }, 100);
     }
 });
 
-// Watch для speakOnFocus - добавляет/удаляет слушатель фокуса
 watch(() => settings.value.speakOnFocus, (newVal) => {
-    saveSettingsToLocalStorage();
+    if (isInitialized.value) saveSettingsToLocalStorage();
     if (!settings.value.speakMode) return;
     
     if (newVal) {
         document.body.addEventListener('focus', handleFocus, true);
-        speak('Озвучивание при навигации включено', true);
+        if (isInitialized.value) speak('Озвучивание при навигации включено', true);
     } else {
         document.body.removeEventListener('focus', handleFocus, true);
-        speak('Озвучивание при навигации выключено', true);
+        if (isInitialized.value) speak('Озвучивание при навигации выключено', true);
     }
 });
 
-// Watch для speakSelectedText - добавляет/удаляет слушатель выделения текста
 watch(() => settings.value.speakSelectedText, (newVal) => {
-    saveSettingsToLocalStorage();
+    if (isInitialized.value) saveSettingsToLocalStorage();
     if (!settings.value.speakMode) return;
     
     if (newVal) {
         document.addEventListener('mouseup', handleTextSelection);
-        speak('Озвучивание выделенного текста включено', true);
+        if (isInitialized.value) speak('Озвучивание выделенного текста включено', true);
     } else {
         document.removeEventListener('mouseup', handleTextSelection);
         lastSelectedText = '';
-        speak('Озвучивание выделенного текста выключено', true);
+        if (isInitialized.value) speak('Озвучивание выделенного текста выключено', true);
     }
 });
 
-// ========== LIFECYCLE ==========
+const cleanup = () => {
+    stopSpeaking();
+    if (focusTimeout) {
+        clearTimeout(focusTimeout);
+        focusTimeout = null;
+    }
+    if (selectionTimeout) {
+        clearTimeout(selectionTimeout);
+        selectionTimeout = null;
+    }
+    removeAllListeners();
+    lastSelectedText = '';
+    lastFocusedElement = null;
+};
+
+if (typeof window !== 'undefined') {
+    window.__accessibilityCleanup = cleanup;
+}
+
 onMounted(() => {
+    cleanup();
     initSpeech();
     
     const saved = localStorage.getItem('accessibilitySettings');
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
-            settings.value = { ...settings.value, ...parsed };
+            
+            Object.keys(parsed).forEach(key => {
+                settings.value[key] = parsed[key];
+            });
+            
+            
             applySettings();
-        } catch (e) {}
+            
+        } catch (e) {
+            console.error('Error loading settings:', e);
+        }
     }
     
-    // Применяем слушатели только если режим озвучки включен
-    if (settings.value.speakMode) {
-        addAllListeners();
-    }
+    nextTick(() => {
+        isInitialized.value = true;
+        
+        if (settings.value.speakMode) {
+            addAllListeners();
+        }
+    });
+    
+    const handleInertiaStart = () => {
+        stopSpeaking();
+        if (focusTimeout) clearTimeout(focusTimeout);
+        if (selectionTimeout) clearTimeout(selectionTimeout);
+        lastSelectedText = '';
+        lastFocusedElement = null;
+    };
+    
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            stopSpeaking();
+            if (focusTimeout) clearTimeout(focusTimeout);
+            if (selectionTimeout) clearTimeout(selectionTimeout);
+        }
+    };
+    
+    const handleBeforeUnload = () => {
+        cleanup();
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('inertia:start', handleInertiaStart);
+    
+    window.__accessibilityBeforeUnload = handleBeforeUnload;
+    window.__accessibilityVisibilityChange = handleVisibilityChange;
+    window.__accessibilityInertiaStart = handleInertiaStart;
+});
+
+onBeforeUnmount(() => {
+    stopSpeaking();
+    if (focusTimeout) clearTimeout(focusTimeout);
+    if (selectionTimeout) clearTimeout(selectionTimeout);
 });
 
 onUnmounted(() => {
-    removeAllListeners();
-    stopSpeaking();
+    if (window.__accessibilityBeforeUnload) {
+        window.removeEventListener('beforeunload', window.__accessibilityBeforeUnload);
+        delete window.__accessibilityBeforeUnload;
+    }
+    if (window.__accessibilityVisibilityChange) {
+        document.removeEventListener('visibilitychange', window.__accessibilityVisibilityChange);
+        delete window.__accessibilityVisibilityChange;
+    }
+    if (window.__accessibilityInertiaStart) {
+        document.removeEventListener('inertia:start', window.__accessibilityInertiaStart);
+        delete window.__accessibilityInertiaStart;
+    }
+    
+    cleanup();
+    
+    if (window.__accessibilityCleanup) {
+        delete window.__accessibilityCleanup;
+    }
 });
 </script>
 
 <template>
-    <div class="accessibility-wrapper">
+    <div ref="wrapperRef" class="accessibility-wrapper">
         <button 
             @click="isOpen = !isOpen"
             class="accessibility-btn"
@@ -300,7 +456,7 @@ onUnmounted(() => {
             </svg>
         </button>
 
-            <Transition name="dropdown">
+        <Transition name="dropdown">
             <div v-if="isOpen" class="accessibility-panel">
                 <div class="panel-header">
                     <h3>Доступность</h3>
@@ -391,23 +547,27 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Используем rem и наследование от глобальных настроек */
 .accessibility-wrapper {
     position: relative;
     display: inline-block;
+    /* Наследуем размер шрифта от родителя */
+    font-size: 1rem;
 }
 
 .accessibility-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
     background: #284139;
     border: 2px solid #886830;
     border-radius: 40px;
     color: #F8D794;
     cursor: pointer;
     transition: all 0.3s;
-    font-size: 20px;
+    /* Используем rem вместо px */
+    font-size: 1.25rem;
 }
 
 .accessibility-btn:hover {
@@ -420,12 +580,10 @@ onUnmounted(() => {
     color: #284139;
 }
 
-.btn-icon {
-    font-size: 18px;
-}
-
 .btn-arrow {
     transition: transform 0.3s;
+    width: 0.875rem;
+    height: 0.875rem;
 }
 
 .btn-arrow.rotated {
@@ -434,7 +592,7 @@ onUnmounted(() => {
 
 .speaking-indicator {
     animation: pulse 1s infinite;
-    font-size: 12px;
+    font-size: 1rem;
 }
 
 @keyframes pulse {
@@ -446,12 +604,12 @@ onUnmounted(() => {
     position: absolute;
     top: 100%;
     right: 0;
-    margin-top: 10px;
-    width: 380px;
-    max-width: calc(100vw - 20px);
+    margin-top: 0.625rem;
+    width: 23.75rem;
+    max-width: calc(100vw - 1.25rem);
     background: #809076;
     border: 2px solid #886830;
-    border-radius: 16px;
+    border-radius: 1rem;
     z-index: 1000;
 }
 
@@ -459,98 +617,103 @@ onUnmounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
+    padding: 0.75rem 1rem;
     background: #284139;
     border-bottom: 1px solid #886830;
-    border-radius: 16px 16px 0 0;
+    border-radius: 1rem 1rem 0 0;
 }
 
 .panel-header h3 {
     margin: 0;
     color: #F8D794;
-    font-size: 20px;
+    font-size: 1.25rem;
 }
 
 .reset-btn {
-    padding: 8px 20px;
+    padding: 0.5rem 1.25rem;
     background: #f44336;
     border: none;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     color: white;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 1.25rem;
 }
 
 .panel-body {
-    padding: 16px;
+    padding: 1rem;
 }
 
 .main-switch {
     background: #284139;
-    padding: 12px;
-    border-radius: 12px;
-    margin-bottom: 16px;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .speech-modes {
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
 }
 
 .setting-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 1rem;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 0.625rem;
 }
 
 .setting-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0.25rem;
 }
 
 .setting-name {
     font-weight: 600;
     color: #F8D794;
-    font-size: 18px;
+    font-size: 1.125rem;
 }
 
 .setting-desc {
-    font-size: 14px;
+    font-size: 0.875rem;
     color: #e8f0ee;
 }
 
 .divider {
     height: 1px;
     background: #886830;
-    margin: 16px 0;
+    margin: 1rem 0;
 }
 
 .font-controls, .line-controls, .letter-controls, .color-controls {
     display: flex;
-    gap: 8px;
+    gap: 0.5rem;
     flex-wrap: wrap;
 }
 
 .font-btn, .line-btn, .letter-btn, .color-btn {
-    padding: 6px 12px;
+    padding: 0.375rem 0.75rem;
     background: #284139;
     border: 1px solid #886830;
-    border-radius: 8px;
+    border-radius: 0.5rem;
     color: white;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 1rem;
     transition: all 0.2s;
+}
+
+.font-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .font-value {
     color: white;
     font-weight: bold;
-    min-width: 50px;
+    min-width: 3.125rem;
     text-align: center;
-    font-size: 24px;
+    font-size: 1.5rem;
 }
 
 .line-btn.active, .letter-btn.active, .color-btn.active {
@@ -561,8 +724,8 @@ onUnmounted(() => {
 .switch {
     position: relative;
     display: inline-block;
-    width: 50px;
-    height: 24px;
+    width: 3.125rem;
+    height: 1.5rem;
 }
 
 .switch input {
@@ -580,17 +743,17 @@ onUnmounted(() => {
     bottom: 0;
     background-color: #284139;
     transition: 0.3s;
-    border-radius: 24px;
+    border-radius: 1.5rem;
     border: 1px solid #886830;
 }
 
 .slider:before {
     position: absolute;
     content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 2px;
+    height: 1.125rem;
+    width: 1.125rem;
+    left: 0.1875rem;
+    bottom: 0.125rem;
     background-color: white;
     transition: 0.3s;
     border-radius: 50%;
@@ -601,25 +764,8 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-    transform: translateX(24px);
+    transform: translateX(1.5rem);
     background-color: #284139;
-}
-
-.hint {
-    background: #284139;
-    padding: 10px;
-    border-radius: 8px;
-    margin-top: 16px;
-    font-size: 14px;
-    color: #F8D794;
-    text-align: center;
-}
-
-.hint kbd {
-    background: #1a2d24;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: monospace;
 }
 
 .dropdown-enter-active,
@@ -630,16 +776,17 @@ input:checked + .slider:before {
 .dropdown-enter-from,
 .dropdown-leave-to {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-0.5rem);
 }
 
-@media (max-width: 768px) {
+/* Медиа-запросы тоже используют rem */
+@media (max-width: 48rem) {
     .accessibility-panel {
         position: fixed;
         top: auto;
-        bottom: 20px;
-        right: 20px;
-        left: 20px;
+        bottom: 1.25rem;
+        right: 1.25rem;
+        left: 1.25rem;
         width: auto;
     }
     
@@ -648,20 +795,20 @@ input:checked + .slider:before {
     }
     
     .accessibility-btn {
-        padding: 10px;
+        padding: 0.625rem;
     }
     
     .setting-name, .setting-desc, .reset-btn, .panel-header h3 {
-        font-size: 16px;
+        font-size: 1rem;
     }
     
     .font-value {
-        font-size: 20px;
+        font-size: 1.25rem;
     }
     
     .font-btn, .line-btn, .letter-btn, .color-btn {
-        font-size: 14px;
-        padding: 4px 8px;
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
     }
 }
 </style>

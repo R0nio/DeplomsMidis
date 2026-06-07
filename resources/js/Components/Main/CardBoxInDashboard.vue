@@ -6,25 +6,24 @@ import slider3 from "../../../images/LogoInvestProject.png";
 import favoriteIcon from "../../../images/Favorite.png";
 import favoriteActiveIcon from "../../../images/FavoriteActivity.png";
 
-// Цветовая схема
 const colors = {
-    bgDark: '#284139',
+    bgPage: '#436343',
     bgLight: '#809076',
+    bgDark: '#284139',
     bgImage: '#4a7a6a',
     accent: '#F8D794',
     border: '#886830',
+    textLight: '#e8f0ee',
+    textDark: '#111A19',
     white: '#ffffff',
     white80: 'rgba(255, 255, 255, 0.8)',
+    white60: 'rgba(255, 255, 255, 0.6)',
 };
 
 const props = defineProps({
     project: {
         type: Object,
-        required: true
-    },
-    isFavorited: {
-        type: [Boolean, Array],
-        default: false
+        required: true,
     }
 });
 
@@ -41,41 +40,11 @@ const checkIsFavorited = () => {
     return Boolean(props.isFavorited);
 };
 
-const isFavorite = ref(checkIsFavorited());
-
-// Переключение избранного
-const toggleFavorite = async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (!user.value) {
-        alert('Необходимо авторизоваться');
-        return;
-    }
-
-    const previousState = isFavorite.value;
-    isFavorite.value = !isFavorite.value;
-
-    try {
-        const response = await axios.post(route('favorites.toggle', props.project.id));
-        if (response.data.success) {
-            isFavorite.value = response.data.isFavorited;
-        } else {
-            isFavorite.value = previousState;
-        }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        isFavorite.value = previousState;
-    }
-};
-
 // Изображение
 const imageError = ref(false);
 const handleImageError = () => { imageError.value = true; };
 
-const isPlaceholder = computed(() => {
-    return currentImage.value === slider3 || imageError.value;
-});
+const isPlaceholder = computed(() => currentImage.value === slider3 || imageError.value);
 
 const currentImage = computed(() => {
     if (imageError.value) return slider3;
@@ -94,66 +63,113 @@ const goToProject = () => {
     router.visit(route('projects.show', props.project.id));
 };
 
+// Прогресс сбора
+const progress = computed(() => {
+    const collected = Number(props.project.collected_total_investment) || 0;
+    const total = Number(props.project.total_investment) || 1;
+    return (collected / total) * 100;
+});
+
+// Категории (первые 2)
+const firstCategories = computed(() => {
+    if (!props.project.category) return [];
+    try {
+        const cats = Array.isArray(props.project.category)
+            ? props.project.category
+            : JSON.parse(props.project.category);
+        return cats.slice(0, 2);
+    } catch {
+        return [];
+    }
+});
 </script>
 
 <template>
     <article 
-        class="w-full h-[450px] sm:h-[500px] lg:h-[550px] flex flex-col rounded-2xl relative overflow-hidden transition-all duration-300 group focus-within:ring-2 focus-within:ring-[#F8D794]"
-        :style="{ backgroundColor: colors.bgDark, border: `2px solid ${colors.border}` }"
-        role="article"
-        :aria-label="`Проект: ${project.title}`"
+        class="h-full flex flex-col rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl group relative"
+        :style="{ backgroundColor: colors.bgDark, border: `1px solid ${colors.border}` }"
+        :aria-label="`Карточка проекта: ${project.title}`"
     >
-        <!-- Изображение проекта -->
+
+        <!-- Изображение -->
         <div 
             @click="goToProject"
-            class="flex-1 cursor-pointer flex items-center justify-center overflow-hidden rounded-t-xl"
-            :style="{ backgroundColor: colors.bgImage }"
+            @keydown.enter="goToProject"
+            @keydown.space.prevent="goToProject"
+            class="aspect-video w-full overflow-hidden cursor-pointer"
             role="button"
             tabindex="0"
             :aria-label="`Перейти к проекту ${project.title}`"
-            @keydown.enter="goToProject"
-            @keydown.space.prevent="goToProject"
         >
             <img 
                 :src="currentImage"
                 @error="handleImageError"
-                class="transition-transform duration-300 group-hover:scale-105"
-                :class="isPlaceholder ? 'object-contain' : 'object-cover w-full h-full'"
-                :style="isPlaceholder ? 'max-width: 100%; max-height: 100%; width: auto; height: auto;' : ''"
+                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 :alt="`Изображение проекта ${project.title}`"
                 loading="lazy"
             >
         </div>
-        
-        <!-- Нижняя панель с информацией -->
-        <div class="rounded-b-xl flex-shrink-0" :style="{ backgroundColor: colors.bgLight }">
-            <div class="p-3 sm:p-4">
-                <!-- Информация о проекте -->
-                <div class="grid grid-cols-1 gap-x-4 gap-y-2 text-lg sm:text-xl lg:text-xl">
-                    <p class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Название:</span>
-                        <span class="sr-only"> - </span>
-                        <span class="break-words" :style="{ color: colors.white }">{{ project.title }}</span>
+
+        <!-- Контент -->
+        <div 
+            class="p-4 flex flex-col gap-3 cursor-pointer"
+            @click="goToProject"
+            @keydown.enter="goToProject"
+            @keydown.space.prevent="goToProject"
+            role="button"
+            tabindex="0"
+            :aria-label="`Подробнее о проекте ${project.title}`"
+        >
+            <!-- Категории -->
+            <div class="flex flex-wrap gap-2">
+                <span 
+                    v-for="cat in firstCategories" 
+                    :key="cat"
+                    class="px-2 py-0.5 text-xs font-medium rounded-full"
+                    :style="{ backgroundColor: colors.bgLight, color: colors.white }"
+                >
+                    {{ cat }}
+                </span>
+            </div>
+
+            <!-- Название -->
+            <h3 class="font-semibold text-base line-clamp-2" :style="{ color: colors.white }">
+                {{ project.title }}
+            </h3>
+
+            <!-- Адрес -->
+            <p class="text-xs line-clamp-1" :style="{ color: colors.white80 }">
+                {{ project.address || 'Адрес не указан' }}
+            </p>
+
+            <!-- Прогресс -->
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span :style="{ color: colors.white80 }">Собрано</span>
+                    <span class="font-semibold" :style="{ color: colors.accent }">{{ Math.min(progress, 100).toFixed(0) }}%</span>
+                </div>
+                <div class="w-full h-2 rounded-full overflow-hidden" :style="{ backgroundColor: colors.border }">
+                    <div 
+                        class="h-full rounded-full transition-all"
+                        :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"
+                    ></div>
+                </div>
+            </div>
+
+            <!-- Показатели -->
+            <div class="grid grid-cols-2 gap-3 text-sm pt-1">
+                <div>
+                    <p class="text-xs" :style="{ color: colors.white80 }">Требуется</p>
+                    <p class="font-semibold text-sm" :style="{ color: colors.white }">
+                        {{ (Number(project.total_investment) / 1000000).toFixed(1) }} млн ₽
                     </p>
-                    
-                    <p v-if="project.number_date_realise" class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Срок:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ project.number_date_realise }} мес.</span>
+                </div>
+                <div>
+                    <p class="text-xs" :style="{ color: colors.white80 }">Рабочих мест</p>
+                    <p class="font-semibold text-sm" :style="{ color: colors.white }">
+                        {{ project.count_new_job || '—' }}
                     </p>
-                    
-                    <p v-if="project.total_investment" class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Инвестиции:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ formatNumber(project.total_investment) }} ₽</span>
-                    </p>
-                    
-                    <p v-if="project.type_build" class="truncate">
-                        <span class="font-semibold" :style="{ color: colors.accent }">Собственность:</span>
-                        <span class="sr-only"> - </span>
-                        <span :style="{ color: colors.white }">{{ project.type_build }}</span>
-                    </p>
-                </div>               
+                </div>
             </div>
         </div>
     </article>

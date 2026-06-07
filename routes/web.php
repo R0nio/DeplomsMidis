@@ -51,10 +51,6 @@ Route::middleware('auth')->group(function () {
 
     Route::post('create', [ProjectController::class, 'store'])->name('projects.store');
 
-    Route::get('/AdminPanel', function(){
-    return Inertia::render('AdminPanel');
-    })->name('adminPanel');
-
     Route::post('/favorites/toggle/{project}', [FavoriteController::class, 'toggle'])
     ->name('favorites.toggle')
     ->middleware(['auth']);
