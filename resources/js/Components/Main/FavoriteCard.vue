@@ -8,6 +8,7 @@ import favoriteActiveIcon from "../../../images/FavoriteActivity.png";
 // ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
 const colors = {
     brand: 'var(--color-brand)',
+    brandDark: 'var(--color-brand-dark)',
     accent: 'var(--color-accent)',
     hover: 'var(--color-hover)',
     white: 'var(--color-white)',
@@ -27,7 +28,7 @@ const transitions = {
 const props = defineProps({
     project: {
         type: Object,
-        required: true,
+        required: true
     }
 });
 
@@ -68,8 +69,6 @@ const goToProject = () => {
     router.visit(route('projects.show', props.project.id));
 };
 
-const isFavorite = ref(true);
-
 const toggleFavorite = async (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -88,12 +87,20 @@ const progress = computed(() => {
     return (collected / total) * 100;
 });
 
-const firstCategories = computed(() => {
+// Умное отображение категорий: максимум 2 + счётчик (как в первой карточке)
+const displayCategories = computed(() => {
     if (!props.project.category) return [];
     try {
-        const cats = Array.isArray(props.project.category) ? props.project.category : JSON.parse(props.project.category);
-        return cats.slice(0, 2);
-    } catch { return []; }
+        const cats = Array.isArray(props.project.category) 
+            ? props.project.category 
+            : JSON.parse(props.project.category);
+        
+        if (cats.length === 0) return [];
+        if (cats.length <= 2) return cats;
+        return [...cats.slice(0, 2), `+${cats.length - 2}`];
+    } catch { 
+        return []; 
+    }
 });
 </script>
 
@@ -122,7 +129,7 @@ const firstCategories = computed(() => {
         </div>
 
         <!-- Блок с изображением -->
-        <div class="relative aspect-video w-full overflow-hidden" :style="{ backgroundImage: `linear-gradient(to bottom right, ${colors.hover}30, ${colors.hover}10)` }">
+        <div class="relative aspect-video w-full overflow-hidden flex-shrink-0" :style="{ backgroundImage: `linear-gradient(to bottom right, ${colors.hover}30, ${colors.hover}10)` }">
             <div v-if="imageLoading && !imageError && hasPhotos" class="absolute inset-0 flex items-center justify-center z-10" :style="{ backgroundColor: colors.brand + '80' }">
                 <svg class="animate-spin w-6 h-6" :style="{ color: colors.accent }" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -146,19 +153,46 @@ const firstCategories = computed(() => {
         </div>
 
         <!-- Контент -->
-        <div class="p-4 flex flex-col gap-3">
-            <div class="flex flex-wrap gap-2">
-                <span v-for="cat in firstCategories" :key="cat" class="px-2 py-0.5 text-base font-medium rounded-full" :style="{ backgroundColor: colors.accent, color: colors.white }">{{ cat }}</span>
+        <div class="p-4 flex flex-col gap-3 flex-grow">
+            
+            <!-- Категории -->
+            <div class="flex flex-wrap gap-2 min-h-[36px]">
+                <span 
+                    v-for="cat in displayCategories" 
+                    :key="cat" 
+                    class="px-2 h-max py-1 text-base font-medium rounded-full max-w-[170px] max-2xl:max-w-[130px] truncate"
+                    :style="{ backgroundColor: colors.accent, color: colors.white }"
+                    :title="cat"
+                >{{ cat }}</span>
             </div>
-            <h3 class="font-heading font-semibold text-base line-clamp-2" :style="{ color: colors.white, fontFamily: fonts.heading }">{{ project.title }}</h3>
+            
+            <!-- Заголовок -->
+            <h3 class="font-heading font-semibold text-base line-clamp-2 truncate" :style="{ color: colors.white, fontFamily: fonts.heading }">{{ project.title }}</h3>
+            
+            <!-- Адрес -->
             <p class="text-base line-clamp-1" :style="{ color: colors.white }">{{ project.address || 'Адрес не указан' }}</p>
+            
+            <!-- Прогресс сбора -->
             <div>
-                <div class="flex justify-between text-base mb-1"><span :style="{ color: colors.white }">Собрано</span><span class="font-semibold" :style="{ color: colors.page }">{{ Math.min(progress, 100).toFixed(0) }}%</span></div>
-                <div class="w-full h-2 rounded-full overflow-hidden" :style="{ backgroundColor: colors.page }"><div class="h-full rounded-full transition-all" :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"></div></div>
+                <div class="flex justify-between text-base mb-1">
+                    <span :style="{ color: colors.white }">Собрано</span>
+                    <span class="font-semibold" :style="{ color: colors.accent }">{{ Math.min(progress, 100).toFixed(0) }}%</span>
+                </div>
+                <div class="w-full h-2 rounded-full overflow-hidden" :style="{ backgroundColor: colors.page }">
+                    <div class="h-full rounded-full transition-all" :style="{ width: `${Math.min(progress, 100)}%`, backgroundColor: colors.accent }"></div>
+                </div>
             </div>
+            
+            <!-- Инвестиции и рабочие места -->
             <div class="grid grid-cols-2 gap-3 text-base pt-1">
-                <div><p class="text-base" :style="{ color: colors.white }">Требуется</p><p class="font-semibold text-base" :style="{ color: colors.white }">{{ (Number(project.total_investment) / 1000000).toFixed(1) }} млн ₽</p></div>
-                <div><p class="text-base" :style="{ color: colors.white }">Рабочих мест</p><p class="font-semibold text-base" :style="{ color: colors.white }">{{ project.count_new_job || '—' }}</p></div>
+                <div>
+                    <p class="text-base" :style="{ color: colors.white }">Требуется</p>
+                    <p class="font-semibold text-base" :style="{ color: colors.white }">{{ (Number(project.total_investment) / 1000000).toFixed(1) }} млн ₽</p>
+                </div>
+                <div>
+                    <p class="text-base" :style="{ color: colors.white }">Рабочих мест</p>
+                    <p class="font-semibold text-base" :style="{ color: colors.white }">{{ project.count_new_job || '—' }}</p>
+                </div>
             </div>
         </div>
     </article>

@@ -77,7 +77,7 @@ const props = defineProps({
     },
 });
 
-const api = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const api = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyBXnLf3sg5VyOPKsRaIemTeF59ZtL13CmQ";
 
 const selectedProjectId = ref(null);
 const mapZoom = ref(7);

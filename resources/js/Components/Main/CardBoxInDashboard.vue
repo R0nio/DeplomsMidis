@@ -128,7 +128,7 @@ const firstCategories = computed(() => {
         const cats = Array.isArray(props.project.category)
             ? props.project.category
             : JSON.parse(props.project.category);
-        return cats.slice(0, 2);
+        return cats.slice(0,4);
     } catch {
         return [];
     }
@@ -157,6 +157,27 @@ const changeStatus = async () => {
         console.error('Ошибка при изменении статуса:', error);
     }
 };
+const displayCategories = computed(() => {
+    if (!props.project.category) return [];
+    try {
+        const cats = Array.isArray(props.project.category) 
+            ? props.project.category 
+            : JSON.parse(props.project.category);
+        
+        if (cats.length === 0) return [];
+        
+        // Если категорий 2 или меньше - показываем все
+        if (cats.length <= 2) return cats;
+        
+        // Если больше 2 - показываем первые 2 + счётчик
+        return [
+            ...cats.slice(0, 2),
+            `+${cats.length - 2}`
+        ];
+    } catch { 
+        return []; 
+    }
+});
 </script>
 
 <template>
@@ -277,18 +298,17 @@ const changeStatus = async () => {
 
         <!-- Контент -->
         <div class="p-4 flex flex-col gap-3">
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-2 min-h-[36px] truncate">
                 <span 
-                    v-for="cat in firstCategories" 
-                    :key="cat"
-                    class="px-2 py-0.5 text-base font-medium rounded-full"
+                    v-for="cat in displayCategories" 
+                    :key="cat" 
+                    class="px-2 h-max py-1 text-base font-medium rounded-full max-w-[200px] max-2xl:max-w-[100px] max-lg:max-w-[250px] truncate"
                     :style="{ backgroundColor: colors.accent, color: colors.white }"
-                >
-                    {{ cat }}
-                </span>
+                    :title="cat"
+                >{{ cat }}</span>
             </div>
 
-            <h3 class="font-heading font-semibold text-base line-clamp-2" :style="{ color: colors.white, fontFamily: fonts.heading }">
+            <h3 class="font-heading font-semibold text-base line-clamp-2 truncate" :style="{ color: colors.white, fontFamily: fonts.heading }">
                 {{ project.title }}
             </h3>
 

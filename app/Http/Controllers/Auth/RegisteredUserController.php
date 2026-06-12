@@ -32,16 +32,23 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'middlename' => 'required|string|max:255',
-            'lastname' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:'.User::class,
-            'login' => 'required|string|max:255|unique:'.User::class,
-            'number' => 'required|string|max:255',
-            'role' => 'required|string|max:255',
-            'organization_name' => 'nullable|string|max:255',
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        'name' => 'required|string|max:255|regex:/^[А-Яа-яЁё]+$/u',
+        'middlename' => 'required|string|max:255|regex:/^[А-Яа-яЁё]+$/u',
+        'lastname' => 'required|string|max:255|regex:/^[А-Яа-яЁё]+$/u',
+        'login' => 'required|string|max:255|regex:/^[A-Za-z0-9_]+$/|unique:' . User::class,
+        'email' => 'required|string|email|max:255|unique:' . User::class,
+        'number' => 'required|string|max:255',
+        'role' => 'required|string|max:255',
+        'organization_name' => 'nullable|string|max:255',
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+    ], [
+        // Сообщения для кириллицы
+        'name.regex' => 'Имя должно содержать только русские буквы (А-Я, а-я)',
+        'middlename.regex' => 'Отчество должно содержать только русские буквы (А-Я, а-я)',
+        'lastname.regex' => 'Фамилия должна содержать только русские буквы (А-Я, а-я)',
+        // Сообщения для латиницы
+        'login.regex' => 'Логин может содержать только латинские буквы, цифры и знак подчёркивания',
+    ]);
 
         $user = User::create([
             'name' => $request->name,

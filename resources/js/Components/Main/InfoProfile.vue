@@ -174,9 +174,9 @@ watch(favoriteJobsFromInput, (newValue) => {
 });
 
 const favoriteIndustries = computed(() => {
-    if (!props.favoriteProjects) return [{ value: '', name: 'Все отрасли' }];
+    if (!props.favoriteProjects) return [{ value: '', name: 'Все деятельности' }];
     const unique = [...new Set(props.favoriteProjects.map(p => p.activity).filter(Boolean))];
-    return [{ value: '', name: 'Все отрасли' }, ...unique.map(item => ({ value: item, name: item }))];
+    return [{ value: '', name: 'Все деятельности' }, ...unique.map(item => ({ value: item, name: item }))];
 });
 
 const favoriteOwnerships = computed(() => {
@@ -339,9 +339,9 @@ watch(myProjectsJobsFromInput, (newValue) => {
 });
 
 const myProjectsIndustries = computed(() => {
-    if (!props.myProjects) return [{ value: '', name: 'Все отрасли' }];
+    if (!props.myProjects) return [{ value: '', name: 'Все деятельности' }];
     const unique = [...new Set(props.myProjects.map(p => p.activity).filter(Boolean))];
-    return [{ value: '', name: 'Все отрасли' }, ...unique.map(item => ({ value: item, name: item }))];
+    return [{ value: '', name: 'Все деятельности' }, ...unique.map(item => ({ value: item, name: item }))];
 });
 
 const myProjectsOwnerships = computed(() => {
@@ -491,17 +491,17 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">ФИО</h2>
-                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
-                                <p class="truncate">{{ `${user.middlename || ''} ${user.name || ''} ${user.lastname || ''}`.trim() || '—' }}</p>
+                            <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center " :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
+                                <p class="">{{ `${user.middlename || ''} ${user.name || ''} ${user.lastname || ''}`.trim() || '—' }}</p>
                             </div>
                         </div>
                         
-                        <div v-if="user.login" tabindex="0" class="focus:outline-none rounded-lg p-1">
+                        <!-- <div v-if="user.login" tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Логин</h2>
                             <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                                 <p class="truncate">{{ user.login }}</p>
                             </div>
-                        </div>
+                        </div> -->
                         
                         <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                             <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Электронная почта</h2>
@@ -549,23 +549,23 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
         <!-- Обычный пользователь (не админ) -->
         <div v-else class="flex xl:flex-row flex-col gap-8">
             <!-- Левая колонка - данные пользователя -->
-            <section aria-labelledby="user-data-title" class="w-full xl:w-[400px]">
-                <div class="flex flex-col gap-4 xl:pr-8 pb-4 max-xl:pb-10 xl:border-r-2 max-xl:border-b-2" :style="{ borderColor: colors.border }">
+            <section aria-labelledby="user-data-title" class="w-full xl:w-[600px]">
+                <div class="flex flex-col gap-4 xl:pr-8 pb-4 max-xl:pb-10 xl:border-r-2 max-xl:border-b-2" :style="{ borderColor: colors.muted }">
                     <h1 id="user-data-title" class="text-2xl sm:text-3xl text-center font-heading font-bold mb-2" :style="{ color: colors.brand, fontFamily: fonts.heading }" tabindex="0">Ваши данные</h1>
                     
                     <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">ФИО</h2>
                         <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
-                            <p class="truncate">{{ `${user.middlename || ''} ${user.name || ''} ${user.lastname || ''}`.trim() || '—' }}</p>
+                            <p class="">{{ `${user.middlename || ''} ${user.name || ''} ${user.lastname || ''}`.trim() || '—' }}</p>
                         </div>
                     </div>
                     
-                    <div v-if="user.login" tabindex="0" class="focus:outline-none rounded-lg p-1">
+                    <!-- <div v-if="user.login" tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Логин</h2>
                         <div class="text-2xl p-3 w-full rounded-xl flex justify-center items-center" :style="{ backgroundColor: colors.brand, border: `1px solid ${colors.accent}`, color: colors.white }">
                             <p class="truncate">{{ user.login }}</p>
                         </div>
-                    </div>
+                    </div> -->
                     
                     <div tabindex="0" class="focus:outline-none rounded-lg p-1">
                         <h2 class="text-sm font-semibold mb-1.5 pl-3 uppercase tracking-wide" :style="{ color: colors.accent }">Электронная почта</h2>
@@ -601,8 +601,8 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                         <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
                             <div class="flex-1 w-full"><SearchInput v-model="favoriteSearchQuery" placeholder="Поиск по названию или адресу..." class="w-full" /></div>
                             <div class="flex h-[45px] gap-2 w-full sm:w-auto">
-                                <fwb-button @click="applyFavoriteFiltersManually" color="default" size="sm" class="bg-accent text-white hover:bg-hover">Применить</fwb-button>
-                                <fwb-button @click="clearFavoriteFilters" color="light" size="sm" :class="{ 'opacity-50': !hasFavoriteFilters }" :disabled="!hasFavoriteFilters" class="bg-light text-brand border border-accent hover:bg-hover/10">Сбросить</fwb-button>
+                                <!-- <fwb-button @click="applyFavoriteFiltersManually" color="default" size="sm" class="flex-1 bg-accent text-white hover:bg-hover">Применить</fwb-button> -->
+                                <fwb-button @click="clearFavoriteFilters" color="light" size="sm" :class="{ 'opacity-50': !hasFavoriteFilters }" :disabled="!hasFavoriteFilters" class="bg-light flex-1  text-brand border border-accent hover:bg-hover/10">Сбросить</fwb-button>
                             </div>
                         </div>
                         
@@ -615,7 +615,7 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
                             <fwb-select v-model="favoriteSelectedCategory" :options="favoriteAllCategories" placeholder="Категория" size="sm" />
                             <fwb-select v-model="favoriteSelectedDateRealise" :options="favoriteDateRealiseOptions" placeholder="Срок реализации" size="sm" />
-                            <fwb-select v-model="favoriteSelectedIndustry" :options="favoriteIndustries" placeholder="Отрасль" size="sm" />
+                            <fwb-select v-model="favoriteSelectedIndustry" :options="favoriteIndustries" placeholder="Деятельность" size="sm" />
                             <fwb-select v-model="favoriteSelectedOwnership" :options="favoriteOwnerships" placeholder="Собственность" size="sm" />
                         </div>
 
@@ -646,7 +646,7 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                                 <button @click="favoriteJobsFrom = ''; favoriteJobsFromInput = ''" class="hover:text-accent">×</button>
                             </span>
                             <span v-if="favoriteSelectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
-                                Отрасль: {{ favoriteSelectedIndustry }}
+                                Деятельность: {{ favoriteSelectedIndustry }}
                                 <button @click="favoriteSelectedIndustry = ''" class="hover:text-accent">×</button>
                             </span>
                             <span v-if="favoriteSelectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
@@ -678,8 +678,8 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                         <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
                             <div class="flex-1 w-full"><SearchInput v-model="myProjectsSearchQuery" placeholder="Поиск по названию или адресу..." class="w-full" /></div>
                             <div class="flex h-[45px] gap-2 w-full sm:w-auto">
-                                <fwb-button @click="applyMyProjectsFiltersManually" color="default" size="sm" class="bg-accent text-white hover:bg-hover">Применить</fwb-button>
-                                <fwb-button @click="clearMyProjectsFilters" color="light" size="sm" :class="{ 'opacity-50': !hasMyProjectsFilters }" :disabled="!hasMyProjectsFilters" class="bg-light text-brand border border-accent hover:bg-hover/10">Сбросить</fwb-button>
+                                <!-- <fwb-button @click="applyMyProjectsFiltersManually" color="default" size="sm" class="bg-accent flex-1 text-white hover:bg-hover">Применить</fwb-button> -->
+                                <fwb-button @click="clearMyProjectsFilters" color="light" size="sm" :class="{ 'opacity-50': !hasMyProjectsFilters }" :disabled="!hasMyProjectsFilters" class="bg-light flex-1 text-brand border border-accent hover:bg-hover/10">Сбросить</fwb-button>
                             </div>
                         </div>
                         
@@ -692,7 +692,7 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2">
                             <fwb-select v-model="myProjectsSelectedCategory" :options="myProjectsAllCategories" placeholder="Категория" size="sm" />
                             <fwb-select v-model="myProjectsSelectedDateRealise" :options="myProjectsDateRealiseOptions" placeholder="Срок реализации" size="sm" />
-                            <fwb-select v-model="myProjectsSelectedIndustry" :options="myProjectsIndustries" placeholder="Отрасль" size="sm" />
+                            <fwb-select v-model="myProjectsSelectedIndustry" :options="myProjectsIndustries" placeholder="Деятельность" size="sm" />
                             <fwb-select v-model="myProjectsSelectedOwnership" :options="myProjectsOwnerships" placeholder="Собственность" size="sm" />
                             <fwb-select v-model="myProjectsSelectedStatus" :options="myProjectsStatusOptions" placeholder="Статус" size="sm" />
                         </div>
@@ -728,7 +728,7 @@ watch(myProjectsSelectedStatus, handleMyProjectsFilterChange);
                                 <button @click="myProjectsJobsFrom = ''; myProjectsJobsFromInput = ''" class="hover:text-accent">×</button>
                             </span>
                             <span v-if="myProjectsSelectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">
-                                Отрасль: {{ myProjectsSelectedIndustry }}
+                                Деятельность: {{ myProjectsSelectedIndustry }}
                                 <button @click="myProjectsSelectedIndustry = ''" class="hover:text-accent">×</button>
                             </span>
                             <span v-if="myProjectsSelectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }">

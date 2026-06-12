@@ -7,7 +7,6 @@ import TextInput from '@/Components/TextInput.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import TitlePage from '@/Layouts/TitlePage.vue';
-
 // ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
 const colors = {
     page: 'var(--color-page)',
@@ -132,6 +131,8 @@ const submit = () => {
     
     form.post(route('projects.store'), {
         forceFormData: true,
+        preserveState: true,
+        preserveScroll: true,
         onSuccess: () => {
             form.reset();
             categories.value = [''];
@@ -139,8 +140,11 @@ const submit = () => {
             revenues.value = [{ year: 1, amount: '' }];
             yearlyExpenses.value = [{ year: 1, amount: '' }];
             photoPreviews.value = [];
+            localGeoHint.value = '';
         },
-        onError: (errors) => { console.log('Ошибки валидации:', errors); }
+        onError: (errors) => {
+            console.log('Ошибки валидации:', errors);
+        }
     });
 };
 </script>
@@ -167,13 +171,13 @@ const submit = () => {
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div>
                             <InputLabel for="name" value="Название проекта *" class="mb-2" :style="{ color: colors.brand }" />
-                            <TextInput id="name" type="text" class="block w-full rounded-lg" v-model="form.name" required placeholder="Введите название проекта" />
+                            <TextInput id="name" type="text" class="block w-full rounded-lg" v-model="form.name" placeholder="Введите название проекта" />
                             <InputError class="mt-2" :message="form.errors.name" role="alert" />
                         </div>
                         
                         <div>
                             <InputLabel for="shotr_descr" value="Короткое описание *" class="mb-2" :style="{ color: colors.brand }" />
-                            <TextInput id="shotr_descr" type="text" class="block w-full rounded-lg" v-model="form.shotr_descr" required placeholder="Краткое описание проекта" />
+                            <TextInput id="shotr_descr" type="text" class="block w-full rounded-lg" v-model="form.shotr_descr" placeholder="Краткое описание проекта" />
                             <InputError class="mt-2" :message="form.errors.shotr_descr" role="alert" />
                         </div>
                         <div class="lg:col-span-2">
@@ -187,8 +191,7 @@ const submit = () => {
                                     color: colors.brand,
                                     transition: transitions.normal
                                 }"
-                                v-model="form.full_descr" 
-                                required 
+                                v-model="form.full_descr"  
                                 placeholder="Подробное описание проекта..."
                             ></textarea>
                             <InputError class="mt-2" :message="form.errors.full_descr" role="alert" />
@@ -257,20 +260,22 @@ const submit = () => {
                             <InputError class="mt-2" :message="form.errors.type_building" role="alert" />
                         </div>
                         <div class="md:col-span-2 lg:col-span-3">
-                            <InputLabel for="addres" value="Адрес" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="addres" value="Адрес *" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="addres" type="text" class="block w-full rounded-lg" v-model="form.addres" placeholder="Адрес проекта" />
                             <InputError class="mt-2" :message="form.errors.addres" role="alert" />
                         </div>
                         <div>
-                            <InputLabel for="latitude" value="Широта" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="latitude" value="Широта *" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="latitude" type="text" class="block w-full rounded-lg" v-model="form.latitude" placeholder="55.7558" />
                             <InputError class="mt-2" :message="form.errors.latitude" role="alert" />
                         </div>
                         <div>
-                            <InputLabel for="longitude" value="Долгота" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="longitude" value="Долгота *" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="longitude" type="text" class="block w-full rounded-lg" v-model="form.longitude" placeholder="37.6173" />
                             <InputError class="mt-2" :message="form.errors.longitude" role="alert" />
                         </div>
+                        <InputError class="mt-2" :message="form.errors.coordinates" role="alert" ></InputError>
+
                     </div>
                 </div>
                 
@@ -283,7 +288,7 @@ const submit = () => {
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                         <div>
-                            <InputLabel for="total_investment" value="Требуемая сумма (₽)" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="total_investment" value="Требуемая сумма (₽) *" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="total_investment" type="number" class="block w-full rounded-lg" v-model="form.total_investment" placeholder="1000000" />
                             <InputError class="mt-2" :message="form.errors.total_investment" role="alert" />
                         </div>
@@ -293,12 +298,12 @@ const submit = () => {
                             <InputError class="mt-2" :message="form.errors.collected_total_investment" role="alert" />
                         </div>
                         <div>
-                            <InputLabel for="number_date_realise" value="Срок реализации (мес.)" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="number_date_realise" value="Срок реализации (мес.) *" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="number_date_realise" type="number" class="block w-full rounded-lg" v-model="form.number_date_realise" placeholder="24" />
                             <InputError class="mt-2" :message="form.errors.number_date_realise" role="alert" />
                         </div>
                         <div>
-                            <InputLabel for="count_new_job" value="Рабочих мест" class="mb-2" :style="{ color: colors.brand }" />
+                            <InputLabel for="count_new_job" value="Рабочих мест *" class="mb-2" :style="{ color: colors.brand }" />
                             <TextInput id="count_new_job" type="number" class="block w-full rounded-lg" v-model="form.count_new_job" placeholder="10" />
                             <InputError class="mt-2" :message="form.errors.count_new_job" role="alert" />
                         </div>

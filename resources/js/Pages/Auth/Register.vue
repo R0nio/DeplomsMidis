@@ -226,6 +226,7 @@ const roleOptions = [
                         <TextInput
                             id="login"
                             type="text"
+                            placeholder="Логин"
                             class="mt-1 block w-full"
                             v-model="form.login"
                             required

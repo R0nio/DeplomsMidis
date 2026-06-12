@@ -115,7 +115,7 @@ onMounted(() => {
                                     <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">Мои проекты</NavLink>
                                 </template>
                                 <template v-if="$page.props.auth.user.role === 'Investor'">
-                                    <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">Избранное</NavLink>
+                                    <NavLink :href="route('profile.edit')" :active="route().current('profile.edit')">Избранные</NavLink>
                                 </template>
                             </template>
                         </div>
@@ -227,19 +227,19 @@ onMounted(() => {
                             </div>
                             <div v-if="$page.props.auth.user.role === 'Investor'">
                                 <ResponsiveNavLink :href="route('profile.edit')" :active="route().current('profile.edit')" @click="closeMobileMenu">
-                                    Избранное
+                                    Избранные
                                 </ResponsiveNavLink>
                             </div>
                             
-                            <div class="border-t pt-3 mt-3" :style="{ borderTopColor: colors.accent }">
+                            <div class="border-t-2 pt-3 mt-3" :style="{ borderTopColor: colors.accent }">
                                 <div class="px-4 py-2 mb-2">
                                     <div class="font-medium" :style="{ color: colors.white }">{{ $page.props.auth.user.name }} {{ $page.props.auth.user.lastname }}</div>
                                     <div class="text-sm" :style="{ color: colors.white70 }">{{ $page.props.auth.user.role === 'Investor' ? 'Инвестор' : ($page.props.auth.user.role === 'Organisator' ? 'Инициатор' : 'Администратор') }}</div>
                                 </div>
-                                <ResponsiveNavLink class="mb-3" :href="route('profile.edit')" @click="closeMobileMenu">
+                                <ResponsiveNavLink class="mb-3 border-2 border-white text-center" :href="route('profile.edit')" @click="closeMobileMenu">
                                     Личный кабинет
                                 </ResponsiveNavLink>
-                                <ResponsiveNavLink :href="route('logout')" method="post" as="button" @click="closeMobileMenu">
+                                <ResponsiveNavLink class="border-2 border-white text-center" :href="route('logout')" method="post" as="button" @click="closeMobileMenu">
                                     Выйти
                                 </ResponsiveNavLink>
                             </div>
@@ -295,7 +295,7 @@ onMounted(() => {
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-8 text-center lg:text-left">
                                 <!-- Навигация -->
                                 <div tabindex="0" role="region" aria-label="Навигация по сайту" class="focus:outline-none rounded-lg p-1">
-                                    <h3 class="font-heading font-semibold mb-4 text-lg" :style="{ color: colors.accent, fontFamily: fonts.heading }">Навигация</h3>
+                                    <h3 class="font-heading font-semibold mb-4 text-lg" :style="{ color: colors.surface, fontFamily: fonts.heading }">Навигация</h3>
                                     <ul class="space-y-3" aria-label="Разделы сайта">
                                         <li><Link :href="route('dashboard')" class="transition-colors text-base focus:outline-none rounded-md px-1" :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Главная</Link></li>
                                         <li><Link :href="route('projects')" class="transition-colors text-base focus:outline-none rounded-md px-1" :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Проекты</Link></li>
@@ -305,12 +305,11 @@ onMounted(() => {
 
                                 <!-- Для пользователей -->
                                 <div tabindex="0" role="region" aria-label="Пользовательское меню" class="focus:outline-none rounded-lg p-1">
-                                    <h3 class="font-heading font-semibold mb-4 text-lg" :style="{ color: colors.accent, fontFamily: fonts.heading }">Для пользователей</h3>
+                                    <h3 class="font-heading font-semibold mb-4 text-lg" :style="{ color: colors.surface, fontFamily: fonts.heading }">Для пользователей</h3>
                                     <ul class="space-y-3" aria-label="Пользовательское меню">
                                         <template v-if="$page.props.auth && $page.props.auth.user">
                                             <li><Link :href="route('profile.edit')" class="transition-colors text-base focus:outline-none rounded-md px-1" :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Личный кабинет</Link></li>
-                                            <li v-if="$page.props.auth.user.role === 'Organisator'"><Link :href="route('create')" class="transition-colors text-base focus:outline-none rounded-md px-1" :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Создать проект</Link></li>
-                                            <li><Link :href="route('logout')" method="post" as="button" class="transition-colors text-base focus:outline-none rounded-md px-1 w-full text-left" :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Выйти</Link></li>
+                                            <li><Link :href="route('logout')" method="post" as="button" class="transition-colors text-base focus:outline-none rounded-md px-1 " :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Выйти</Link></li>
                                         </template>
                                         <template v-else>
                                             <li><Link :href="route('login')" class="transition-colors text-base focus:outline-none rounded-md px-1" :style="{ color: colors.white70 }" @mouseenter="$event.target.style.color = colors.accent" @mouseleave="$event.target.style.color = colors.white70" tabindex="0">Войти</Link></li>
@@ -321,7 +320,7 @@ onMounted(() => {
 
                                 <!-- Контакты -->
                                 <div tabindex="0" role="region" aria-label="Контактная информация" class="focus:outline-none rounded-lg p-1">
-                                    <h3 class="font-heading font-semibold mb-4 text-lg" :style="{ color: colors.accent, fontFamily: fonts.heading }">Контакты</h3>
+                                    <h3 class="font-heading font-semibold mb-4 text-lg" :style="{ color: colors.surface, fontFamily: fonts.heading }">Контакты</h3>
                                     <ul class="space-y-3" aria-label="Контактная информация">
                                         <li class="text-base focus:outline-none rounded-md px-1" :style="{ color: colors.white70 }" tabindex="0">
                                             <span class="sr-only">Email:</span>

@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Middleware\OrganisatorMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -40,28 +41,24 @@ Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('pro
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
 
-    Route::get('/create', function(){
-    return Inertia::render('CreateProject');
-    })->name('create');
-
-
-    Route::post('create', [ProjectController::class, 'store'])->name('projects.store');
-
     Route::post('/favorites/toggle/{project}', [FavoriteController::class, 'toggle'])
     ->name('favorites.toggle')
     ->middleware(['auth']);
 
     Route::post('/favorites/{project}/toggle', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
-
-
+});
+Route::middleware(['auth', OrganisatorMiddleware::class])->group(function(){
     Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
     Route::patch('/projects/{project}/update', [ProjectController::class, 'update'])->name('projects.update');
-});
+    
+    Route::get('/create', function(){
+    return Inertia::render('CreateProject');
+    })->name('create');
 
+    Route::post('create', [ProjectController::class, 'store'])->name('projects.store');
+});
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::patch('/projects/{project}/status', [AdminProjectController::class, 'updateStatus'])
         ->name('projects.update-status');
 });
-
-
 require __DIR__.'/auth.php';

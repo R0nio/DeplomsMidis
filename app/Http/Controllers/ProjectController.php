@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use App\Rules\PointInChelyabinskOblast;
 
 class ProjectController extends Controller
 {
@@ -70,47 +71,7 @@ class ProjectController extends Controller
 
     public function store(StoreProjectRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'min:3', 'max:255'],
-            'shotr_descr' => ['required', 'string', 'min:5', 'max:500'],
-            'full_descr' => ['required', 'string', 'min:10', 'max:10000'],
-
-            'categories' => ['nullable', 'array', 'max:4'],
-            'categories.*' => ['nullable', 'string', 'max:100'],
-
-            'ownShip' => ['nullable', 'string', 'max:255'],
-            'activity' => ['nullable', 'string', 'max:255'],
-            'type_building' => ['nullable', 'string', 'max:255'],
-            'addres' => ['required', 'string', 'max:500'],
-
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-
-            'total_investment' => ['required', 'numeric', 'min:0'],
-            'number_date_realise' => ['required', 'integer', 'min:1', 'max:1200'],
-            'count_new_job' => ['required', 'integer', 'min:0'],
-            'collected_total_investment' => ['nullable', 'numeric', 'min:0'],
-
-            'expenses' => ['nullable', 'array'],
-            'expenses.*.item_name' => ['required_with:expenses.*.amount', 'string', 'max:255'],
-            'expenses.*.amount' => ['required_with:expenses.*.item_name', 'numeric', 'min:0'],
-
-            // Вот твои реальные поля
-            'revenues' => ['nullable', 'array'],
-            'revenues.*.year' => ['required_with:revenues.*.amount', 'integer', 'min:1', 'max:100'],
-            'revenues.*.amount' => ['required_with:revenues.*.year', 'numeric', 'min:0'],
-
-            'yearly_expenses' => ['nullable', 'array'],
-            'yearly_expenses.*.year' => ['required_with:yearly_expenses.*.amount', 'integer', 'min:1', 'max:100'],
-            'yearly_expenses.*.amount' => ['required_with:yearly_expenses.*.year', 'numeric', 'min:0'],
-
-            'fotos' => ['nullable', 'array', 'max:20'],
-            'fotos.*' => ['required', 'file', 'mimes:jpg,jpeg,png,webp'],
-        ], [
-            'fotos.*.mimes' => 'Разрешены только jpg, jpeg, png, webp.',
-            'fotos.*.max' => 'Каждое фото не больше 5MB.',
-            'fotos.*.file' => 'Некорректный файл.',
-        ]);
+        $validated = $request->validated();
 
         try {
             DB::beginTransaction();
@@ -192,38 +153,7 @@ class ProjectController extends Controller
         }
     }
 
-    private function parseForecastSeries($raw): array
-    {
-        if (empty($raw)) {
-            return [];
-        }
 
-        $decoded = $raw;
-
-        if (is_string($raw)) {
-            $decoded = json_decode($raw, true);
-        }
-
-        if (!is_array($decoded)) {
-            return [];
-        }
-
-        $result = [];
-        foreach ($decoded as $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            $year = isset($row['year']) ? (int) $row['year'] : null;
-            $amount = isset($row['amount']) ? (float) $row['amount'] : null;
-
-            if ($year && $year > 0 && $amount !== null && $amount >= 0) {
-                $result[$year] = $amount;
-            }
-        }
-
-        return $result;
-    }
 
     public function show(Project $project)
     {

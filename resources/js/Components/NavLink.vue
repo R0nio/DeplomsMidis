@@ -26,9 +26,9 @@ const props = defineProps({
 
 const classes = computed(() => {
     if (props.active) {
-        return `inline-flex items-center justify-center px-3 py-3 rounded-xl max-sm:p-2 max-sm:w-full h-12 w-max font-medium leading-5 transition-all duration-300 bg-brand/50 text-white/80 border-2 border-brand`;
+        return `inline-flex items-center justify-center px-1 py-3 rounded-xl max-sm:p-2 max-sm:w-full h-12 w-max font-medium leading-5 transition-all duration-300 bg-brand/50 text-white/80 border-2 border-brand`;
     }
-    return `inline-flex items-center justify-center px-3 py-3 rounded-xl max-sm:p-2 max-sm:w-full w-max h-12 font-normal leading-5 transition-all duration-300 text-white hover:text-accent border-2 border-transparent hover:border-hover/30`;
+    return `inline-flex items-center justify-center px-1 py-3 rounded-xl max-sm:p-2 max-sm:w-full w-max h-12 font-normal leading-5 transition-all duration-300 text-white hover:text-accent border-2 border-transparent hover:border-hover`;
 });
 </script>
 

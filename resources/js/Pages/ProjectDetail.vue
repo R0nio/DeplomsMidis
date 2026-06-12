@@ -1,33 +1,20 @@
 <script setup>
-import { ref, computed, reactive, watch } from 'vue';
+import { ref, computed, reactive, watch, onMounted } from 'vue';
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head, usePage, router } from "@inertiajs/vue3";
 import { GoogleMap, Marker, CustomMarker, Polygon } from "vue3-google-map";
 import SliderInDetailPage from "@/Components/Main/SliderInDetailPage.vue";
 import axios from 'axios';
 import chelyabinskOblastGeoJson from "../../../public/geo/chelyabinsk-oblast.json";
-import {
-  MapPin,
-  Calendar,
-  RussianRuble,
-  Users,
-  Building,
-  Hammer,
-  Briefcase,
-  Mail,
-  Phone,
-  TrendingUp,
-  ArrowLeft,
-  X,
-  Edit2
-} from 'lucide-vue-next';
+import { MapPin, Calendar, RussianRuble, Users, Building, Hammer, Briefcase,
+         Mail, Phone, TrendingUp, ArrowLeft, X, Edit2 } from 'lucide-vue-next';
 // Images
 import sliderFallback from "../../images/LogoInvestProject.png";
 import FavoriteIcon from "../../images/Favorite.png";
 import FavoriteActiveIcon from "../../images/FavoriteActivity.png";
 import defaultImage from "../../images/LogoInvestProject.png";
 
-// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА (из глобальных переменных) =====
+// ===== ЦВЕТА И СТИЛИ КОМПОНЕНТА =====
 const colors = {
     brand: 'var(--color-brand)',
     brandDark: 'var(--color-brand-dark)',
@@ -379,10 +366,6 @@ const closeMarker = () => {
     selectedProjectId.value = null;
 };
 
-const goToProject = (id) => {
-    router.visit(route('projects.show', id));
-};
-
 const goBack = () => {
     router.visit('/projects');
 };
@@ -409,6 +392,13 @@ const buildRedPinIcon = (active = false) => {
         anchor: { x: size / 2, y: size - 2 },
     };
 };
+
+onMounted(() => {
+    window.scrollTo({
+        top: 0,
+        behavior: 'instant'
+    });
+});
 </script>
 
 <template>

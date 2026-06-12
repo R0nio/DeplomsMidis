@@ -14,11 +14,11 @@ class AdminMiddleware
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Доступ запрещен'
-                ], 403);
+                    'message' => 'Не найдено'
+                ], 404);
             }
             
-            abort(403, 'Доступ запрещен');
+            abort(404, 'Не найдено');
         }
 
         return $next($request);

@@ -588,7 +588,7 @@ onUnmounted(() => {
 .accessibility-wrapper {
     position: relative;
     display: inline-block;
-    font-size: 1rem;
+    font-size: 1.25rem;
 }
 
 .accessibility-btn {
@@ -602,7 +602,7 @@ onUnmounted(() => {
     color: var(--color-white);
     cursor: pointer;
     transition: all var(--transition-slow);
-    font-size: 0.875rem;
+    font-size: 1rem;
 }
 
 .accessibility-btn:hover {
@@ -613,7 +613,7 @@ onUnmounted(() => {
 
 .accessibility-btn.active {
     background: var(--color-accent);
-    color: var(--color-brand);
+    color: var(--color-white);
 }
 
 .btn-arrow {
@@ -649,6 +649,8 @@ onUnmounted(() => {
     z-index: 1000;
     box-shadow: var(--shadow-lg);
     font-size: 1rem;
+        max-height: 80vh;  /* ← добавляем максимальную высоту */
+    overflow-y: auto;  /* ← скролл внутри панели */
 }
 
 .panel-header {
@@ -768,7 +770,7 @@ onUnmounted(() => {
 
 .line-btn.active, .letter-btn.active, .color-btn.active {
     background: var(--color-accent);
-    color: var(--color-brand);
+    color: var(--color-white);
     border-color: var(--color-accent);
 }
 

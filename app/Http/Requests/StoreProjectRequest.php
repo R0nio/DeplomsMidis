@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\LatitudeInChelyabinskOblast;
+use App\Rules\LongitudeInChelyabinskOblast;
+use App\Rules\PointInChelyabinskOblast;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -29,9 +32,9 @@ class StoreProjectRequest extends FormRequest
             'activity' => ['nullable', 'string', 'max:255'],
             'type_building' => ['nullable', 'string', 'max:255'],
             'addres' => ['required', 'string', 'max:500'],
-            'latitude' => ['required', 'numeric', 'between:-90,90'],
-            'longitude' => ['required', 'numeric', 'between:-180,180'],
-
+            'latitude' => ['required', 'numeric', 'between:-90,90', new LatitudeInChelyabinskOblast],
+            'longitude' => ['required', 'numeric', 'between:-180,180', new LongitudeInChelyabinskOblast],
+            
             'total_investment' => ['required', 'numeric', 'min:0'],
             'number_date_realise' => ['required', 'integer', 'min:1', 'max:1200'],
             'count_new_job' => ['required', 'integer', 'min:0'],

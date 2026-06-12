@@ -236,7 +236,7 @@ const findPartiallyMatchingProjects = () => {
 // ==========================================
 const industries = computed(() => {
     const unique = [...new Set(props.projects.map(p => p.activity).filter(Boolean))];
-    return [{ value: '', name: 'Все отрасли' }, ...unique.map(item => ({ value: item, name: item }))];
+    return [{ value: '', name: 'Все деятельности' }, ...unique.map(item => ({ value: item, name: item }))];
 });
 const ownerships = computed(() => {
     const unique = [...new Set(props.projects.map(p => p.ownership).filter(Boolean))];
@@ -407,7 +407,7 @@ const applyFiltersManually = () => {
                             <SearchInput v-model="searchQuery" placeholder="Введите название или адрес проекта..." class="w-full" />
                         </div>
                         <div class="flex gap-2 w-full sm:w-auto">
-                            <fwb-button @click="applyFiltersManually" class="flex-1 sm:flex-none h-[46px] transition-colors" :style="{ backgroundColor: colors.accent, color: colors.white }" @mouseenter="$event.target.style.backgroundColor = colors.hover" @mouseleave="$event.target.style.backgroundColor = colors.accent">Применить</fwb-button>
+                            <!-- <fwb-button @click="applyFiltersManually" class="flex-1 sm:flex-none h-[46px] transition-colors" :style="{ backgroundColor: colors.accent, color: colors.white }" @mouseenter="$event.target.style.backgroundColor = colors.hover" @mouseleave="$event.target.style.backgroundColor = colors.accent">Применить</fwb-button> -->
                             <fwb-button @click="clearFilters" color="light" class="flex-1 sm:flex-none h-[46px] transition-colors" :style="{ backgroundColor: colors.light, color: colors.brand, border: `1px solid ${colors.border}` }" :class="{ 'opacity-50': !hasActiveFilters }" :disabled="!hasActiveFilters">Сбросить</fwb-button>
                         </div>
                     </div>
@@ -424,7 +424,7 @@ const applyFiltersManually = () => {
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
                         <fwb-select v-model="selectedCategory" :options="allCategories" placeholder="Категория" class="w-full" />
                         <fwb-select v-model="selectedDateRealise" :options="dateRealiseOptions" placeholder="Срок реализации" class="w-full" />
-                        <fwb-select v-model="selectedIndustry" :options="industries" placeholder="Отрасль" class="w-full" />
+                        <fwb-select v-model="selectedIndustry" :options="industries" placeholder="Деятельность" class="w-full" />
                         <fwb-select v-model="selectedOwnership" :options="ownerships" placeholder="Собственность" class="w-full" />
                     </div>
 
@@ -471,8 +471,8 @@ const applyFiltersManually = () => {
                             <button @click="jobsFrom = ''; jobsFromInput = ''" class="hover:text-accent transition-colors" aria-label="Удалить фильтр рабочих мест">×</button>
                         </span>
                         <span v-if="selectedIndustry" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }" role="listitem">
-                            Отрасль: {{ selectedIndustry }}
-                            <button @click="selectedIndustry = ''" class="hover:text-accent transition-colors" aria-label="Удалить фильтр отрасли">×</button>
+                            Деятельность: {{ selectedIndustry }}
+                            <button @click="selectedIndustry = ''" class="hover:text-accent transition-colors" aria-label="Удалить фильтр деятельности">×</button>
                         </span>
                         <span v-if="selectedOwnership" class="px-3 py-1 rounded-full text-sm flex items-center gap-2" :style="{ backgroundColor: colors.brand, color: colors.white, border: `1px solid ${colors.accent}` }" role="listitem">
                             Собственность: {{ selectedOwnership }}
